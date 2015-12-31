@@ -19,4 +19,3 @@ summary.seqs(fasta=eDNA.trim.contigs.good.unique.good.filter.unique.precluster.f
 chimera.uchime(fasta=eDNA.trim.contigs.good.unique.good.filter.unique.precluster.fasta, reference=silva.gold.align, processors=8)
 remove.seqs(fasta=eDNA.trim.contigs.good.unique.good.filter.unique.precluster.fasta, count=eDNA.trim.contigs.good.unique.good.filter.unique.precluster.count_table, accnos=eDNA.trim.contigs.good.unique.good.filter.unique.precluster.ref.uchime.accnos)
 summary.seqs(fasta=eDNA.trim.contigs.good.unique.good.filter.unique.precluster.pick.fasta, count=eDNA.trim.contigs.good.unique.good.filter.unique.precluster.pick.count_table, processors=8)
-
