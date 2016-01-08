@@ -12,4 +12,3 @@ system(cp ./eDNA.trim.contigs.good.unique.good.filter.unique.precluster.pick.pic
 system(cp ./eDNA.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.pick.an.unique_list.0.03.cons.tax.summary ./eDNA.bac.final.0.03.tax.summary)
 system(cp ./eDNA.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.0.05.cons.taxonomy ./eDNA.bac.final.0.05.taxonomy)
 system(cp ./eDNA.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.0.05.cons.tax.summary ./eDNA.bac.final.0.05.tax.summary)
-
