@@ -13,4 +13,3 @@ module load gcc/4.9.2
 module load mothur/1.36.1
 mothur "#pcr.seqs(fasta=silva.nr_v119.align, start=11894, end=25319, keepdots=F, processors=1)"
 mv silva.nr_v119.pcr.align silva.v4.fasta
-
