@@ -7,4 +7,4 @@
 cd /N/dc2/projects/Lennon_Sequences/2016_eDNA2
 module load gcc/4.9.2
 module load mothur/1.36.1
-mothur eDNA.Bacteria.416.Batch
+mothur eDNA.Bacteria.part1.416.Batch
