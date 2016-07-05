@@ -1,0 +1,86 @@
+---
+title: "eDNA"
+author: "Jay T Lennon"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+header-includes:
+  - \usepackage{array}
+output: pdf_document
+geometry: margin=2.54cm
+---
+
+Analysis of quantitative PCR data to test whether the abundance of bacterial communities is affected by extracellular DNA
+
+# Setup Work Environment 
+```{r}
+rm(list=ls())
+getwd()
+setwd("~/GitHub/eDNA")
+require("plyr")
+```
+
+# Load data and calcualte corrected copy number
+```{r}
+eDNA.raw <- read.table("data/eDNA_qPCR.txt", sep = "\t", header = T)
+
+# correct for dilutions
+copies.corr <- eDNA.raw[,7] * eDNA.raw[,8] * (eDNA.raw[,9]/eDNA.raw[,10])
+
+# make new dataframe with corrected copy numbers
+eDNA.corr <- data.frame(eDNA.raw, copies.corr)
+```
+
+# Take mean of technical replicates and sort
+```{r}
+# use `aggregate` to return means of technical reps for each sample
+eDNA <- aggregate(eDNA.corr$copies.corr ~ eDNA.corr$sample + eDNA.corr$sample_name + eDNA.corr$env + eDNA.corr$treat, eDNA.corr, mean)
+
+# sort by sample number
+eDNA <- eDNA[order(eDNA[,1]) ,]
+
+# rename columns
+colnames(eDNA) <- c("sample.number", "sample.name", "env", "treat", "copy.number")
+```
+
+# Calculate proportion of degradable DNA per sample and test differences
+```{r}
+# use `ddply` to return the DNase-1 degradable proportion of 16S rRNA gene copy
+eDNA.prop <- ddply(eDNA, .(sample.name, env), summarize, prop = 1 - ((copy.number[treat == "E"]) / (copy.number[treat == "C"])))
+
+# glm to test whether amount of eDNA differs among environments
+eDNA.prop.test <- lm(prop ~ env, data = eDNA.prop)
+summary(eDNA.prop.test)
+
+# calculate means and SEMs by enviroment
+eDNA.mean <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, mean)
+
+sem <- function(x, ...){sd(x, ...)/sqrt(length(na.omit(x)))}
+
+eDNA.sem <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, sem)
+
+# make table of proportion eDNA by environment
+eDNA.table <- data.frame(eDNA.mean, eDNA.sem[,2])
+colnames(eDNA.table) <- c("env", "mean", "sem")
+eDNA.table <- eDNA.table[order(eDNA.table[,2]) ,]
+```
+
+# Make bot plot with error bars by environment
+```{r}
+png(filename="figures/qPCR.png",
+    width = 800, height = 800, res = 96*2)
+plot.new()
+par(lwd = 2)
+bp <- barplot(eDNA.table$mean, ylim =c(0, 0.6), 
+              pch = 15, cex = 1.25, las = 1, cex.lab = 1.25, cex.axis = 1, 
+              col = "white", axis.lty = 1, lwd = 2, xlab = NA, 
+              ylab = "Proportion eDNA",
+              names.arg = c("Gut", "Soil", "Sediment", "Water"), cex.names = 0.9)
+              box(lwd = 2)
+arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean - eDNA.table$sem, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean + eDNA.table$sem, angle = 90,
+       length=0.1, lwd = 2)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+```

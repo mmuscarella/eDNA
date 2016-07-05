@@ -25,7 +25,7 @@ source("./bin/MothurTools.R")
   # shared.phylo = OTU table from mothur using phylotypes (Silva Database)
   # tax          = Taxonomy for 97% similarity OTUs
   # tax.phylo    = Taxonomy for genus level phylotype OTUs
-design       <- "./data/Ponds_Design.txt"
+design       <- "./data/eDNA_Design.txt"
 shared       <- "./mothur/output/Pond_all.final.an.shared"
 shared.phylo <- "./mothur/output/Pond_all.final.FW.tx.shared"
 tax          <- "./mothur/output/Pond_all.final.an.0.03.cons.taxonomy"
