@@ -1,0 +1,190 @@
+---
+title: "eDNA"
+author: "Jay T Lennon"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+header-includes:
+  - \usepackage{array}
+output: pdf_document
+geometry: margin=2.54cm
+---
+
+Analysis of community sequence data to test whether the structure and composition of bacterial communities is affected by extracellular DNA
+
+# Setup Work Environment 
+```{r}
+rm(list=ls())
+getwd()
+setwd("~/GitHub/eDNA")
+require("vegan")
+require("plyr")
+source("./bin/DiversityFunctions.R")
+source("./bin/MothurTools.R")
+sem <- function(x, ...){sd(x, ...)/sqrt(length(na.omit(x)))}
+
+# Define Inputs
+  # Design       = general design file for experiment
+  # shared       = OTU table from mothur with sequence similarity clustering
+  # tax          = Taxonomy for 97% similarity OTUs
+design       <- "./data/eDNA_Design.txt"
+shared       <- "./mothur/output/eDNA.bac.final.shared"
+tax          <- "./mothur/output/eDNA.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.0.03.cons.taxonomy"
+```
+
+# Import Design
+```{r}
+design <- read.delim(design, header=T, row.names=1)
+```
+
+# Import Shared Files
+```{r}
+OTU <- read.otu(shared = shared, cutoff = "0.03")
+```
+
+# Remove OTUs with less than two occurences across all sites
+```{r}
+OTU <- OTU[, which(colSums(OTU) >= 2)]
+```
+
+# Coverage Stats
+```{r}
+cov.seqs <- count.groups(OTU)
+cov.min <- min(cov.seqs) # 31,475
+total.seqs <- sum(cov.seqs) # 12,916,632
+```
+
+# Alpha diversity
+```{r}
+# Use Mario's resampling to estimate alpha diversity in a sample (long)
+rich <- round(richness.iter(input = OTU, size = 30000,
+              iters = 1000, shared="FALSE"), 3)
+even <- round(evenness.iter(input = OTU, size = 30000,
+              iters = 1000, shared="FALSE", method="simp_even"), 3)
+
+# Write output to files
+write.table(rich, "data/rich.txt", sep = "\t", col.names = F, row.names = T)
+write.table(even, "data/even.txt", sep = "\t", col.names = F, row.names = T)
+
+# Merge data to design and calculate mean and sem per sample
+rich.data <- merge(design, rich, by = "row.names")
+rich.mean <- round(apply(rich.data[8:1007], 1, mean, na.rm = TRUE),3)
+rich.sem <- round(apply(rich.data[8:1007], 1, sem, na.rm = TRUE), 3)
+
+even.data <- merge(design, even, by = "row.names")
+even.mean <- round(apply(even.data[8:1007], 1, mean, na.rm = TRUE),3)
+even.sem <- round(apply(even.data[8:1007], 1, sem, na.rm = TRUE),3)
+
+# Make new dataframe merging design file and mean diversity
+eDNA.div <- data.frame(design, rich.mean, even.mean)
+
+# Calculate diversity ratio for DNase response variable
+rich.ratio <- ddply(eDNA.div, .(samp.code, env), summarize, r.ratio = (rich.mean[treat == "C"] / rich.mean[treat == "E"]))
+even.ratio <- ddply(eDNA.div, .(samp.code, env), summarize, e.ratio = (even.mean[treat == "C"] / even.mean[treat == "E"]))
+
+# Richness ratio: table by enviroment
+rich.mean <- aggregate(rich.ratio$r.ratio ~ rich.ratio$env, rich.ratio, mean)
+rich.sem <- aggregate(rich.ratio$r.ratio ~ rich.ratio$env, rich.ratio, sem)
+rich.95 <- aggregate(rich.ratio$r.ratio ~ rich.ratio$env, rich.ratio, FUN = function(x) t.test(x)$conf.int[1:2])
+rich.table <- data.frame(rich.mean, rich.sem[,2], rich.95[,2])
+colnames(rich.table) <- c("env", "mean", "sem", "LCI", "UCI")
+
+# Evenness ratio: table by enviroment
+even.mean <- aggregate(even.ratio$e.ratio ~ even.ratio$env, even.ratio, mean)
+even.sem <- aggregate(even.ratio$e.ratio ~ even.ratio$env, even.ratio, sem)
+even.95 <- aggregate(even.ratio$e.ratio ~ even.ratio$env, even.ratio, FUN = function(x) t.test(x)$conf.int[1:2])
+even.table <- data.frame(even.mean, even.sem[,2], even.95[,2])
+colnames(even.table) <- c("env", "mean", "sem", "LCI", "UCI")
+```
+
+# Richness plot
+```{r}
+png(filename="figures/ratio.richness.png",
+    width = 800, height = 800, res = 96*2)
+
+plot.new()
+rich.plot <- plot(rich.table$mean, ylim = c(-1, 5), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2)
+abline(h = 1, lty = 3, lwd = 2)
+
+mtext(expression('Richness Ratio'), side = 2, 
+      outer = TRUE, cex = 1.5, line = -2, adj = 0.5)
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    labels = c(-1, 0, 1, 2, 3, 4, 5), at = c(-1, 0, 1, 2, 3, 4, 5))
+ 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at=c(-1, 0, 1, 2, 3, 4, 5), labels = F)
+
+axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
+    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
+
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F)
+
+arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+```
+
+# Evenness plot
+```{r}
+png(filename="figures/ratio.evennes.png",
+    width = 800, height = 800, res = 96*2)
+
+plot.new()
+even.plot <- plot(even.table$mean, ylim = c(-1.6, 5), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2)
+abline(h = 1, lty = 3, lwd = 2)
+
+mtext(expression('Evenness Ratio'), side = 2, 
+      outer = TRUE, cex = 1.5, line = -2, adj = 0.5)
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    labels = c(-1, 0, 1, 2, 3, 4, 5), at = c(-1, 0, 1, 2, 3, 4, 5))
+ 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at=c(-1, 0, 1, 2, 3, 4, 5), labels = F)
+
+axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
+    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
+
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F)
+
+arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+```
+
+# Diversity questions
+1) Is alpha diversity (richness and evenness) affected by DNase across enviroments?
+  --> calculate ratios (C / E)
+  --> if ~1.0, then eDNA contributes minimally to diversity
+  --> if >1.0, then eDNA inflates diversity
+  --> conduct one-way anova on ratio across enviroments
+  
+2) Is beta diversity (composition) affected by DNase across enviroments?
+  --> For visual purposes, do PCoA with all 58 samples
+  --> Do samples separates by environment, DNase, both?
+  --> Try with B-C, Jaccard, log transform, etc.
+  --> Test for effect of environment, DNase, and interaction with PERMANOVA
+  
+
+
+
+
