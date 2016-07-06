@@ -22,44 +22,53 @@ require("plyr")
 ```{r}
 eDNA.raw <- read.table("data/eDNA_qPCR.txt", sep = "\t", header = T)
 
-# correct for dilutions
+# Correct for dilutions
 copies.corr <- eDNA.raw[,7] * eDNA.raw[,8] * (eDNA.raw[,9]/eDNA.raw[,10])
 
-# make new dataframe with corrected copy numbers
+# Make new dataframe with corrected copy numbers
 eDNA.corr <- data.frame(eDNA.raw, copies.corr)
 ```
 
 # Take mean of technical replicates and sort
 ```{r}
-# use `aggregate` to return means of technical reps for each sample
+# Use `aggregate` to return means of technical reps for each sample
 eDNA <- aggregate(eDNA.corr$copies.corr ~ eDNA.corr$sample + eDNA.corr$sample_name + eDNA.corr$env + eDNA.corr$treat, eDNA.corr, mean)
 
-# sort by sample number
+# Sort by sample number
 eDNA <- eDNA[order(eDNA[,1]) ,]
 
-# rename columns
+# Rename columns
 colnames(eDNA) <- c("sample.number", "sample.name", "env", "treat", "copy.number")
 ```
 
 # Calculate proportion of degradable DNA per sample and test differences
 ```{r}
-# use `ddply` to return the DNase-1 degradable proportion of 16S rRNA gene copy
-eDNA.prop <- ddply(eDNA, .(sample.name, env), summarize, prop = 1 - ((copy.number[treat == "E"]) / (copy.number[treat == "C"])))
+# Use `ddply` to return the DNase-1 degradable proportion of 16S rRNA gene copy
+eDNA.prop <- ddply(eDNA, .(sample.number, sample.name, env), summarize, prop = 1 - ((copy.number[treat == "E"]) / (copy.number[treat == "C"])))
 
-# glm to test whether amount of eDNA differs among environments
+# Sort by environment
+eDNA.prop <- eDNA.prop[order(eDNA.prop[,3]) ,]
+
+# Remove duplicate T7 soil sample
+eDNA.prop <- eDNA.prop[ ! eDNA.prop$sample.name == "T7Core", ]
+
+# Two samples (cat feces [32] and human feces [28]) have negative proportions
+# Set these to zero
+eDNA.prop$prop <- ifelse(eDNA.prop$prop < 0, 0, eDNA.prop$prop)
+
+# Use glm to test whether amount of eDNA differs among environments
 eDNA.prop.test <- lm(prop ~ env, data = eDNA.prop)
 summary(eDNA.prop.test)
 
-# calculate means and SEMs by enviroment
+# Calculate means, sem, and sample size by enviroment
 eDNA.mean <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, mean)
-
+eDNA.n <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, length)
 sem <- function(x, ...){sd(x, ...)/sqrt(length(na.omit(x)))}
-
 eDNA.sem <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, sem)
 
-# make table of proportion eDNA by environment
-eDNA.table <- data.frame(eDNA.mean, eDNA.sem[,2])
-colnames(eDNA.table) <- c("env", "mean", "sem")
+# Make table of proportion eDNA by environment
+eDNA.table <- data.frame(eDNA.mean, eDNA.sem[,2], eDNA.n[,2])
+colnames(eDNA.table) <- c("env", "mean", "sem", "n")
 eDNA.table <- eDNA.table[order(eDNA.table[,2]) ,]
 ```
 
