@@ -50,7 +50,17 @@ OTU <- OTU[, which(colSums(OTU) >= 2)]
 cov.seqs <- count.groups(OTU)
 cov.min <- min(cov.seqs) # 31,475
 total.seqs <- sum(cov.seqs) # 12,916,632
-#goods.c <- goods(OTU)
+
+# # Good's coverage --> I think function is caculating singletons for entire matrix
+# goods.c <- function(x = ""){
+#   1 - (sum(x == 1) / rowSums(x))
+# }
+# 
+# goods.c.eDNA <- goods.c(OTU)
+# mean.good.c <- mean(goods.c.eDNA)
+# min.good.c <- min(goods.c.eDNA)
+
+# eDNA_57, eDNA_23, eDNA_24 are negative??? Samples have lowest seqs
 ```
 
 # Alpha diversity
@@ -72,7 +82,7 @@ rich.sem <- round(apply(rich.data[8:1007], 1, sem, na.rm = TRUE), 3)
 
 even.data <- merge(design, even, by = "row.names")
 even.mean <- round(apply(even.data[8:1007], 1, mean, na.rm = TRUE),3)
-even.sem <- round(apply(even.data[8:1007], 1, sem, na.rm = TRUE),3)
+even.sem <- round(apply(even.data[8:1007], 1, sem, na.rm = TRUE),3) # returns zeros?
 
 # Make new dataframe merging design file and mean diversity
 eDNA.div <- data.frame(design, rich.mean, even.mean)
@@ -81,14 +91,14 @@ eDNA.div <- data.frame(design, rich.mean, even.mean)
 rich.ratio <- ddply(eDNA.div, .(samp.code, env), summarize, r.ratio = (rich.mean[treat == "C"] / rich.mean[treat == "E"]))
 even.ratio <- ddply(eDNA.div, .(samp.code, env), summarize, e.ratio = (even.mean[treat == "C"] / even.mean[treat == "E"]))
 
-# Richness ratio: table by enviroment
+# Richness ratio: table by enviromentb (does eDNA "inflate" diversity?)
 rich.mean <- aggregate(rich.ratio$r.ratio ~ rich.ratio$env, rich.ratio, mean)
 rich.sem <- aggregate(rich.ratio$r.ratio ~ rich.ratio$env, rich.ratio, sem)
 rich.95 <- aggregate(rich.ratio$r.ratio ~ rich.ratio$env, rich.ratio, FUN = function(x) t.test(x)$conf.int[1:2])
 rich.table <- data.frame(rich.mean, rich.sem[,2], rich.95[,2])
 colnames(rich.table) <- c("env", "mean", "sem", "LCI", "UCI")
 
-# Evenness ratio: table by enviroment
+# Evenness ratio: table by enviroment (does eDNA "inflate" diversity?)
 even.mean <- aggregate(even.ratio$e.ratio ~ even.ratio$env, even.ratio, mean)
 even.sem <- aggregate(even.ratio$e.ratio ~ even.ratio$env, even.ratio, sem)
 even.95 <- aggregate(even.ratio$e.ratio ~ even.ratio$env, even.ratio, FUN = function(x) t.test(x)$conf.int[1:2])
@@ -113,10 +123,10 @@ mtext(expression('Richness Ratio'), side = 2,
       outer = TRUE, cex = 1.5, line = -2, adj = 0.5)
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    labels = c(-1, 0, 1, 2, 3, 4, 5), at = c(-1, 0, 1, 2, 3, 4, 5))
+    labels = c(-1, 1, 3, 5), at = c(-1, 1, 3, 5))
  
 axis(side = 4, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at=c(-1, 0, 1, 2, 3, 4, 5), labels = F)
+    at=c(-1, 1, 3, 5), labels = F)
 
 axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
     labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
@@ -140,7 +150,7 @@ png(filename="figures/ratio.evenness.png",
     width = 800, height = 800, res = 96*2)
 
 plot.new()
-even.plot <- plot(even.table$mean, ylim = c(-1.6, 5), 
+even.plot <- plot(even.table$mean, ylim = c(-3, 7), 
       xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
       cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
       las = 1, ylab = "", xlab = "")
@@ -151,10 +161,10 @@ mtext(expression('Evenness Ratio'), side = 2,
       outer = TRUE, cex = 1.5, line = -2, adj = 0.5)
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    labels = c(-1, 0, 1, 2, 3, 4, 5), at = c(-1, 0, 1, 2, 3, 4, 5))
+    labels = c(-3, -1, 1, 3, 5, 7), at = c(-3, -1, 1, 3, 5, 7))
  
 axis(side = 4, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at=c(-1, 0, 1, 2, 3, 4, 5), labels = F)
+    at=c(-3, -1, 1, 3, 5, 7), labels = F)
 
 axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
     labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
@@ -282,25 +292,20 @@ dev.off()
 graphics.off()
 ```
 
+# PERMANOVA
+```{r}
+eDNA.permanova <- adonis(OTU.REL ~ design$env + design$treat + design$env * design$treat, 
+    strata = design$pair, method = "bray", binary = TRUE)
+```
 
-adonis(OTU.REL ~ design$env + design$treat)
-
-# Diversity questions
-1) Is alpha diversity (richness and evenness) affected by DNase across enviroments?
-  --> calculate ratios (C / E)
-  --> if ~1.0, then eDNA contributes minimally to diversity
-  --> if >1.0, then eDNA inflates diversity
   
-2) Is beta diversity (composition) affected by DNase across enviroments?
-  --> For visual purposes, do PCoA with all 58 samples
-  --> Do samples separates by environment, DNase, both?
-  --> Try with B-C, Jaccard, log transform, etc.
-  --> Test for effect of environment, DNase, and interaction with PERMANOVA (check repeated measure code w/ Zach)
-  --> Does pairwise dissimilarity in composition increase with eDNA content?
+
+  
   
 
 3) Things to look into...
-  --> pair 15 env == soil, but is grouping with sed and has sed in label
-  --> Fec1, Fec4 (perhaps others) may be tech, not bio reps
+
+
+  --> Does pairwise dissimilarity in composition increase with eDNA content?
 
 

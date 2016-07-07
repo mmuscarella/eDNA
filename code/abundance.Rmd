@@ -52,8 +52,8 @@ eDNA.prop <- eDNA.prop[order(eDNA.prop[,3]) ,]
 # Remove duplicate T7 soil sample
 eDNA.prop <- eDNA.prop[ ! eDNA.prop$sample.name == "T7Core", ]
 
-# Two samples (cat feces [32] and human feces [28]) have negative proportions
-# Set these to zero
+# Two samples (cat feces [32], human feces [28], T7Core) have negative proportions
+# Set these to zero (i.e., no eDNA)
 eDNA.prop$prop <- ifelse(eDNA.prop$prop < 0, 0, eDNA.prop$prop)
 
 # Use glm to test whether amount of eDNA differs among environments
@@ -74,7 +74,7 @@ eDNA.table <- eDNA.table[order(eDNA.table[,2]) ,]
 
 # Make bot plot with error bars by environment
 ```{r}
-png(filename="figures/qPCR.png",
+png(filename="figures/qPCR.bar.png",
     width = 800, height = 800, res = 96*2)
 plot.new()
 par(lwd = 2)
@@ -87,6 +87,44 @@ bp <- barplot(eDNA.table$mean, ylim =c(0, 0.6),
 arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean - eDNA.table$sem, angle = 90,
        length = 0.1, lwd = 2)
 arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean + eDNA.table$sem, angle = 90,
+       length=0.1, lwd = 2)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+```
+
+```{r}
+png(filename="figures/qPCR.nonbar.png",
+    width = 800, height = 800, res = 96*2)
+
+plot.new()
+non.bp <- plot(eDNA.table$mean, ylim = c(0, 0.6), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2)
+
+mtext(expression('Proportion eDNA'), side = 2, 
+      outer = TRUE, cex = 1.5, line = -1.5, adj = 0.5)
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1.25, las = 1,
+    labels = c(0.0, 0.2, 0.4, 0.6), at = c(0.0, 0.2, 0.4, 0.6))
+ 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at=c(0.0, 0.2, 0.4, 0.6), labels = F)
+
+axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
+    labels = c("Gut", "Soil", "Sediment", "Water"), at = c(1, 2, 3, 4))
+
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F)
+
+arrows(x0 = c(1, 2, 3, 4), y0 = eDNA.table$mean, y1 = eDNA.table$mean - eDNA.table$sem, angle = 90,
+       length = 0.1, lwd = 2)
+
+arrows(x0 = c(1,2,3,4), y0 = eDNA.table$mean, y1 = eDNA.table$mean + eDNA.table$sem, angle = 90,
        length=0.1, lwd = 2)
 
 # Close Plot Device
