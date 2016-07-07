@@ -50,6 +50,7 @@ OTU <- OTU[, which(colSums(OTU) >= 2)]
 cov.seqs <- count.groups(OTU)
 cov.min <- min(cov.seqs) # 31,475
 total.seqs <- sum(cov.seqs) # 12,916,632
+#goods.c <- goods(OTU)
 ```
 
 # Alpha diversity
@@ -135,7 +136,7 @@ graphics.off()
 
 # Evenness plot
 ```{r}
-png(filename="figures/ratio.evennes.png",
+png(filename="figures/ratio.evenness.png",
     width = 800, height = 800, res = 96*2)
 
 plot.new()
@@ -171,20 +172,135 @@ dev.off()
 graphics.off()
 ```
 
+# Beta diversity
+```{r}
+# Make presence-absence matrix
+OTU.PA <- (OTU > 0) * 1
+
+# Make relative abundence matrix
+OTU.REL <- OTU
+for(i in 1:dim(OTU)[1]){
+  OTU.REL[i,] <- OTU[i,]/sum(OTU[i,])
+  }
+
+# Log-transform relative abundances
+OTU.REL.log <- decostand(OTU, method="log")
+
+eDNA.bc.dis <- vegdist(OTU.REL, method = "bray", binary = "TRUE")
+eDNA.dis.mean <- mean(eDNA.bc.dis)
+
+# Principal Coordinates Analysis (PCoA)
+eDNA.PCoA <- cmdscale(eDNA.bc.dis, eig = TRUE, k = 3) 
+explainvar1 <- round(eDNA.PCoA$eig[1] / sum(eDNA.PCoA$eig), 3) * 100
+explainvar2 <- round(eDNA.PCoA$eig[2] / sum(eDNA.PCoA$eig), 3) * 100
+explainvar3 <- round(eDNA.PCoA$eig[3] / sum(eDNA.PCoA$eig), 3) * 100
+sum.eig <- sum(explainvar1, explainvar2, explainvar3)
+
+# OTU Scores
+otu.scores <- t(cor(eDNA.PCoA$points, OTU.REL))
+otu.scores <- as.matrix(otu.scores)[,1:2]
+otu.scores <- otu.scores[abs(otu.scores[,1]) > 0.7|abs(otu.scores[,2]) > 0.7,]
+
+png(filename="figures/ordination.png",
+    width = 800, height = 800, res = 96*2)
+
+plot.new()
+par(mar = c(4, 5, 1, 1) + 0.5)
+
+plot(eDNA.PCoA$points[ ,1], eDNA.PCoA$points[ ,2], 
+     ylim = c(-0.6, 0.6), xlim = c(-0.6, 0.6), 
+     xlab = paste("PCoA 1 (", explainvar1, "%)", sep = ""),
+     ylab = paste("PCoA 2 (", explainvar2, "%)", sep = ""),
+     #xlab = "", ylab = "", xaxt = "n", yaxt = "n",
+     pch = 22, cex = 2.0, type = "n", cex.lab = 1.5, cex.axis = 1, 
+     axes = FALSE)
+
+# Add Axes
+axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 1.25, las = 1)
+axis(side = 2, labels = T, lwd.ticks = 2, cex.axis = 1.25, las = 1)
+axis(side = 3, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=-0.02)
+axis(side = 4, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=-0.02)
+axis(side = 1, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
+axis(side = 2, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
+axis(side = 3, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
+axis(side = 4, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
+abline(h = 0, v = 0, lty = 3)
+box(lwd = 2)
+
+# Subset data
+eDNA.div.sort <- eDNA.div[order(eDNA.div[,1]) ,]
+eDNA.points <- data.frame(eDNA.PCoA$points, eDNA.div.sort)
+
+# Gut
+eDNA.gut.C <- eDNA.points[ which(eDNA.points$env == "feces" & eDNA.points$treat == "C"), ]
+eDNA.gut.E <- eDNA.points[ which(eDNA.points$env == "feces" & eDNA.points$treat == "E"), ]
+
+# Sed
+eDNA.sed.C <- eDNA.points[ which(eDNA.points$env == "sed" & eDNA.points$treat == "C"), ]
+eDNA.sed.E <- eDNA.points[ which(eDNA.points$env == "sed" & eDNA.points$treat == "E"), ]
+
+# Soil
+eDNA.soil.C <- eDNA.points[ which(eDNA.points$env == "soil" & eDNA.points$treat == "C"), ]
+eDNA.soil.E <- eDNA.points[ which(eDNA.points$env == "soil" & eDNA.points$treat == "E"), ]
+
+# Water
+eDNA.water.C <- eDNA.points[ which(eDNA.points$env == "water" & eDNA.points$treat == "C"), ]
+eDNA.water.E <- eDNA.points[ which(eDNA.points$env == "water" & eDNA.points$treat == "E"), ]
+
+# Add points
+
+  # Gut C
+points(eDNA.gut.C[ ,1], eDNA.gut.C[ ,2], pch = 21, 
+       cex = 2, col = "red", bg = "white", lwd = 2) 
+  # Gut E
+points(eDNA.gut.E[ ,1], eDNA.gut.E[ ,2], pch = 21, 
+       cex = 2, col = "red", bg = "red", lwd = 2)   
+
+  # Sed C
+points(eDNA.sed.C[ ,1], eDNA.sed.C[ ,2], pch = 22, 
+       cex = 2, col = "darkgreen", bg = "white", lwd = 2) 
+  # Sed E
+points(eDNA.sed.E[ ,1], eDNA.sed.E[ ,2], pch = 22, 
+       cex = 2, col = "darkgreen", bg = "darkgreen", lwd = 2) 
+
+  # Soil C
+points(eDNA.soil.C[ ,1], eDNA.soil.C[ ,2], pch = 24, 
+       cex = 2, col = "brown", bg = "white", lwd = 2) 
+  # Soil E
+points(eDNA.sed.E[ ,1], eDNA.sed.E[ ,2], pch = 24, 
+       cex = 2, col = "brown", bg = "brown", lwd = 2) 
+
+  # Water C
+points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23, 
+       cex = 2, col = "blue", bg = "white", lwd = 2) 
+  # Soil E
+points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, 
+       cex = 2, col = "blue", bg = "blue", lwd = 2) 
+
+# Close Plot Device
+dev.off()
+graphics.off()
+```
+
+
+adonis(OTU.REL ~ design$env + design$treat)
+
 # Diversity questions
 1) Is alpha diversity (richness and evenness) affected by DNase across enviroments?
   --> calculate ratios (C / E)
   --> if ~1.0, then eDNA contributes minimally to diversity
   --> if >1.0, then eDNA inflates diversity
-  --> conduct one-way anova on ratio across enviroments
   
 2) Is beta diversity (composition) affected by DNase across enviroments?
   --> For visual purposes, do PCoA with all 58 samples
   --> Do samples separates by environment, DNase, both?
   --> Try with B-C, Jaccard, log transform, etc.
-  --> Test for effect of environment, DNase, and interaction with PERMANOVA
+  --> Test for effect of environment, DNase, and interaction with PERMANOVA (check repeated measure code w/ Zach)
+  --> Does pairwise dissimilarity in composition increase with eDNA content?
   
 
-
+3) Things to look into...
+  --> pair 15 env == soil, but is grouping with sed and has sed in label
+  --> Fec1, Fec4 (perhaps others) may be tech, not bio reps
 
 
