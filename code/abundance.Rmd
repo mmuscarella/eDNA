@@ -57,7 +57,7 @@ eDNA.prop <- eDNA.prop[ ! eDNA.prop$sample.name == "T7Core", ]
 eDNA.prop$prop <- ifelse(eDNA.prop$prop < 0, 0, eDNA.prop$prop)
 
 # Use glm to test whether amount of eDNA differs among environments
-eDNA.prop.test <- lm(prop ~ env, data = eDNA.prop)
+eDNA.prop.test <- glm(prop ~ env, data = eDNA.prop)
 summary(eDNA.prop.test)
 
 # Calculate means, sem, and sample size by enviroment
@@ -92,13 +92,17 @@ arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean + eDNA.table$sem, ang
 # Close Plot Device
 dev.off()
 graphics.off()
+
+# Show Plot
+img <- readPNG("figures/qPCR.bar.png")
+ grid.raster(img)
 ```
 
 ```{r}
 png(filename="figures/qPCR.nonbar.png",
     width = 800, height = 800, res = 96*2)
 
-plot.new()
+#plot.new()
 non.bp <- plot(eDNA.table$mean, ylim = c(0, 0.6), 
       xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
       cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
@@ -130,4 +134,8 @@ arrows(x0 = c(1,2,3,4), y0 = eDNA.table$mean, y1 = eDNA.table$mean + eDNA.table$
 # Close Plot Device
 dev.off()
 graphics.off()
+
+# Show Plot
+img <- readPNG("figures/qPCR.nonbar.png")
+ grid.raster(img)
 ```
