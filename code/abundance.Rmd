@@ -16,13 +16,20 @@ rm(list=ls())
 getwd()
 setwd("~/GitHub/eDNA")
 require("plyr")
+require("grid")
 ```
 
 # Load data and calcualte corrected copy number
 ```{r}
 eDNA.raw <- read.table("data/eDNA_qPCR.txt", sep = "\t", header = T)
 
-# Correct for dilutions
+# Correct for dilutions and sample processing 
+
+# eDNA.raw[,7] = copies not corrected by dilutioin factor
+# eDNA.raw[,8] = dilution factor
+# eDNA.raw[,9] = volume (uL) in supernatant of phenol-chloroform extraction
+# eDNA.raw[,10] = volume (ul) from supernatant of phenol-chlorofom subsampled
+
 copies.corr <- eDNA.raw[,7] * eDNA.raw[,8] * (eDNA.raw[,9]/eDNA.raw[,10])
 
 # Make new dataframe with corrected copy numbers
@@ -49,10 +56,7 @@ eDNA.prop <- ddply(eDNA, .(sample.number, sample.name, env), summarize, prop = 1
 # Sort by environment
 eDNA.prop <- eDNA.prop[order(eDNA.prop[,3]) ,]
 
-# Remove duplicate T7 soil sample
-eDNA.prop <- eDNA.prop[ ! eDNA.prop$sample.name == "T7Core", ]
-
-# Two samples (cat feces [32], human feces [28], T7Core) have negative proportions
+# Three samples (cat feces [32], human feces [28], T7Core) have negative proportions
 # Set these to zero (i.e., no eDNA)
 eDNA.prop$prop <- ifelse(eDNA.prop$prop < 0, 0, eDNA.prop$prop)
 
@@ -72,7 +76,7 @@ colnames(eDNA.table) <- c("env", "mean", "sem", "n")
 eDNA.table <- eDNA.table[order(eDNA.table[,2]) ,]
 ```
 
-# Make bot plot with error bars by environment
+# Make plot with error bars by environment
 ```{r}
 png(filename="figures/qPCR.bar.png",
     width = 800, height = 800, res = 96*2)
