@@ -51,14 +51,14 @@ cov.seqs <- count.groups(OTU)
 cov.min <- min(cov.seqs) # 31,475
 total.seqs <- sum(cov.seqs) # 12,916,632
 
-# # Good's coverage --> I think function is caculating singletons for entire matrix
-# goods.c <- function(x = ""){
-#   1 - (sum(x == 1) / rowSums(x))
-# }
-# 
-# goods.c.eDNA <- goods.c(OTU)
-# mean.good.c <- mean(goods.c.eDNA)
-# min.good.c <- min(goods.c.eDNA)
+# Good's coverage 
+# There was an error here and I fixed
+goods.c <- function(x = ""){
+  1 - (apply(OTU, 1, function(x){sum(x == 1)}) / rowSums(x))
+}
+goods.c.eDNA <- goods.c(OTU)
+mean.good.c <- mean(goods.c.eDNA)
+min.good.c <- min(goods.c.eDNA)
 
 # eDNA_57, eDNA_23, eDNA_24 are negative??? Samples have lowest seqs
 ```
@@ -67,9 +67,9 @@ total.seqs <- sum(cov.seqs) # 12,916,632
 ```{r}
 # Use Mario's resampling to estimate alpha diversity in a sample (long)
 rich <- round(richness.iter(input = OTU, size = 30000,
-              iters = 1000, shared="FALSE"), 3)
+              iters = 100, shared="FALSE"), 3)
 even <- round(evenness.iter(input = OTU, size = 30000,
-              iters = 1000, shared="FALSE", method="simp_even"), 3)
+              iters = 100, shared="FALSE", method="simp_even"), 3)
 
 # Write output to files
 write.table(rich, "data/rich.txt", sep = "\t", col.names = F, row.names = T)
@@ -77,12 +77,12 @@ write.table(even, "data/even.txt", sep = "\t", col.names = F, row.names = T)
 
 # Merge data to design and calculate mean and sem per sample
 rich.data <- merge(design, rich, by = "row.names")
-rich.mean <- round(apply(rich.data[8:1007], 1, mean, na.rm = TRUE),3)
-rich.sem <- round(apply(rich.data[8:1007], 1, sem, na.rm = TRUE), 3)
+rich.mean <- round(apply(rich.data[8:(7+dim(rich)[2])], 1, mean, na.rm = TRUE),3)
+rich.sem <- round(apply(rich.data[8:(7+dim(rich)[2])], 1, sem, na.rm = TRUE), 3)
 
 even.data <- merge(design, even, by = "row.names")
-even.mean <- round(apply(even.data[8:1007], 1, mean, na.rm = TRUE),3)
-even.sem <- round(apply(even.data[8:1007], 1, sem, na.rm = TRUE),3) # returns zeros?
+even.mean <- round(apply(even.data[8:(7+dim(even)[2])], 1, mean, na.rm = TRUE),3)
+even.sem <- round(apply(even.data[8:(7+dim(even)[2])], 1, sem, na.rm = TRUE),4) # returns zeros?
 
 # Make new dataframe merging design file and mean diversity
 eDNA.div <- data.frame(design, rich.mean, even.mean)
@@ -118,6 +118,11 @@ rich.plot <- plot(rich.table$mean, ylim = c(-1, 5),
       las = 1, ylab = "", xlab = "")
       box(lwd = 2)
 abline(h = 1, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+points(c(1:4), rich.table$mean,pch = 22, cex = 3, bg = "white", lwd = 2)
 
 mtext(expression('Richness Ratio'), side = 2, 
       outer = TRUE, cex = 1.5, line = -2, adj = 0.5)
@@ -134,14 +139,13 @@ axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
 axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
     at = c(1, 2, 3, 4), labels = F)
 
-arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$LCI, angle = 90,
-       length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$UCI, angle = 90,
-       length=0.1, lwd = 2)
-
 # Close Plot Device
 dev.off()
 graphics.off()
+
+# Show Plot
+img <- readPNG("figures/ratio.richness.png")
+grid.raster(img)
 ```
 
 # Evenness plot
@@ -156,6 +160,11 @@ even.plot <- plot(even.table$mean, ylim = c(-3, 7),
       las = 1, ylab = "", xlab = "")
       box(lwd = 2)
 abline(h = 1, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+points(c(1:4), even.table$mean,pch = 22, cex = 3, bg = "white", lwd = 2)
 
 mtext(expression('Evenness Ratio'), side = 2, 
       outer = TRUE, cex = 1.5, line = -2, adj = 0.5)
@@ -172,14 +181,13 @@ axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
 axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
     at = c(1, 2, 3, 4), labels = F)
 
-arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$LCI, angle = 90,
-       length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$UCI, angle = 90,
-       length=0.1, lwd = 2)
-
 # Close Plot Device
 dev.off()
 graphics.off()
+
+# Show Plot
+img <- readPNG("figures/ratio.evenness.png")
+grid.raster(img)
 ```
 
 # Beta diversity
@@ -196,7 +204,7 @@ for(i in 1:dim(OTU)[1]){
 # Log-transform relative abundances
 OTU.REL.log <- decostand(OTU, method="log")
 
-eDNA.bc.dis <- vegdist(OTU.REL, method = "bray", binary = "TRUE")
+eDNA.bc.dis <- vegdist(OTU.REL.log, method = "bray", binary = "FALSE")
 eDNA.dis.mean <- mean(eDNA.bc.dis)
 
 # Principal Coordinates Analysis (PCoA)
@@ -212,10 +220,9 @@ otu.scores <- as.matrix(otu.scores)[,1:2]
 otu.scores <- otu.scores[abs(otu.scores[,1]) > 0.7|abs(otu.scores[,2]) > 0.7,]
 
 png(filename="figures/ordination.png",
-    width = 800, height = 800, res = 96*2)
-
-plot.new()
-par(mar = c(4, 5, 1, 1) + 0.5)
+    width = 1200, height = 800, res = 96*2)
+layout(matrix(1:2, 1, 2), widths = c(9, 3))
+par(mar = c(4, 5, 1, 0) + 0.5)
 
 plot(eDNA.PCoA$points[ ,1], eDNA.PCoA$points[ ,2], 
      ylim = c(-0.6, 0.6), xlim = c(-0.6, 0.6), 
@@ -287,15 +294,125 @@ points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23,
 points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, 
        cex = 2, col = "blue", bg = "blue", lwd = 2) 
 
+par(mar = c(4, 0, 1, 1) + 0.5)
+plot.new()
+legend(0, 1, c("Gut", "Sediment", "Soil", "Water"), 
+       pch = c(21, 22, 24, 23), pt.bg = c("red", "darkgreen", "brown", "blue"), 
+       bty = "n", y.intersp = 1.5)
+legend(0, 0.25, c("Control", "DNase"), pch = 22, pt.bg = c("white", "black"),
+       bty = "n", y.intersp = 1.5)
+
 # Close Plot Device
 dev.off()
 graphics.off()
+
+# Show Plot
+img <- readPNG("figures/ordination.png")
+grid.raster(img)
 ```
 
 # PERMANOVA
 ```{r}
-eDNA.permanova <- adonis(OTU.REL ~ design$env + design$treat + design$env * design$treat, 
-    strata = design$pair, method = "bray", binary = TRUE)
+eDNA.permanova <- adonis(OTU.REL.log ~ design$env * design$treat, 
+    method = "bray", binary = FALSE)
+eDNA.permanova
+```
+
+# Distances between pairs
+```{r}
+dist.raw <- vegdist(OTU.REL, method = "bray", upper = T, diag = T)
+as.matrix(dist.raw)[1:5, 1:5]
+
+design2 <- design[order(row.names(design)), ]
+
+eDNA.permanova <- adonis(OTU.REL ~ design2$env * design2$treat, # strata = design2$pair,
+    method = "bray", binary = FALSE)
+
+eDNA.permanova
+
+OTU.REL.log[1:5, 1:5]
+design2[1:5,]
+
+design.c <- design2[which(design2$treat == "C"),]
+design.e <- design2[which(design2$treat == "E"),]
+
+design.c <- design.c[order(design.c$pair),]
+design.e <- design.e[order(design.e$pair),]
+
+design.c$env == design.e$env
+
+dist.raw <- as.matrix(dist.raw)
+
+dist.pair <- as.data.frame(matrix(NA, dim(design.c)[1], 2))
+colnames(dist.pair) <- c("distance", "env")
+for (i in 1:dim(design.c)[1]){
+  dist.pair[i, 1] <- dist.raw[row.names(design.e)[i], row.names(design.c)[i]]
+  dist.pair[i, 2] <- as.character(design.c[i, 3])
+} 
+
+pair.mean <- aggregate(distance ~ env, dist.pair, mean)
+pair.sem <- aggregate(distance ~ env, dist.pair, sem)
+
+dist.raw.c <- dist.raw[which(design2$treat == "C"), which(design2$treat == "C")]
+design2.c <- design2[design2$treat == "C", ]
+
+dist.feces <- dist.raw.c[which(design2.c$env == "feces"),which(design2.c$env == "feces")]
+dist.feces.m <- mean(dist.feces[lower.tri(dist.feces)])
+
+dist.soil <- dist.raw.c[which(design2.c$env == "soil"),which(design2.c$env == "soil")]
+dist.soil.m <- mean(dist.soil[lower.tri(dist.soil)])
+
+dist.sed <- dist.raw.c[which(design2.c$env == "sed"),which(design2.c$env == "sed")]
+dist.sed.m <- mean(dist.sed[lower.tri(dist.sed)])
+
+dist.water <- dist.raw.c[which(design2.c$env == "water"),which(design2.c$env == "water")]
+dist.water.m <- mean(dist.water[lower.tri(dist.water)])
+
+dist.env <- c(dist.feces.m, dist.soil.m, dist.sed.m, dist.water.m)
+```
+
+
+```{r}
+
+par(mar = c(5, 8, 1, 1) + 0.5)
+plot(pair.mean$distance, 1:4, type = "n",
+     xlim = c(0, 1), ylim = c(0.5, 4.5), axes = F,
+     xlab = "", ylab = "")
+
+
+arrows(y0 = 1:4, x0 = pair.mean$distance, 
+       x1 = pair.mean$distance - pair.sem$distance, 
+       angle = 90, length = 0.1, lwd = 2)
+arrows(y0 = 1:4, x0 = pair.mean$distance, 
+       x1 = pair.mean$distance + pair.sem$distance, 
+       angle = 90, length = 0.1, lwd = 2)
+points(pair.mean$distance, 1:4, cex = 3, pch = 22, 
+       lwd = 2, col = "black", bg = "white")
+abline(v = dist.env, lwd = 2, lty = 3)
+
+axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 1.25, las = 1)
+axis(side = 2, at = c(1:4), labels = c("Water", "Soil", "Sediment", "Feces"), lwd.ticks = 2, cex.axis = 1.25, las = 1)
+axis(side = 3, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=-0.02)
+axis(side = 4, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=-0.02)
+axis(side = 1, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
+axis(side = 2, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
+axis(side = 3, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
+axis(side = 4, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
+
+mtext("Environment", side = 2, cex = 1.5, line = 6)
+mtext("Pair Dissimilarity", side = 1, cex = 1.5, line = 3)
+
+rect(0.55, 0.6, 0.9, 1.3, col = "white", border = NA)
+text(dist.env, y = 0.9, labels = c("feces", "soil", "sed", "water"), 
+     srt = 90, cex = 0.8, )
+
+legend("topleft", "Avg. Env. Dis.", lty = 3, lwd = 1.5, bty = "n")
+
+box(lwd = 2)
+
+pair.mean
+
+
 ```
 
   
