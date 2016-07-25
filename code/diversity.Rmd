@@ -316,6 +316,8 @@ grid.raster(img)
 eDNA.permanova <- adonis(OTU.REL.log ~ design$env * design$treat, 
     method = "bray", binary = FALSE)
 eDNA.permanova
+
+
 ```
 
 # Distances between pairs
@@ -338,6 +340,8 @@ design.e <- design2[which(design2$treat == "E"),]
 
 design.c <- design.c[order(design.c$pair),]
 design.e <- design.e[order(design.e$pair),]
+
+
 
 design.c$env == design.e$env
 
@@ -404,7 +408,7 @@ mtext("Pair Dissimilarity", side = 1, cex = 1.5, line = 3)
 
 rect(0.55, 0.6, 0.9, 1.3, col = "white", border = NA)
 text(dist.env, y = 0.9, labels = c("feces", "soil", "sed", "water"), 
-     srt = 90, cex = 0.8, )
+     srt = 90, cex = 0.8)
 
 legend("topleft", "Avg. Env. Dis.", lty = 3, lwd = 1.5, bty = "n")
 
@@ -416,7 +420,22 @@ pair.mean
 ```
 
   
+```{r}
+OTU.REL.c <- OTU.REL[which(design2$treat == "C"), ]
+OTU.REL.e <- OTU.REL[which(design2$treat == "E"), ]
 
+design2.c <- design2[which(design2$treat == "C"), ]
+design2.e <- design2[which(design2$treat == "E"), ]
+
+OTU.REL.c <- OTU.REL.c[order(design2.c$samp.code), ]
+OTU.REL.e <- OTU.REL.e[order(design2.e$samp.code), ]
+
+dist.c <- vegdist(OTU.REL.c, "bray")
+dist.e <- vegdist(OTU.REL.e, "bray")
+
+mantel.rtest(dist.c, dist.e)
+
+```
   
   
 
