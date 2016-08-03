@@ -17,6 +17,9 @@ getwd()
 setwd("~/GitHub/eDNA")
 require("plyr")
 require("grid")
+
+se <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
+
 ```
 
 # Load data and calcualte corrected copy number
@@ -40,6 +43,16 @@ eDNA.corr <- data.frame(eDNA.raw, copies.corr)
 ```{r}
 # Use `aggregate` to return means of technical reps for each sample
 eDNA <- aggregate(eDNA.corr$copies.corr ~ eDNA.corr$sample + eDNA.corr$sample_name + eDNA.corr$env + eDNA.corr$treat, eDNA.corr, mean)
+
+# Mean of Technical Reps Taking into Account Pairs
+
+eDNA.2 <- reshape(eDNA.corr[,c(3,4,5,6,11)], timevar = "treat", idvar = c("sample_name", "env", "rep"), direction = "wide")
+eDNA.2$prop <- (1 - (eDNA.2$copies.corr.E / eDNA.2$copies.corr.C))
+eDNA.3 <- eDNA.2[-which(eDNA.2$prop < 0), ]
+eDNA.4 <- aggregate(prop ~ sample_name + env, eDNA.3, mean)
+eDNA.mean <- aggregate(prop ~ env, eDNA.4, mean)
+eDNA.se <- aggregate(prop ~ env, eDNA.4, se)
+
 
 # Sort by sample number
 eDNA <- eDNA[order(eDNA[,1]) ,]
