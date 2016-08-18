@@ -61,7 +61,7 @@ eDNA.prop <- eDNA.prop[order(eDNA.prop[,3]) ,]
 # Three samples (cat feces [32], human feces [28], T7Core) have negative proportions
 # Set these to zero (i.e., no eDNA)
 eDNA.prop$prop <- ifelse(eDNA.prop$prop < 0, 0, eDNA.prop$prop)
-write.table(eDNA.prop, "data/eDNA.prop.txt", sep = "\t", col.names = F, row.names = T)
+write.table(eDNA.prop, "data/eDNA.prop.txt", sep = "\t", col.names = T, row.names = F)
 
 # Use glm to test whether amount of eDNA differs among environments
 eDNA.prop.test <- glm(prop ~ env, data = eDNA.prop)
@@ -79,7 +79,7 @@ colnames(eDNA.table) <- c("env", "mean", "sem", "n")
 eDNA.table <- eDNA.table[order(eDNA.table[,2]) ,]
 ```
 
-# Make plot with error bars by environment
+# Make bar plot with error bars by environment
 ```{r}
 png(filename="figures/qPCR.bar.png",
     width = 800, height = 800, res = 96*2)
@@ -105,6 +105,7 @@ img <- readPNG("figures/qPCR.bar.png")
  grid.raster(img)
 ```
 
+# Make x-y plot with error bars by environment
 ```{r}
 png(filename="figures/qPCR.nonbar.png",
     width = 800, height = 800, res = 96*2)
