@@ -52,43 +52,55 @@ cov.min <- min(cov.seqs) # 31,475
 total.seqs <- sum(cov.seqs) # 12,916,632
 
 # Good's coverage 
-# There was an error here and I fixed
 goods.c <- function(x = ""){
   1 - (apply(OTU, 1, function(x){sum(x == 1)}) / rowSums(x))
 }
 goods.c.eDNA <- goods.c(OTU)
-mean.good.c <- mean(goods.c.eDNA)
-min.good.c <- min(goods.c.eDNA)
-
-# eDNA_57, eDNA_23, eDNA_24 are negative??? Samples have lowest seqs
+mean.good.c <- mean(goods.c.eDNA) # 0.99
+min.good.c <- min(goods.c.eDNA) # 0.98
 ```
 
 # Alpha diversity
 ```{r}
-# Use Mario's resampling to estimate alpha diversity in a sample (long)
-rich <- round(richness.iter(input = OTU, size = 30000,
-              iters = 100, shared="FALSE"), 3)
-even <- round(evenness.iter(input = OTU, size = 30000,
-              iters = 100, shared="FALSE", method="simp_even"), 3)
+# Mario's resampling to estimate alpha diversity in a sample (long)
+# rich <- round(richness.iter(input = OTU, size = 30000,
+#              iters = 100, shared="FALSE"), 3)
+# even <- round(evenness.iter(input = OTU, size = 30000,
+#              iters = 100, shared="FALSE", method="simp_even"), 3)
 
 # Write output to files
-write.table(rich, "data/rich.txt", sep = "\t", col.names = F, row.names = T)
-write.table(even, "data/even.txt", sep = "\t", col.names = F, row.names = T)
+write.table(rich, "data/rich.txt", sep = "\t", col.names = T, row.names = T)
+write.table(even, "data/even.txt", sep = "\t", col.names = T, row.names = T)
+
+# Read in alpha diversity files from above
+rich2 <- read.table("./data/rich.txt", sep = "\t")
+even2 <- read.table("./data/even.txt", sep = "\t")
 
 # Merge data to design and calculate mean and sem per sample
-rich.data <- merge(design, rich, by = "row.names")
+rich.data <- merge(design, rich2, by = "row.names")
 rich.mean <- round(apply(rich.data[8:(7+dim(rich)[2])], 1, mean, na.rm = TRUE),3)
 rich.sem <- round(apply(rich.data[8:(7+dim(rich)[2])], 1, sem, na.rm = TRUE), 3)
 
-even.data <- merge(design, even, by = "row.names")
+even.data <- merge(design, even2, by = "row.names")
 even.mean <- round(apply(even.data[8:(7+dim(even)[2])], 1, mean, na.rm = TRUE),3)
-even.sem <- round(apply(even.data[8:(7+dim(even)[2])], 1, sem, na.rm = TRUE),4) # returns zeros?
+even.sem <- round(apply(even.data[8:(7+dim(even)[2])], 1, sem, na.rm = TRUE),4)
 
 # Make new dataframe merging design file and mean diversity
 eDNA.div <- data.frame(design, rich.mean, even.mean)
 
+# Subset samples with technical replicates
+eDNA.rep.samp <- eDNA.div[eDNA.div$tech.reps != 0,]
+eDNA33_E <- apply(eDNA.rep.samp[8:(7+dim(even)[2])], 1, mean, na.rm = TRUE)
+eDNA33_E <- ddply(eDNA.rep.samp, .(samp.code, env, treat, pair, qPCR.match), summarize, rich.mean = (rich.mean[treat == "E"]
+  
+  
+  rich.mean[treat == "C"] / rich.mean[treat == "E"]))
+
+
+
 # Calculate diversity ratio for DNase response variable
 rich.ratio <- ddply(eDNA.div, .(samp.code, env), summarize, r.ratio = (rich.mean[treat == "C"] / rich.mean[treat == "E"]))
+
 even.ratio <- ddply(eDNA.div, .(samp.code, env), summarize, e.ratio = (even.mean[treat == "C"] / even.mean[treat == "E"]))
 
 # Richness ratio: table by enviromentb (does eDNA "inflate" diversity?)
