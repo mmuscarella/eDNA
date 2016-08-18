@@ -17,6 +17,9 @@ getwd()
 setwd("~/GitHub/eDNA")
 require("vegan")
 require("plyr")
+require("grid")
+require("png")
+
 source("./bin/DiversityFunctions.R")
 source("./bin/MothurTools.R")
 sem <- function(x, ...){sd(x, ...)/sqrt(length(na.omit(x)))}
@@ -88,34 +91,67 @@ even.sem <- round(apply(even.data[8:(7+dim(even)[2])], 1, sem, na.rm = TRUE),4)
 # Make new dataframe merging design file and mean diversity
 eDNA.div <- data.frame(design, rich.mean, even.mean)
 
-# Subset samples with technical replicates
-eDNA.rep.samp <- eDNA.div[eDNA.div$tech.reps != 0,]
-eDNA33_E <- apply(eDNA.rep.samp[8:(7+dim(even)[2])], 1, mean, na.rm = TRUE)
-eDNA33_E <- ddply(eDNA.rep.samp, .(samp.code, env, treat, pair, qPCR.match), summarize, rich.mean = (rich.mean[treat == "E"]
-  
-  
-  rich.mean[treat == "C"] / rich.mean[treat == "E"]))
+# Take averages of technial reps
+rich.rep.ave <- ddply(eDNA.div, .(env, treat, qPCR.match), summarize, rich = mean(rich.mean))
+even.rep.ave <- ddply(eDNA.div, .(env, treat, qPCR.match), summarize, even = mean(even.mean))
 
+# Reshape data
+rich.reshape <- reshape(rich.rep.ave[,1:4], timevar = "treat", 
+                   idvar = c("qPCR.match", "env"), direction = "wide")
 
+even.reshape <- reshape(even.rep.ave[,1:4], timevar = "treat", 
+                   idvar = c("qPCR.match", "env"), direction = "wide")
+```
 
-# Calculate diversity ratio for DNase response variable
-rich.ratio <- ddply(eDNA.div, .(samp.code, env), summarize, r.ratio = (rich.mean[treat == "C"] / rich.mean[treat == "E"]))
+# Richness: does eDNA "inflate" diversity?
+```{r}
+# Calculate ratios
+rich.mean.ratio <- data.frame(rich.reshape, (ratio.1$mean.E / ratio.1$mean.C))
+colnames(rich.mean.ratio) <- c("env","qPCR.match", "rich.C", "rich.E", "rich.ratio")
+rich.mean.ratio.ag <- aggregate(rich.ratio ~ env + qPCR.match, rich.mean.ratio, mean)
 
-even.ratio <- ddply(eDNA.div, .(samp.code, env), summarize, e.ratio = (even.mean[treat == "C"] / even.mean[treat == "E"]))
-
-# Richness ratio: table by enviromentb (does eDNA "inflate" diversity?)
-rich.mean <- aggregate(rich.ratio$r.ratio ~ rich.ratio$env, rich.ratio, mean)
-rich.sem <- aggregate(rich.ratio$r.ratio ~ rich.ratio$env, rich.ratio, sem)
-rich.95 <- aggregate(rich.ratio$r.ratio ~ rich.ratio$env, rich.ratio, FUN = function(x) t.test(x)$conf.int[1:2])
-rich.table <- data.frame(rich.mean, rich.sem[,2], rich.95[,2])
+# Richness table
+rich.mean.ratio.ag.tab <- aggregate(rich.ratio ~ env, rich.mean.ratio, mean)
+rich.sem.ratio.ag.tab <- aggregate(rich.ratio ~ env, rich.mean.ratio, mean)
+rich.95.ratio.ag.tab <- aggregate(rich.ratio ~ env, rich.mean.ratio, 
+                  FUN = function(x) t.test(x)$conf.int[1:2])
+rich.table <- data.frame(rich.mean.ratio.ag.tab, rich.sem.ratio.ag.tab[,2], 
+                  rich.95.ratio.ag.tab[,2])
 colnames(rich.table) <- c("env", "mean", "sem", "LCI", "UCI")
 
-# Evenness ratio: table by enviroment (does eDNA "inflate" diversity?)
-even.mean <- aggregate(even.ratio$e.ratio ~ even.ratio$env, even.ratio, mean)
-even.sem <- aggregate(even.ratio$e.ratio ~ even.ratio$env, even.ratio, sem)
-even.95 <- aggregate(even.ratio$e.ratio ~ even.ratio$env, even.ratio, FUN = function(x) t.test(x)$conf.int[1:2])
-even.table <- data.frame(even.mean, even.sem[,2], even.95[,2])
+# Regression: richness ratio vs. proportion eDNA
+eDNA.prop <- read.table("data/eDNA.prop.txt", sep = "\t", header = T)
+sample.list <- paste(as.character(rich.mean.ratio$qPCR.match), collapse=", ")
+print(sample.list)
+eDNA.prop.sub<-eDNA.prop[eDNA.prop$sample.number %in% c(30, 31, 33, 34, 2, 7, 11, 
+                  13, 15, 16, 5, 6, 26, 27, 29, 3, 10, 12, 14, 17, 20),]
+eDNA.prop.sub <- eDNA.prop.sub[order(eDNA.prop.sub$sample.number),]
+rich.reg <- lm(rich.mean.ratio.ag$rich.ratio ~ eDNA.prop.sub$prop)
+summary(rich.reg)
+# answer => no correlation between proportion eDNA and richness ratio. 
+```
+
+# Evenness: does eDNA "inflate" diversity?
+```{r}
+# Calculate ratios
+even.mean.ratio <- data.frame(even.reshape, (ratio.1$mean.E / ratio.1$mean.C))
+colnames(even.mean.ratio) <- c("env","qPCR.match", "even.C", "even.E", "even.ratio")
+even.mean.ratio.ag <- aggregate(even.ratio ~ env + qPCR.match, even.mean.ratio, mean)
+
+# Evennes table
+even.mean.ratio.ag.tab <- aggregate(even.ratio ~ env, even.mean.ratio, mean)
+even.sem.ratio.ag.tab <- aggregate(even.ratio ~ env, even.mean.ratio, mean)
+even.95.ratio.ag.tab <- aggregate(even.ratio ~ env, even.mean.ratio, 
+                  FUN = function(x) t.test(x)$conf.int[1:2])
+even.table <- data.frame(even.mean.ratio.ag.tab, even.sem.ratio.ag.tab[,2], 
+                  even.95.ratio.ag.tab[,2])
 colnames(even.table) <- c("env", "mean", "sem", "LCI", "UCI")
+
+# Regression: evennes ratio vs. proportion eDNA
+eDNA.prop.sub <- eDNA.prop.sub[order(eDNA.prop.sub$sample.number),]
+even.reg <- lm(even.mean.ratio.ag$even.ratio ~ eDNA.prop.sub$prop)
+summary(even.reg)
+# answer => no correlation between proportion eDNA and evenness ratio. 
 ```
 
 # Richness plot
