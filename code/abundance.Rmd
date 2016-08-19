@@ -1,6 +1,6 @@
 ---
 title: "eDNA"
-author: "Jay T Lennon"
+author: "Jay T. Lennon, Mario E. Muscarella, ..."
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 header-includes:
   - \usepackage{array}
@@ -8,13 +8,14 @@ output: pdf_document
 geometry: margin=2.54cm
 ---
 
-Analysis of quantitative PCR data to test whether the abundance of bacterial communities is affected by extracellular DNA
+Analysis of quantitative PCR data to test whether the abundance of bacterial 
+communities is affected by extracellular DNA
 
 # Setup Work Environment 
 ```{r}
 rm(list=ls())
 getwd()
-setwd("~/GitHub/eDNA")
+setwd("~/GitHub/eDNA/code")
 require("plyr")
 require("grid")
 require("png")
@@ -23,7 +24,7 @@ sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
 
 # Load data and calcualte corrected copy number
 ```{r}
-eDNA.raw <- read.table("data/eDNA_qPCR.txt", sep = "\t", header = T)
+eDNA.raw <- read.table("../data/eDNA_qPCR.txt", sep = "\t", header = T)
 
 # Correct for dilutions and sample processing 
 
@@ -41,7 +42,8 @@ eDNA.corr <- data.frame(eDNA.raw, copies.corr)
 # Take mean of technical replicates and sort
 ```{r}
 # Use `aggregate` to return means of subsamples taken for each sample
-eDNA <- aggregate(eDNA.corr$copies.corr ~ eDNA.corr$sample + eDNA.corr$sample_name + eDNA.corr$env + eDNA.corr$treat, eDNA.corr, mean)
+eDNA <- aggregate(eDNA.corr$copies.corr ~ eDNA.corr$sample + eDNA.corr$sample_name +
+                  eDNA.corr$env + eDNA.corr$treat, eDNA.corr, mean)
 
 # Sort by sample number
 eDNA <- eDNA[order(eDNA[,1]) ,]
@@ -53,7 +55,8 @@ colnames(eDNA) <- c("sample.number", "sample.name", "env", "treat", "copy.number
 # Calculate proportion of degradable DNA per sample and test differences
 ```{r}
 # Use `ddply` to return the DNase-1 degradable proportion of 16S rRNA gene copy
-eDNA.prop <- ddply(eDNA, .(sample.number, sample.name, env), summarize, prop = 1 - ((copy.number[treat == "E"]) / (copy.number[treat == "C"])))
+eDNA.prop <- ddply(eDNA, .(sample.number, sample.name, env), summarize, 
+                   prop = 1 - ((copy.number[treat == "E"]) / (copy.number[treat == "C"])))
 
 # Sort by environment
 eDNA.prop <- eDNA.prop[order(eDNA.prop[,3]) ,]
@@ -61,7 +64,7 @@ eDNA.prop <- eDNA.prop[order(eDNA.prop[,3]) ,]
 # Three samples (cat feces [32], human feces [28], T7Core) have negative proportions
 # Set these to zero (i.e., no eDNA)
 eDNA.prop$prop <- ifelse(eDNA.prop$prop < 0, 0, eDNA.prop$prop)
-write.table(eDNA.prop, "data/eDNA.prop.txt", sep = "\t", col.names = T, row.names = F)
+write.table(eDNA.prop, "../data/eDNA.prop.txt", sep = "\t", col.names = T, row.names = F)
 
 # Use glm to test whether amount of eDNA differs among environments
 eDNA.prop.test <- glm(prop ~ env, data = eDNA.prop)
@@ -70,18 +73,17 @@ summary(eDNA.prop.test)
 # Calculate means, sem, and sample size by enviroment
 eDNA.mean <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, mean)
 eDNA.n <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, length)
-sem <- function(x, ...){sd(x, ...)/sqrt(length(na.omit(x)))}
 eDNA.sem <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, sem)
 
 # Make table of proportion eDNA by environment
-eDNA.table <- data.frame(eDNA.mean, eDNA.sem[,2], eDNA.n[,2])
+eDNA.table <- data.frame(eDNA.mean, eDNA.sem[ ,2], eDNA.n[ ,2])
 colnames(eDNA.table) <- c("env", "mean", "sem", "n")
-eDNA.table <- eDNA.table[order(eDNA.table[,2]) ,]
+eDNA.table <- eDNA.table[order(eDNA.table[,2]), ]
 ```
 
 # Make bar plot with error bars by environment
 ```{r}
-png(filename="figures/qPCR.bar.png",
+png(filename="../figures/qPCR.bar.png",
     width = 800, height = 800, res = 96*2)
 plot.new()
 par(lwd = 2)
@@ -91,60 +93,70 @@ bp <- barplot(eDNA.table$mean, ylim =c(0, 0.6),
               ylab = "Proportion eDNA",
               names.arg = c("Gut", "Soil", "Sediment", "Water"), cex.names = 0.9)
               box(lwd = 2)
-arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean - eDNA.table$sem, angle = 90,
-       length = 0.1, lwd = 2)
-arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean + eDNA.table$sem, angle = 90,
-       length=0.1, lwd = 2)
+arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean - eDNA.table$sem, 
+       angle = 90,  length = 0.1, lwd = 2)
+arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean + eDNA.table$sem, 
+       angle = 90, length=0.1, lwd = 2)
 
 # Close Plot Device
 dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("figures/qPCR.bar.png")
- grid.raster(img)
+img <- readPNG("../figures/qPCR.bar.png")
+grid.raster(img)
 ```
 
 # Make x-y plot with error bars by environment
 ```{r}
-png(filename="figures/qPCR.nonbar.png",
+png(filename="../figures/qPCR.nonbar.png",
     width = 800, height = 800, res = 96*2)
 
 #plot.new()
 non.bp <- plot(eDNA.table$mean, ylim = c(0, 0.6), 
-      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
-      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
-      las = 1, ylab = "", xlab = "")
-      box(lwd = 2)
+               xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+               cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+               las = 1, ylab = "", xlab = "")
+box(lwd = 2)
 
 mtext(expression('Proportion eDNA'), side = 2, 
       outer = TRUE, cex = 1.5, line = -1.5, adj = 0.5)
 
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1.25, las = 1,
-    labels = c(0.0, 0.2, 0.4, 0.6), at = c(0.0, 0.2, 0.4, 0.6))
+     labels = c(0.0, 0.2, 0.4, 0.6), at = c(0.0, 0.2, 0.4, 0.6))
  
 axis(side = 4, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at=c(0.0, 0.2, 0.4, 0.6), labels = F)
+     at=c(0.0, 0.2, 0.4, 0.6), labels = F)
 
 axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-    labels = c("Gut", "Soil", "Sediment", "Water"), at = c(1, 2, 3, 4))
+     labels = c("Gut", "Soil", "Sediment", "Water"), at = c(1, 2, 3, 4))
 
 axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at = c(1, 2, 3, 4), labels = F)
+     at = c(1, 2, 3, 4), labels = F)
 
-arrows(x0 = c(1, 2, 3, 4), y0 = eDNA.table$mean, y1 = eDNA.table$mean - eDNA.table$sem, angle = 90,
+axis(side = 1, labels = F, lwd.ticks = 2, tck = 0.02, at = c(1, 2, 3, 4))
+axis(side = 2, labels = F, lwd.ticks = 2, tck = 0.02, at = c(0, 0.2, 0.4, 0.6))
+axis(side = 3, labels = F, lwd.ticks = 2, tck = 0.02, at = c(1, 2, 3, 4))
+axis(side = 4, labels = F, lwd.ticks = 2, tck = 0.02, at = c(0, 0.2, 0.4, 0.6))
+
+arrows(x0 = c(1, 2, 3, 4), y0 = eDNA.table$mean, 
+       y1 = eDNA.table$mean - eDNA.table$sem, angle = 90,
        length = 0.1, lwd = 2)
 
-arrows(x0 = c(1,2,3,4), y0 = eDNA.table$mean, y1 = eDNA.table$mean + eDNA.table$sem, angle = 90,
+arrows(x0 = c(1,2,3,4), y0 = eDNA.table$mean, 
+       y1 = eDNA.table$mean + eDNA.table$sem, angle = 90,
        length=0.1, lwd = 2)
+
+points(x = c(1:4), eDNA.table$mean, 
+      pch = 22, bg = "white", lwd = 2, cex = 3)
 
 # Close Plot Device
 dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("figures/qPCR.nonbar.png")
- grid.raster(img)
+img <- readPNG("../figures/qPCR.nonbar.png")
+grid.raster(img)
 ```
 

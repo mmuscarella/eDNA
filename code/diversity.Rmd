@@ -1,6 +1,6 @@
 ---
 title: "eDNA"
-author: "Jay T Lennon"
+author: "Jay T. Lennon, Mario E. Muscarella, ..."
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 header-includes:
   - \usepackage{array}
@@ -14,23 +14,25 @@ Analysis of community sequence data to test whether the structure and compositio
 ```{r}
 rm(list=ls())
 getwd()
-setwd("~/GitHub/eDNA")
+setwd("~/GitHub/eDNA/code")
 require("vegan")
 require("plyr")
 require("grid")
 require("png")
 
-source("./bin/DiversityFunctions.R")
-source("./bin/MothurTools.R")
-sem <- function(x, ...){sd(x, ...)/sqrt(length(na.omit(x)))}
+source("../bin/DiversityFunctions.R")
+source("../bin/MothurTools.R")
+sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
+```
 
 # Define Inputs
+```{r}
   # Design       = general design file for experiment
   # shared       = OTU table from mothur with sequence similarity clustering
   # tax          = Taxonomy for 97% similarity OTUs
-design       <- "./data/eDNA_Design.txt"
-shared       <- "./mothur/output/eDNA.bac.final.shared"
-tax          <- "./mothur/output/eDNA.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.0.03.cons.taxonomy"
+design       <- "../data/eDNA_Design.txt"
+shared       <- "../mothur/output/eDNA.bac.final.shared"
+tax          <- "../mothur/output/eDNA.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.0.03.cons.taxonomy"
 ```
 
 # Import Design
@@ -56,8 +58,8 @@ total.seqs <- sum(cov.seqs) # 12,916,632
 
 # Good's coverage 
 goods.c <- function(x = ""){
-  1 - (apply(OTU, 1, function(x){sum(x == 1)}) / rowSums(x))
-}
+              1 - (apply(OTU, 1, function(x){sum(x == 1)}) / rowSums(x))
+           }
 goods.c.eDNA <- goods.c(OTU)
 mean.good.c <- mean(goods.c.eDNA) # 0.99
 min.good.c <- min(goods.c.eDNA) # 0.98
@@ -66,105 +68,131 @@ min.good.c <- min(goods.c.eDNA) # 0.98
 # Alpha diversity
 ```{r}
 # Mario's resampling to estimate alpha diversity in a sample (long)
-# rich <- round(richness.iter(input = OTU, size = 30000,
-#              iters = 100, shared="FALSE"), 3)
-# even <- round(evenness.iter(input = OTU, size = 30000,
-#              iters = 100, shared="FALSE", method="simp_even"), 3)
+rich <- round(richness.iter(input = OTU, size = 30000,
+             iters = 100, shared="FALSE"), 3)
+even <- round(evenness.iter(input = OTU, size = 30000,
+             iters = 100, shared="FALSE", method="simp_even"), 3)
+
+# rarefy(OTU, sample, se = FALSE, MARGIN = 1)
 
 # Write output to files
-write.table(rich, "data/rich.txt", sep = "\t", col.names = T, row.names = T)
-write.table(even, "data/even.txt", sep = "\t", col.names = T, row.names = T)
+write.table(rich, "../data/rich.txt", sep = "\t", col.names = T, row.names = T)
+write.table(even, "../data/even.txt", sep = "\t", col.names = T, row.names = T)
 
 # Read in alpha diversity files from above
-rich2 <- read.table("./data/rich.txt", sep = "\t")
-even2 <- read.table("./data/even.txt", sep = "\t")
+rich2 <- read.table("../data/rich.txt", sep = "\t")
+even2 <- read.table("../data/even.txt", sep = "\t")
 
 # Merge data to design and calculate mean and sem per sample
 rich.data <- merge(design, rich2, by = "row.names")
+row.names(rich.data) <- rich.data$Row.names
+rich.data <- rich.data[sort(row.names(rich.data)), ]
 rich.mean <- round(apply(rich.data[8:(7+dim(rich)[2])], 1, mean, na.rm = TRUE),3)
 rich.sem <- round(apply(rich.data[8:(7+dim(rich)[2])], 1, sem, na.rm = TRUE), 3)
 
+
 even.data <- merge(design, even2, by = "row.names")
+row.names(even.data) <- even.data$Row.names
+even.data <- even.data[sort(row.names(even.data)), ]
 even.mean <- round(apply(even.data[8:(7+dim(even)[2])], 1, mean, na.rm = TRUE),3)
 even.sem <- round(apply(even.data[8:(7+dim(even)[2])], 1, sem, na.rm = TRUE),4)
 
+
 # Make new dataframe merging design file and mean diversity
-eDNA.div <- data.frame(design, rich.mean, even.mean)
+eDNA.div <- data.frame(design[sort(row.names(design)), ], rich.mean, even.mean)
 
 # Take averages of technial reps
 rich.rep.ave <- ddply(eDNA.div, .(env, treat, qPCR.match), summarize, rich = mean(rich.mean))
 even.rep.ave <- ddply(eDNA.div, .(env, treat, qPCR.match), summarize, even = mean(even.mean))
 
 # Reshape data
-rich.reshape <- reshape(rich.rep.ave[,1:4], timevar = "treat", 
+rich.2 <- reshape(rich.rep.ave[,1:4], timevar = "treat", 
                    idvar = c("qPCR.match", "env"), direction = "wide")
 
-even.reshape <- reshape(even.rep.ave[,1:4], timevar = "treat", 
+even.2 <- reshape(even.rep.ave[,1:4], timevar = "treat", 
                    idvar = c("qPCR.match", "env"), direction = "wide")
 ```
 
 # Richness: does eDNA "inflate" diversity?
 ```{r}
+# Take averages of technial reps
+rich.rep.ave <- ddply(eDNA.div, .(env, treat, qPCR.match), 
+                      summarize, rich = mean(rich.mean))
+
+# Reshape data
+rich.2 <- reshape(rich.rep.ave[,1:4], timevar = "treat", 
+                   idvar = c("qPCR.match", "env"), direction = "wide")
+
 # Calculate ratios
-rich.mean.ratio <- data.frame(rich.reshape, (ratio.1$mean.E / ratio.1$mean.C))
-colnames(rich.mean.ratio) <- c("env","qPCR.match", "rich.C", "rich.E", "rich.ratio")
-rich.mean.ratio.ag <- aggregate(rich.ratio ~ env + qPCR.match, rich.mean.ratio, mean)
+rich.2$rich.ratio <- rich.2$rich.E / rich.2$rich.C
 
 # Richness table
-rich.mean.ratio.ag.tab <- aggregate(rich.ratio ~ env, rich.mean.ratio, mean)
-rich.sem.ratio.ag.tab <- aggregate(rich.ratio ~ env, rich.mean.ratio, mean)
-rich.95.ratio.ag.tab <- aggregate(rich.ratio ~ env, rich.mean.ratio, 
+rich.2.ag.mean <- aggregate(rich.ratio ~ env, rich.2, mean)
+rich.2.ag.sem <- aggregate(rich.ratio ~ env, rich.2, sem)
+rich.2.ag.95 <- aggregate(rich.ratio ~ env, rich.2, 
                   FUN = function(x) t.test(x)$conf.int[1:2])
-rich.table <- data.frame(rich.mean.ratio.ag.tab, rich.sem.ratio.ag.tab[,2], 
-                  rich.95.ratio.ag.tab[,2])
+rich.table <- data.frame(rich.2.ag.mean$env, rich.2.ag.mean$rich.ratio,
+                         rich.2.ag.sem$rich.ratio, rich.2.ag.95$rich.ratio)
 colnames(rich.table) <- c("env", "mean", "sem", "LCI", "UCI")
 
+
 # Regression: richness ratio vs. proportion eDNA
-eDNA.prop <- read.table("data/eDNA.prop.txt", sep = "\t", header = T)
-sample.list <- paste(as.character(rich.mean.ratio$qPCR.match), collapse=", ")
-print(sample.list)
-eDNA.prop.sub<-eDNA.prop[eDNA.prop$sample.number %in% c(30, 31, 33, 34, 2, 7, 11, 
-                  13, 15, 16, 5, 6, 26, 27, 29, 3, 10, 12, 14, 17, 20),]
-eDNA.prop.sub <- eDNA.prop.sub[order(eDNA.prop.sub$sample.number),]
-rich.reg <- lm(rich.mean.ratio.ag$rich.ratio ~ eDNA.prop.sub$prop)
-summary(rich.reg)
+eDNA.prop <- read.table("../data/eDNA.prop.txt", sep = "\t", header = T)
+
+# The following is not needed
+## sample.list <- paste(as.character(rich.2$qPCR.match), collapse=", ")
+## eDNA.prop.sub<-eDNA.prop[eDNA.prop$sample.number %in% c(30, 31, 33, 34, 2, 7, 11, 
+##                  13, 15, 16, 5, 6, 26, 27, 29, 3, 10, 12, 14, 17, 20),]
+
+eDNA.prop.sub<-eDNA.prop[eDNA.prop$sample.number %in% rich.2$qPCR.match, ]
+
+eDNA.prop.sub2 <- eDNA.prop.sub[order(eDNA.prop.sub$sample.number), ]
+rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$prop + eDNA.prop.sub2$env )
+summary(rich.reg) 
 # answer => no correlation between proportion eDNA and richness ratio. 
+# maybe a little in sediment
 ```
 
 # Evenness: does eDNA "inflate" diversity?
 ```{r}
+# Take averages of technial reps
+even.rep.ave <- ddply(eDNA.div, .(env, treat, qPCR.match), 
+                      summarize, even = mean(even.mean))
+
+# Reshape data
+even.2 <- reshape(even.rep.ave[,1:4], timevar = "treat", 
+                   idvar = c("qPCR.match", "env"), direction = "wide")
 # Calculate ratios
-even.mean.ratio <- data.frame(even.reshape, (ratio.1$mean.E / ratio.1$mean.C))
-colnames(even.mean.ratio) <- c("env","qPCR.match", "even.C", "even.E", "even.ratio")
-even.mean.ratio.ag <- aggregate(even.ratio ~ env + qPCR.match, even.mean.ratio, mean)
+even.2$even.ratio <- even.2$even.E / even.2$even.C 
 
 # Evennes table
-even.mean.ratio.ag.tab <- aggregate(even.ratio ~ env, even.mean.ratio, mean)
-even.sem.ratio.ag.tab <- aggregate(even.ratio ~ env, even.mean.ratio, mean)
-even.95.ratio.ag.tab <- aggregate(even.ratio ~ env, even.mean.ratio, 
+even.2.ag.mean <- aggregate(even.ratio ~ env, even.2, mean)
+even.2.ag.sem <- aggregate(even.ratio ~ env, even.2, sem)
+even.2.ag.95 <- aggregate(even.ratio ~ env, even.2, 
                   FUN = function(x) t.test(x)$conf.int[1:2])
-even.table <- data.frame(even.mean.ratio.ag.tab, even.sem.ratio.ag.tab[,2], 
-                  even.95.ratio.ag.tab[,2])
+even.table <- data.frame(even.2.ag.mean$env, even.2.ag.mean$even.ratio,
+                         even.2.ag.sem$even.ratio, even.2.ag.95$even.ratio) 
 colnames(even.table) <- c("env", "mean", "sem", "LCI", "UCI")
 
+
 # Regression: evennes ratio vs. proportion eDNA
-eDNA.prop.sub <- eDNA.prop.sub[order(eDNA.prop.sub$sample.number),]
-even.reg <- lm(even.mean.ratio.ag$even.ratio ~ eDNA.prop.sub$prop)
-summary(even.reg)
+even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop + eDNA.prop.sub2$env )
+summary(even.reg) 
 # answer => no correlation between proportion eDNA and evenness ratio. 
 ```
 
 # Richness plot
 ```{r}
-png(filename="figures/ratio.richness.png",
+png(filename="../figures/ratio.richness.png",
     width = 800, height = 800, res = 96*2)
 
-plot.new()
-rich.plot <- plot(rich.table$mean, ylim = c(-1, 5), 
+par(mar=c(4, 5, 1, 1,) + 0.1)
+
+rich.plot <- plot(rich.table$mean, ylim = c(0.5, 1.5), 
       xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
       cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
       las = 1, ylab = "", xlab = "")
-      box(lwd = 2)
+      box(lwd = 2) 
 abline(h = 1, lty = 3, lwd = 2)
 arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$LCI, angle = 90,
        length = 0.1, lwd = 2)
@@ -173,13 +201,13 @@ arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$UCI, angle = 90,
 points(c(1:4), rich.table$mean,pch = 22, cex = 3, bg = "white", lwd = 2)
 
 mtext(expression('Richness Ratio'), side = 2, 
-      outer = TRUE, cex = 1.5, line = -2, adj = 0.5)
+      outer = F, cex = 1.5, line = 2.5, adj = 0.5)
 # Major Axes
-axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    labels = c(-1, 1, 3, 5), at = c(-1, 1, 3, 5))
+axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
  
-axis(side = 4, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at=c(-1, 1, 3, 5), labels = F)
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
 
 axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
     labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
@@ -187,22 +215,27 @@ axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
 axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
     at = c(1, 2, 3, 4), labels = F)
 
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
 # Close Plot Device
 dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("figures/ratio.richness.png")
+img <- readPNG("../figures/ratio.richness.png")
 grid.raster(img)
 ```
 
 # Evenness plot
 ```{r}
-png(filename="figures/ratio.evenness.png",
+png(filename="../figures/ratio.evenness.png",
     width = 800, height = 800, res = 96*2)
 
-plot.new()
-even.plot <- plot(even.table$mean, ylim = c(-3, 7), 
+even.plot <- plot(even.table$mean, ylim = c(0.5, 1.5), 
       xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
       cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
       las = 1, ylab = "", xlab = "")
@@ -215,13 +248,13 @@ arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$UCI, angle = 90,
 points(c(1:4), even.table$mean,pch = 22, cex = 3, bg = "white", lwd = 2)
 
 mtext(expression('Evenness Ratio'), side = 2, 
-      outer = TRUE, cex = 1.5, line = -2, adj = 0.5)
+        outer = F, cex = 1.5, line = 2.5, adj = 0.5)
 # Major Axes
-axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    labels = c(-3, -1, 1, 3, 5, 7), at = c(-3, -1, 1, 3, 5, 7))
+axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
  
-axis(side = 4, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at=c(-3, -1, 1, 3, 5, 7), labels = F)
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
 
 axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
     labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
@@ -229,12 +262,18 @@ axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
 axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
     at = c(1, 2, 3, 4), labels = F)
 
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
 # Close Plot Device
 dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("figures/ratio.evenness.png")
+img <- readPNG("../figures/ratio.evenness.png")
 grid.raster(img)
 ```
 
