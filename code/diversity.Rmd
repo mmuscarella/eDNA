@@ -277,6 +277,25 @@ img <- readPNG("../figures/ratio.evenness.png")
 grid.raster(img)
 ```
 
+## Phylogenetic Diversity
+A multi-fasta file was generated with representative sequences for each OTU. 
+Representatives were picked by on the most abundant unique sequence in each OTU.
+[FastTree](http://www.microbesonline.org/fasttree/) was used to construct a phylogenetic tree.
+The following parameters were used:
+
+```{sh}
+Note: eDNA.bac.final.0.03.rep.fasta is larger than the github limits. Please obtain the file from SDA or DC2
+
+> FastTree -gtr -nt -gamma -fastest eDNA.bac.final.0.03.rep.fasta >> eDNA.bac.tree
+
+Output: 
+ML-NNI round 10: LogLk = -5469999.258 NNIs 19175 max delta 6.02 Time 5310.73 (final)
+Optimize all lengths: LogLk = -5469914.139 Time 5434.12  
+Gamma(20) LogLk = -5471162.936 alpha = 1.041 rescaling lengths by 1.647   
+Total time: 5994.32 seconds Unique: 174292/174292 Bad splits: 910/174289 Worst delta-LogLk 7.944
+```
+
+
 # Beta diversity
 ```{r}
 # Make presence-absence matrix
@@ -305,19 +324,22 @@ sum.eig <- sum(explainvar1, explainvar2, explainvar3)
 otu.scores <- t(cor(eDNA.PCoA$points, OTU.REL))
 otu.scores <- as.matrix(otu.scores)[,1:2]
 otu.scores <- otu.scores[abs(otu.scores[,1]) > 0.7|abs(otu.scores[,2]) > 0.7,]
+```
 
-png(filename="figures/ordination.png",
+## PcoA Plot
+```{r, results = "hide"}
+png(filename="../figures/ordination.png",
     width = 1200, height = 800, res = 96*2)
 layout(matrix(1:2, 1, 2), widths = c(9, 3))
 par(mar = c(4, 5, 1, 0) + 0.5)
 
 plot(eDNA.PCoA$points[ ,1], eDNA.PCoA$points[ ,2], 
-     ylim = c(-0.6, 0.6), xlim = c(-0.6, 0.6), 
+     ylim = c(-0.4, 0.4), xlim = c(-0.5, 0.4), 
      xlab = paste("PCoA 1 (", explainvar1, "%)", sep = ""),
      ylab = paste("PCoA 2 (", explainvar2, "%)", sep = ""),
      #xlab = "", ylab = "", xaxt = "n", yaxt = "n",
      pch = 22, cex = 2.0, type = "n", cex.lab = 1.5, cex.axis = 1, 
-     axes = FALSE)
+     axes = FALSE) 
 
 # Add Axes
 axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 1.25, las = 1)
@@ -394,7 +416,7 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("figures/ordination.png")
+img <- readPNG("../figures/ordination.png")
 grid.raster(img)
 ```
 
