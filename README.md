@@ -14,14 +14,19 @@ Study to determine how extracellular DNA influences microbial structure
 
 ### Repo Contents
 
-* **analyses:**
-	*
+* **code:**
+	* abundance.Rmd - RMarkdown file for
+	* diversity.Rmd
 
 * **data:**
-	*
+	* eDNA.prop.txt - qPCR data
+	* eDNA_Design.txt - Experimental design and other meta data for eDNA project
+	* even.txt - Alpha diversity output from eDNA microbial communities
+	* rich.txt - Alpha diversity output from eDNA microbial communities
 
 * **bin:**
-	*
+	* DiversityFunctions.R - Source code for microbial community analysis functions. Written by Mario Muscarella (2014/09/04)
+	* MothurTools.R - Source code for functions related to using mothur output in R. Written by Mario Muscarella (2015/02/22)
 
 * **figures:**
   *
