@@ -15,14 +15,46 @@ Analysis of community sequence data to test whether the structure and compositio
 rm(list=ls())
 getwd()
 setwd("~/GitHub/eDNA/code")
+
+# Load dependencies
 require("vegan")
 require("plyr")
 require("grid")
 require("png")
+require("ape")
+require("picante")
+#require("phytools")
+#require("phangorn")
 
+# Source code functions
 source("../bin/DiversityFunctions.R")
 source("../bin/MothurTools.R")
+source("../bin/phylodiversity2.R")
+
+# Small custom functions
 sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
+
+# Save Default Plot Settings
+opar <- par(no.readonly = TRUE)  # Saves plot defaults
+```
+
+# Phylogenetic Diversity
+A multi-fasta file was generated with representative sequences for each OTU. 
+Representatives were picked by on the most abundant unique sequence in each OTU.
+[FastTree](http://www.microbesonline.org/fasttree/) was used to construct a phylogenetic tree.
+Note: This must be done before performing the following analyses.
+The following parameters were used:
+
+```{sh}
+Note: eDNA.bac.final.0.03.rep.fasta is larger than the github limits. Please obtain the file from SDA or DC2
+
+> FastTree -gtr -nt -gamma -fastest eDNA.bac.final.0.03.rep.rename.fasta >> eDNA.bac.tree
+
+Output: 
+ML-NNI round 14: LogLk = -5469747.038 NNIs 18759 max delta 6.95 Time 4888.39 (final)ax delta 6.954)   
+Optimize all lengths: LogLk = -5469663.971 Time 5006.96  
+Gamma(20) LogLk = -5470984.148 alpha = 1.037 rescaling lengths by 1.659   
+Total time: 5529.61 seconds Unique: 174292/174292 Bad splits: 903/174289 Worst delta-LogLk 10.311
 ```
 
 # Define Inputs
@@ -40,9 +72,11 @@ tax          <- "../mothur/output/eDNA.trim.contigs.good.unique.good.filter.uniq
 design <- read.delim(design, header=T, row.names=1)
 ```
 
-# Import Shared Files
+# Import Shared, Taxonomy, and Phylogeny Files
 ```{r}
 OTU <- read.otu(shared = shared, cutoff = "0.03")
+OTU.tax <- read.tax(taxonomy = tax, format = "rdp")
+OTU.tre <- read.tree("../mothur/output/eDNA.bac.tree")
 ```
 
 # Remove OTUs with less than two occurences across all sites
@@ -69,9 +103,9 @@ min.good.c <- min(goods.c.eDNA) # 0.98
 ```{r}
 # Mario's resampling to estimate alpha diversity in a sample (long)
 rich <- round(richness.iter(input = OTU, size = 30000,
-             iters = 100, shared="FALSE"), 3)
+             iters = 100, shared = "FALSE"), 3)
 even <- round(evenness.iter(input = OTU, size = 30000,
-             iters = 100, shared="FALSE", method="simp_even"), 3)
+             iters = 100, shared = "FALSE", method = "simp_even"), 3)
 
 # rarefy(OTU, sample, se = FALSE, MARGIN = 1)
 
@@ -87,15 +121,15 @@ even2 <- read.table("../data/even.txt", sep = "\t")
 rich.data <- merge(design, rich2, by = "row.names")
 row.names(rich.data) <- rich.data$Row.names
 rich.data <- rich.data[sort(row.names(rich.data)), ]
-rich.mean <- round(apply(rich.data[8:(7+dim(rich)[2])], 1, mean, na.rm = TRUE),3)
-rich.sem <- round(apply(rich.data[8:(7+dim(rich)[2])], 1, sem, na.rm = TRUE), 3)
+rich.mean <- round(apply(rich.data[8:(7 + dim(rich2)[2])], 1, mean, na.rm = TRUE),3)
+rich.sem <- round(apply(rich.data[8:(7 + dim(rich2)[2])], 1, sem, na.rm = TRUE), 3)
 
 
 even.data <- merge(design, even2, by = "row.names")
 row.names(even.data) <- even.data$Row.names
 even.data <- even.data[sort(row.names(even.data)), ]
-even.mean <- round(apply(even.data[8:(7+dim(even)[2])], 1, mean, na.rm = TRUE),3)
-even.sem <- round(apply(even.data[8:(7+dim(even)[2])], 1, sem, na.rm = TRUE),4)
+even.mean <- round(apply(even.data[8:(7 + dim(even2)[2])], 1, mean, na.rm = TRUE),3)
+even.sem <- round(apply(even.data[8:(7 + dim(even2)[2])], 1, sem, na.rm = TRUE),4)
 
 
 # Make new dataframe merging design file and mean diversity
@@ -144,11 +178,12 @@ eDNA.prop <- read.table("../data/eDNA.prop.txt", sep = "\t", header = T)
 ## eDNA.prop.sub<-eDNA.prop[eDNA.prop$sample.number %in% c(30, 31, 33, 34, 2, 7, 11, 
 ##                  13, 15, 16, 5, 6, 26, 27, 29, 3, 10, 12, 14, 17, 20),]
 
-eDNA.prop.sub<-eDNA.prop[eDNA.prop$sample.number %in% rich.2$qPCR.match, ]
+eDNA.prop.sub <- eDNA.prop[eDNA.prop$sample.number %in% rich.2$qPCR.match, ]
 
-eDNA.prop.sub2 <- eDNA.prop.sub[order(eDNA.prop.sub$sample.number), ]
-rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$prop + eDNA.prop.sub2$env )
-summary(rich.reg) 
+eDNA.prop.sub2 <- eDNA.prop.sub[order(eDNA.prop.sub$sample.number), ] 
+rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$prop + eDNA.prop.sub2$env)
+
+summary(rich.reg)
 # answer => no correlation between proportion eDNA and richness ratio. 
 # maybe a little in sediment
 ```
@@ -162,8 +197,9 @@ even.rep.ave <- ddply(eDNA.div, .(env, treat, qPCR.match),
 # Reshape data
 even.2 <- reshape(even.rep.ave[,1:4], timevar = "treat", 
                    idvar = c("qPCR.match", "env"), direction = "wide")
+
 # Calculate ratios
-even.2$even.ratio <- even.2$even.E / even.2$even.C 
+even.2$even.ratio <- even.2$even.E / even.2$even.C
 
 # Evennes table
 even.2.ag.mean <- aggregate(even.ratio ~ env, even.2, mean)
@@ -184,9 +220,9 @@ summary(even.reg)
 # Richness plot
 ```{r}
 png(filename="../figures/ratio.richness.png",
-    width = 800, height = 800, res = 96*2)
+    width = 800, height = 600, res = 96*2)
 
-par(mar=c(4, 5, 1, 1,) + 0.1)
+par(mar=c(3, 4, 1, 1) + 0.1)
 
 rich.plot <- plot(rich.table$mean, ylim = c(0.5, 1.5), 
       xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
@@ -201,19 +237,17 @@ arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$UCI, angle = 90,
 points(c(1:4), rich.table$mean,pch = 22, cex = 3, bg = "white", lwd = 2)
 
 mtext(expression('Richness Ratio'), side = 2, 
-      outer = F, cex = 1.5, line = 2.5, adj = 0.5)
+      outer = F, cex = 1.5, line = 2.5, adj = 0.5)  
+
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
     labels = T, at = c(0.5, 1, 1.5))
- 
 axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
    labels = F, at = c(0.5, 1, 1.5))
-
 axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
-
+    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4)) 
 axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at = c(1, 2, 3, 4), labels = F)
+    at = c(1, 2, 3, 4), labels = F) 
 
 # Minor ticks
 axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
@@ -233,7 +267,9 @@ grid.raster(img)
 # Evenness plot
 ```{r}
 png(filename="../figures/ratio.evenness.png",
-    width = 800, height = 800, res = 96*2)
+    width = 800, height = 600, res = 96*2)
+
+par(mar=c(3, 4, 1, 1) + 0.1)
 
 even.plot <- plot(even.table$mean, ylim = c(0.5, 1.5), 
       xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
@@ -277,38 +313,118 @@ img <- readPNG("../figures/ratio.evenness.png")
 grid.raster(img)
 ```
 
-## Phylogenetic Diversity
-A multi-fasta file was generated with representative sequences for each OTU. 
-Representatives were picked by on the most abundant unique sequence in each OTU.
-[FastTree](http://www.microbesonline.org/fasttree/) was used to construct a phylogenetic tree.
-The following parameters were used:
 
-```{sh}
-Note: eDNA.bac.final.0.03.rep.fasta is larger than the github limits. Please obtain the file from SDA or DC2
 
-> FastTree -gtr -nt -gamma -fastest eDNA.bac.final.0.03.rep.fasta >> eDNA.bac.tree
+# Phylogenetic Diversity: does eDNA "inflate" diversity?
+```{r}
+# Test if all OTUs are in tree
+sum(colnames(OTU) %in% OTU.tre$tip.label) == length(colnames(OTU) %in% OTU.tre$tip.label)
 
-Output: 
-ML-NNI round 10: LogLk = -5469999.258 NNIs 19175 max delta 6.02 Time 5310.73 (final)
-Optimize all lengths: LogLk = -5469914.139 Time 5434.12  
-Gamma(20) LogLk = -5471162.936 alpha = 1.041 rescaling lengths by 1.647   
-Total time: 5994.32 seconds Unique: 174292/174292 Bad splits: 910/174289 Worst delta-LogLk 7.944
+# Root Tree if Needed
+is.rooted(OTU.tre)
+OTU.tre.rooted <- midpoint(OTU.tre)
+
+OTU.2 <- rrarefy(OTU, 30000)
+OTU.2 <- OTU.2[,which(colSums(OTU.2) > 0)]
+OTU.tre.2 <- prune.sample(OTU.2, OTU.tre.rooted)
+
+# Calculate Faith's D
+eDNA.pd <- pd(OTU.2, OTU.tre.2, include.root = F)
+
+# Write output to files
+write.table(eDNA.pd, "../data/phylo.txt", sep = "\t", col.names = T, row.names = T)
+
+# Read in alpha diversity files from above
+eDNA.pd2 <- read.table("../data/phylo.txt", sep = "\t")
+
+# Make new dataframe merging design file and phylo diversity
+eDNA.phylo <- data.frame(design[sort(row.names(design)), ], pd = eDNA.pd2$PD)
+
+# Take averages of technial reps
+pd.rep.ave <- ddply(eDNA.phylo, .(env, treat, qPCR.match), 
+                      summarize, phylo = mean(pd))
+
+# Reshape data
+phylo.2 <- reshape(pd.rep.ave[,1:4], timevar = "treat", 
+                   idvar = c("qPCR.match", "env"), direction = "wide")
+
+# Calculate ratios
+phylo.2$phylo.ratio <- phylo.2$phylo.E / phylo.2$phylo.C
+
+# Richness table
+phylo.2.ag.mean <- aggregate(phylo.ratio ~ env, phylo.2, mean)
+phylo.2.ag.sem <- aggregate(phylo.ratio ~ env, phylo.2, sem)
+phylo.2.ag.95 <- aggregate(phylo.ratio ~ env, phylo.2, 
+                  FUN = function(x) t.test(x)$conf.int[1:2])
+phylo.table <- data.frame(phylo.2.ag.mean$env, phylo.2.ag.mean$phylo.ratio,
+                         phylo.2.ag.sem$phylo.ratio, phylo.2.ag.95$phylo.ratio)
+colnames(phylo.table) <- c("env", "mean", "sem", "LCI", "UCI")
+
+```
+
+# Faith's D plot
+```{r}
+png(filename="../figures/ratio.phylo.png",
+    width = 800, height = 600, res = 96*2)
+
+par(mar=c(3, 4, 1, 1) + 0.1)
+
+phylo.plot <- plot(phylo.table$mean, ylim = c(0.5, 1.5), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2)
+abline(h = 1, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = phylo.table$mean, y1 = phylo.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = phylo.table$mean, y1 = phylo.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+points(c(1:4), phylo.table$mean,pch = 22, cex = 3, bg = "white", lwd = 2)
+
+mtext(expression('Faiths D Ratio'), side = 2, 
+        outer = F, cex = 1.5, line = 2.5, adj = 0.5)
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
+ 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+
+axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
+    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
+
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F)
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/ratio.phylo.png")
+grid.raster(img)
 ```
 
 
 # Beta diversity
 ```{r}
 # Make presence-absence matrix
-OTU.PA <- (OTU > 0) * 1
+OTU.PA <- (OTU > 0) * 1,
 
 # Make relative abundence matrix
-OTU.REL <- OTU
-for(i in 1:dim(OTU)[1]){
+OTU.REL <- OTU,
+for (i in 1:dim(OTU)[1]){
   OTU.REL[i,] <- OTU[i,]/sum(OTU[i,])
   }
 
 # Log-transform relative abundances
-OTU.REL.log <- decostand(OTU, method="log")
+OTU.REL.log <- decostand(OTU, method="log"),
 
 eDNA.bc.dis <- vegdist(OTU.REL.log, method = "bray", binary = "FALSE")
 eDNA.dis.mean <- mean(eDNA.bc.dis)
@@ -539,8 +655,8 @@ design2.e <- design2[which(design2$treat == "E"), ]
 OTU.REL.c <- OTU.REL.c[order(design2.c$samp.code), ]
 OTU.REL.e <- OTU.REL.e[order(design2.e$samp.code), ]
 
-dist.c <- vegdist(OTU.REL.c, "bray")
-dist.e <- vegdist(OTU.REL.e, "bray")
+dist.c <- vegdist(OTU.REL.c, "bray" ) 
+dist.e <- vegdist(OTU.REL.e, "bray" ) 
 
 mantel.rtest(dist.c, dist.e)
 
