@@ -415,16 +415,16 @@ grid.raster(img)
 # Beta diversity
 ```{r}
 # Make presence-absence matrix
-OTU.PA <- (OTU > 0) * 1,
+OTU.PA <- (OTU > 0) * 1
 
 # Make relative abundence matrix
-OTU.REL <- OTU,
+OTU.REL <- OTU
 for (i in 1:dim(OTU)[1]){
   OTU.REL[i,] <- OTU[i,]/sum(OTU[i,])
   }
 
 # Log-transform relative abundances
-OTU.REL.log <- decostand(OTU, method="log"),
+OTU.REL.log <- decostand(OTU, method="log")
 
 eDNA.bc.dis <- vegdist(OTU.REL.log, method = "bray", binary = "FALSE")
 eDNA.dis.mean <- mean(eDNA.bc.dis)
@@ -471,6 +471,7 @@ box(lwd = 2)
 
 # Subset data
 eDNA.div.sort <- eDNA.div[order(eDNA.div[,1]) ,]
+all.equal(row.names(eDNA.PCoA$points), rownames(eDNA.div.sort))
 eDNA.points <- data.frame(eDNA.PCoA$points, eDNA.div.sort)
 
 # Gut
@@ -491,33 +492,33 @@ eDNA.water.E <- eDNA.points[ which(eDNA.points$env == "water" & eDNA.points$trea
 
 # Add points
 
-  # Gut C
-points(eDNA.gut.C[ ,1], eDNA.gut.C[ ,2], pch = 21, 
-       cex = 2, col = "red", bg = "white", lwd = 2) 
-  # Gut E
-points(eDNA.gut.E[ ,1], eDNA.gut.E[ ,2], pch = 21, 
-       cex = 2, col = "red", bg = "red", lwd = 2)   
+# Gut C
+points(eDNA.gut.C[ ,1], eDNA.gut.C[ ,2], pch = 21, cex = 2, col = "red", 
+       bg = "white", lwd = 2) 
+# Gut E
+points(eDNA.gut.E[ ,1], eDNA.gut.E[ ,2], pch = 21, cex = 2, col = "red", 
+       bg = "red", lwd = 2)   
 
-  # Sed C
-points(eDNA.sed.C[ ,1], eDNA.sed.C[ ,2], pch = 22, 
-       cex = 2, col = "darkgreen", bg = "white", lwd = 2) 
-  # Sed E
-points(eDNA.sed.E[ ,1], eDNA.sed.E[ ,2], pch = 22, 
-       cex = 2, col = "darkgreen", bg = "darkgreen", lwd = 2) 
+# Sed C
+points(eDNA.sed.C[ ,1], eDNA.sed.C[ ,2], pch = 22, cex = 2, col = "darkgreen", 
+       bg = "white", lwd = 2) 
+# Sed E
+points(eDNA.sed.E[ ,1], eDNA.sed.E[ ,2], pch = 22, cex = 2, col = "darkgreen", 
+       bg = "darkgreen", lwd = 2) 
 
-  # Soil C
-points(eDNA.soil.C[ ,1], eDNA.soil.C[ ,2], pch = 24, 
-       cex = 2, col = "brown", bg = "white", lwd = 2) 
-  # Soil E
-points(eDNA.sed.E[ ,1], eDNA.sed.E[ ,2], pch = 24, 
-       cex = 2, col = "brown", bg = "brown", lwd = 2) 
+# Soil C
+points(eDNA.soil.C[ ,1], eDNA.soil.C[ ,2], pch = 24, cex = 2, col = "brown", 
+       bg = "white", lwd = 2) 
+# Soil E
+points(eDNA.soil.E[ ,1], eDNA.soil.E[ ,2], pch = 24, cex = 2, col = "brown", 
+       bg = "brown", lwd = 2) 
 
-  # Water C
-points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23, 
-       cex = 2, col = "blue", bg = "white", lwd = 2) 
-  # Soil E
-points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, 
-       cex = 2, col = "blue", bg = "blue", lwd = 2) 
+# Water C
+points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23, cex = 2, col = "blue", 
+       bg = "white", lwd = 2) 
+# Soil E
+points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, cex = 2, col = "blue", 
+       bg = "blue", lwd = 2) 
 
 par(mar = c(4, 0, 1, 1) + 0.5)
 plot.new()
