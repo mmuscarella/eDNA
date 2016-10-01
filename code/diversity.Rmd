@@ -23,6 +23,7 @@ require("grid")
 require("png")
 require("ape")
 require("picante")
+require("ade4")
 #require("phytools")
 #require("phangorn")
 
@@ -415,16 +416,16 @@ grid.raster(img)
 # Beta diversity
 ```{r}
 # Make presence-absence matrix
-OTU.PA <- (OTU > 0) * 1,
+OTU.PA <- (OTU > 0) * 1
 
 # Make relative abundence matrix
-OTU.REL <- OTU,
+OTU.REL <- OTU
 for (i in 1:dim(OTU)[1]){
   OTU.REL[i,] <- OTU[i,]/sum(OTU[i,])
   }
 
 # Log-transform relative abundances
-OTU.REL.log <- decostand(OTU, method="log"),
+OTU.REL.log <- decostand(OTU, method="log")
 
 eDNA.bc.dis <- vegdist(OTU.REL.log, method = "bray", binary = "FALSE")
 eDNA.dis.mean <- mean(eDNA.bc.dis)
@@ -471,6 +472,7 @@ box(lwd = 2)
 
 # Subset data
 eDNA.div.sort <- eDNA.div[order(eDNA.div[,1]) ,]
+all.equal(row.names(eDNA.PCoA$points), rownames(eDNA.div.sort))
 eDNA.points <- data.frame(eDNA.PCoA$points, eDNA.div.sort)
 
 # Gut
@@ -491,34 +493,35 @@ eDNA.water.E <- eDNA.points[ which(eDNA.points$env == "water" & eDNA.points$trea
 
 # Add points
 
-  # Gut C
-points(eDNA.gut.C[ ,1], eDNA.gut.C[ ,2], pch = 21, 
-       cex = 2, col = "red", bg = "white", lwd = 2) 
-  # Gut E
-points(eDNA.gut.E[ ,1], eDNA.gut.E[ ,2], pch = 21, 
-       cex = 2, col = "red", bg = "red", lwd = 2)   
+# Gut C
+points(eDNA.gut.C[ ,1], eDNA.gut.C[ ,2], pch = 21, cex = 2, col = "red", 
+       bg = "white", lwd = 2) 
+# Gut E
+points(eDNA.gut.E[ ,1], eDNA.gut.E[ ,2], pch = 21, cex = 2, col = "red", 
+       bg = "red", lwd = 2)   
 
-  # Sed C
-points(eDNA.sed.C[ ,1], eDNA.sed.C[ ,2], pch = 22, 
-       cex = 2, col = "darkgreen", bg = "white", lwd = 2) 
-  # Sed E
-points(eDNA.sed.E[ ,1], eDNA.sed.E[ ,2], pch = 22, 
-       cex = 2, col = "darkgreen", bg = "darkgreen", lwd = 2) 
+# Sed C
+points(eDNA.sed.C[ ,1], eDNA.sed.C[ ,2], pch = 22, cex = 2, col = "darkgreen", 
+       bg = "white", lwd = 2) 
+# Sed E
+points(eDNA.sed.E[ ,1], eDNA.sed.E[ ,2], pch = 22, cex = 2, col = "darkgreen", 
+       bg = "darkgreen", lwd = 2) 
 
-  # Soil C
-points(eDNA.soil.C[ ,1], eDNA.soil.C[ ,2], pch = 24, 
-       cex = 2, col = "brown", bg = "white", lwd = 2) 
-  # Soil E
-points(eDNA.sed.E[ ,1], eDNA.sed.E[ ,2], pch = 24, 
-       cex = 2, col = "brown", bg = "brown", lwd = 2) 
+# Soil C
+points(eDNA.soil.C[ ,1], eDNA.soil.C[ ,2], pch = 24, cex = 2, col = "brown", 
+       bg = "white", lwd = 2) 
+# Soil E
+points(eDNA.soil.E[ ,1], eDNA.soil.E[ ,2], pch = 24, cex = 2, col = "brown", 
+       bg = "brown", lwd = 2) 
 
-  # Water C
-points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23, 
-       cex = 2, col = "blue", bg = "white", lwd = 2) 
-  # Soil E
-points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, 
-       cex = 2, col = "blue", bg = "blue", lwd = 2) 
+# Water C
+points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23, cex = 2, col = "blue", 
+       bg = "white", lwd = 2) 
+# Soil E
+points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, cex = 2, col = "blue", 
+       bg = "blue", lwd = 2) 
 
+# Add Legend Outside
 par(mar = c(4, 0, 1, 1) + 0.5)
 plot.new()
 legend(0, 1, c("Gut", "Sediment", "Soil", "Water"), 
@@ -538,39 +541,73 @@ grid.raster(img)
 
 # PERMANOVA
 ```{r}
-eDNA.permanova <- adonis(OTU.REL.log ~ design$env * design$treat, 
-    method = "bray", binary = FALSE)
+# Check Order of Dataframes
+all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
+
+eDNA.permanova <- adonis(OTU.REL.log ~ eDNA.div$env * eDNA.div$treat, 
+                         method = "bray", binary = FALSE)
 eDNA.permanova
 
-
+eDNA.bc.dis <- vegdist(OTU.REL.log, method = "bray", binary = "FALSE")
+beta.disp <- betadisper(d = eDNA.bc.dis, group = eDNA.div$env)
+permutest(beta.disp, 99)
+TukeyHSD(beta.disp)
 ```
 
-# Distances between pairs
+# Mantel Test 
 ```{r}
-dist.raw <- vegdist(OTU.REL, method = "bray", upper = T, diag = T)
-as.matrix(dist.raw)[1:5, 1:5]
+# Check order of design
+all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
 
-design2 <- design[order(row.names(design)), ]
+OTU.REL.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
+OTU.REL.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
 
-eDNA.permanova <- adonis(OTU.REL ~ design2$env * design2$treat, # strata = design2$pair,
-    method = "bray", binary = FALSE)
+eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
+eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
 
-eDNA.permanova
+all.equal(sort(eDNA.div.c$samp.code), sort(eDNA.div.e$samp.code))
 
-OTU.REL.log[1:5, 1:5]
-design2[1:5,]
+OTU.REL.c2 <- OTU.REL.c[order(eDNA.div.c$samp.code), ]
+OTU.REL.e2 <- OTU.REL.e[order(eDNA.div.e$samp.code), ]
 
-design.c <- design2[which(design2$treat == "C"),]
-design.e <- design2[which(design2$treat == "E"),]
+dist.c <- vegdist(OTU.REL.c2, "bray") 
+dist.e <- vegdist(OTU.REL.e2, "bray") 
 
-design.c <- design.c[order(design.c$pair),]
-design.e <- design.e[order(design.e$pair),]
+mantel.rtest(dist.c, dist.e, nrepet = 999)
+```
 
+# Distances between pairs (Distance Ratio)
+```{r}
+# Data Check
+all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
 
+# Create Raw Distance Matrix
+dist.raw <- vegdist(OTU.REL.log, method = "bray", upper = T, diag = T)
 
-design.c$env == design.e$env
+# Separate by Treatments
+eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
+eDNa.div.e <- eDNA.div[which(eDNA.div$treat == "C"), ]
+OTU.REL.log.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
+OTU.REL.log.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
 
+# Order Each by Pairings
+eDNA.div.c <- eDNA.div.c[order(eDNA.div.c$pair), ]
+eDNA.div.e <- eDNA.div.e[order(eDNA.div.e$pair), ]
+OTU.REL.log.c <- OTU.REL.log.c[order(eDNA.div.c$pair), ]
+OTU.REL.log.e <- OTU.REL.log.e[order(eDNA.div.e$pair), ]
+all.equal(eDNA.div.e$env, eDNA.div.c$env)
+
+# Create Distance Matrix for Treatments
+dist.c <- vegdist(OTU.REL.log.c, method = "bray", upper = T, diag = T)
+dist.e <- vegdist(OTU.REL.log.e, method = "bray", upper = T, diag = T)
+
+# Turn Distance Matrices into Matrices
 dist.raw <- as.matrix(dist.raw)
+dist.e <- as.matrix(dist.e)
+dist.c <- as.matrix(dist.c)
+
+
+# Mario's Stopping Point on 30 Sep 2016
 
 dist.pair <- as.data.frame(matrix(NA, dim(design.c)[1], 2))
 colnames(dist.pair) <- c("distance", "env")
@@ -644,23 +681,7 @@ pair.mean
 
 ```
 
-  
-```{r}
-OTU.REL.c <- OTU.REL[which(design2$treat == "C"), ]
-OTU.REL.e <- OTU.REL[which(design2$treat == "E"), ]
 
-design2.c <- design2[which(design2$treat == "C"), ]
-design2.e <- design2[which(design2$treat == "E"), ]
-
-OTU.REL.c <- OTU.REL.c[order(design2.c$samp.code), ]
-OTU.REL.e <- OTU.REL.e[order(design2.e$samp.code), ]
-
-dist.c <- vegdist(OTU.REL.c, "bray" ) 
-dist.e <- vegdist(OTU.REL.e, "bray" ) 
-
-mantel.rtest(dist.c, dist.e)
-
-```
   
   
 
