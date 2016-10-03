@@ -41,7 +41,7 @@ opar <- par(no.readonly = TRUE)  # Saves plot defaults
 
 # Phylogenetic Diversity
 A multi-fasta file was generated with representative sequences for each OTU. 
-Representatives were picked by on the most abundant unique sequence in each OTU.
+Representatives were picked based on the most abundant unique sequence in each OTU.
 [FastTree](http://www.microbesonline.org/fasttree/) was used to construct a phylogenetic tree.
 Note: This must be done before performing the following analyses.
 The following parameters were used:
