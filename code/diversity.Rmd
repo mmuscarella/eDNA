@@ -708,6 +708,78 @@ img <- readPNG("../figures/variation.png")
 grid.raster(img)
 ```
 
+# Variation based on Bray Curtis Distance
+```{r}
+bc.var <- as.data.frame(matrix(NA, 4, 3))
+colnames(bc.var) <- c("reps", "treat", "env")
+row.names(bc.var) <- c("gut", "sed", "sol", "wat")
+for (i  in 1:dim(bc.var)[1]){
+  env.temp <- rownames(bc.var)[i]
+  dis.temp <- get(paste("dist", env.temp, sep = "."))
+  dat.temp <- get(paste("eDNA.div", env.temp, sep = "."))
+  dat.temp <- dat.temp[order(dat.temp$samp.num), ]
+  if (all(attributes(dis.temp)$Labels != rownames(dat.temp))){
+    stop("distance matix and data are not arranged properly")
+  }
+  dis.temp.C <- as.matrix(dis.temp)[which(dat.temp$treat == "C"), 
+                                    which(dat.temp$treat == "C")]
+  dis.temp.C <- as.dist(dis.temp.C)
+  bc.var[i,3] <- mean(dis.temp.C)
+  dis.pair <- as.data.frame(matrix(NA, length(unique(dat.temp$pair)), 3))
+  colnames(dis.pair) <- c("C", "E", "dis")
+  dis.pair[,1] <- rownames(dat.temp)[dat.temp$treat == "C"]
+  for (j in 1:length(dis.pair$C)){
+    pair <- dat.temp$pair[which(rownames(dat.temp) == dis.pair$C[j])]
+    dis.pair[j, 2] <- rownames(dat.temp)[which(dat.temp$treat == "E" & 
+                                         dat.temp$pair == pair)]
+    dis.pair[j, 3] <- as.matrix(dis.temp)[which(rownames(dat.temp) == dis.pair[j, 1]), 
+                                    which(rownames(dat.temp) == dis.pair[j, 2])]
+  }
+  bc.var[i,2] <- mean(dis.pair[,3])
+  reps <- names(which(table(dat.temp$qPCR.match) > 2))
+  dis.rep <- as.data.frame(matrix(NA, length(reps), 3))
+  colnames(dis.rep) <- c("rep1", "rep2", "dis")
+  for (k in 1:length(reps)){
+    dis.rep[k, 1:2] <- rownames(dat.temp)[which(dat.temp$treat == "C" &
+                                          dat.temp$qPCR.match == reps[k])]
+    dis.rep[k, 3] <- as.matrix(dis.temp)[which(rownames(dat.temp) == dis.rep[k, 1]), 
+                                    which(rownames(dat.temp) == dis.rep[k, 2])]
+  }
+  bc.var[i, 1] <- mean(dis.rep[, 3])
+}
+
+bc.var
+    
+```
+
+```{r, results = 'hide'}
+png(filename="../figures/BC_dist.png",
+    width = 1200, height = 800, res = 96*2)
+layout(matrix(1:2, 2, 1) , heights = c(8, 2))
+par(mar = c(2, 5, 1, 0) + 0.5, oma = c(0.5, 0.5, 0.5, 0.5))
+
+barplot(t(as.matrix(bc.var)),
+        names.arg = c("Gut", "Sediment", "Soil", "Water"),
+        las = 1, ylab = "", ylim = c(0, 2))
+
+mtext("Bray Curtis Distance", side = 2, cex = 1.25, line = 3)
+
+# Add Legend Outside
+par(mar = c(1, 5, 0, 1) + 0.5)
+plot.new()
+legend("top", c("Replicates", "Treatments", "Environments"), 
+       pch = 22, pt.bg = c("gray40", "gray60", "gray90"),
+      bty = "n", y.intersp = 1.5, horiz = T)
+
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/BC_dist.png")
+grid.raster(img)
+```
 
 
 
