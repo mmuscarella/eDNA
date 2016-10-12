@@ -749,6 +749,8 @@ for (i  in 1:dim(bc.var)[1]){
 }
 
 bc.var
+
+bc.var.std <- bc.var/rowSums(bc.var)
     
 ```
 
@@ -758,7 +760,7 @@ png(filename="../figures/BC_dist.png",
 layout(matrix(1:2, 2, 1) , heights = c(8, 2))
 par(mar = c(2, 5, 1, 0) + 0.5, oma = c(0.5, 0.5, 0.5, 0.5))
 
-barplot(t(as.matrix(bc.var)),
+barplot(t(as.matrix(bc.var.std)),
         names.arg = c("Gut", "Sediment", "Soil", "Water"),
         las = 1, ylab = "", ylim = c(0, 2))
 
