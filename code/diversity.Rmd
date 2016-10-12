@@ -103,16 +103,16 @@ min.good.c <- min(goods.c.eDNA) # 0.98
 # Alpha diversity
 ```{r}
 # Mario's resampling to estimate alpha diversity in a sample (long)
-rich <- round(richness.iter(input = OTU, size = 30000,
-             iters = 100, shared = "FALSE"), 3)
-even <- round(evenness.iter(input = OTU, size = 30000,
-             iters = 100, shared = "FALSE", method = "simp_even"), 3)
+#rich <- round(richness.iter(input = OTU, size = 30000,
+#             iters = 100, shared = "FALSE"), 3)
+#even <- round(evenness.iter(input = OTU, size = 30000,
+#             iters = 100, shared = "FALSE", method = "simp_even"), 3)
 
 # rarefy(OTU, sample, se = FALSE, MARGIN = 1)
 
 # Write output to files
-write.table(rich, "../data/rich.txt", sep = "\t", col.names = T, row.names = T)
-write.table(even, "../data/even.txt", sep = "\t", col.names = T, row.names = T)
+#write.table(rich, "../data/rich.txt", sep = "\t", col.names = T, row.names = T)
+#write.table(even, "../data/even.txt", sep = "\t", col.names = T, row.names = T)
 
 # Read in alpha diversity files from above
 rich2 <- read.table("../data/rich.txt", sep = "\t")
@@ -315,7 +315,6 @@ grid.raster(img)
 ```
 
 
-
 # Phylogenetic Diversity: does eDNA "inflate" diversity?
 ```{r}
 # Test if all OTUs are in tree
@@ -325,15 +324,15 @@ sum(colnames(OTU) %in% OTU.tre$tip.label) == length(colnames(OTU) %in% OTU.tre$t
 is.rooted(OTU.tre)
 OTU.tre.rooted <- midpoint(OTU.tre)
 
-OTU.2 <- rrarefy(OTU, 30000)
-OTU.2 <- OTU.2[,which(colSums(OTU.2) > 0)]
-OTU.tre.2 <- prune.sample(OTU.2, OTU.tre.rooted)
+#OTU.2 <- rrarefy(OTU, 30000)
+#OTU.2 <- OTU.2[,which(colSums(OTU.2) > 0)]
+#OTU.tre.2 <- prune.sample(OTU.2, OTU.tre.rooted)
 
 # Calculate Faith's D
-eDNA.pd <- pd(OTU.2, OTU.tre.2, include.root = F)
+#eDNA.pd <- pd(OTU.2, OTU.tre.2, include.root = F)
 
 # Write output to files
-write.table(eDNA.pd, "../data/phylo.txt", sep = "\t", col.names = T, row.names = T)
+#write.table(eDNA.pd, "../data/phylo.txt", sep = "\t", col.names = T, row.names = T)
 
 # Read in alpha diversity files from above
 eDNA.pd2 <- read.table("../data/phylo.txt", sep = "\t")
@@ -606,6 +605,187 @@ dist.raw <- as.matrix(dist.raw)
 dist.e <- as.matrix(dist.e)
 dist.c <- as.matrix(dist.c)
 
+# Seperate by Habitat
+eDNA.div.gut <- eDNA.div[which(eDNA.div$env == "feces"), ]
+eDNA.div.sed <- eDNA.div[which(eDNA.div$env == "sed"), ]
+eDNA.div.sol <- eDNA.div[which(eDNA.div$env == "soil"), ]
+eDNA.div.wat <- eDNA.div[which(eDNA.div$env == "water"), ]
+
+OTU.REL.log.gut <- OTU.REL.log[which(eDNA.div$env == "feces"), ]
+OTU.REL.log.sed <- OTU.REL.log[which(eDNA.div$env == "sed"), ]
+OTU.REL.log.sol <- OTU.REL.log[which(eDNA.div$env == "soil"), ]
+OTU.REL.log.wat <- OTU.REL.log[which(eDNA.div$env == "water"), ]
+
+# Order Each by Pairings
+eDNA.div.gut <- eDNA.div.gut[order(eDNA.div.gut$pair), ]
+eDNA.div.sed <- eDNA.div.sed[order(eDNA.div.sed$pair), ]
+eDNA.div.sol <- eDNA.div.sol[order(eDNA.div.sol$pair), ]
+eDNA.div.wat <- eDNA.div.wat[order(eDNA.div.wat$pair), ]
+OTU.REL.log.gut <- OTU.REL.log.gut[order(eDNA.div.gut$pair), ]
+OTU.REL.log.sed <- OTU.REL.log.sed[order(eDNA.div.sed$pair), ]
+OTU.REL.log.sol <- OTU.REL.log.sol[order(eDNA.div.sol$pair), ]
+OTU.REL.log.wat <- OTU.REL.log.wat[order(eDNA.div.wat$pair), ]
+
+# Create Distance Matrix for Treatments
+dist.gut <- vegdist(OTU.REL.log.gut, method = "bray", upper = F, diag = F)
+dist.sed <- vegdist(OTU.REL.log.sed, method = "bray", upper = F, diag = F)
+dist.sol <- vegdist(OTU.REL.log.sol, method = "bray", upper = F, diag = F)
+dist.wat <- vegdist(OTU.REL.log.wat, method = "bray", upper = F, diag = F)
+
+# Turn Distance Matrices into Matrices
+dist.gut2 <- as.matrix(dist.gut)
+dist.sed2 <- as.matrix(dist.sed)
+dist.sol2 <- as.matrix(dist.sol)
+dist.wat2 <- as.matrix(dist.wat)
+
+# what are the factors I have to work with
+head(eDNA.div.gut)
+levels(eDNA.div.gut$treat)
+levels(as.factor(eDNA.div.gut$qPCR.match))
+
+# Variance Partitioning
+var.gut <- varpart(Y = dist.gut, as.numeric(eDNA.div.gut$treat), (eDNA.div.gut$qPCR.match))
+plot(var.gut)
+
+gut.RDA <- capscale(dist.gut ~ eDNA.div.gut$treat + as.factor(eDNA.div.gut$qPCR.match))
+anova(gut.RDA, by = "term")
+RsquareAdj(gut.RDA)
+
+# Adjusted RSquare by Terms
+
+rda.aov <- (anova(gut.RDA, by = "term"))
+r2 <- (rda.aov$SumOfSqs[1:2] / sum(rda.aov$SumOfSqs[1:3]))
+m <- c(length(levels(eDNA.div.gut$treat)) - 1, 
+       length(levels(as.factor(eDNA.div.gut$qPCR.match))) - 1)
+n <- nrow(gut.RDA$CCA$u)
+adjr2 <- 1 - (1 - r2) * (n - 1)/(n - m - 1)
+r2; adjr2; sum(r2); sum(adjr2)
+
+
+var.r2 <- as.data.frame(matrix(NA, 4, 3))
+colnames(var.r2) <- c("eDNA", "replicates", "unexplained")
+row.names(var.r2) <- c("gut", "sed", "sol", "wat")
+for (i  in 1:dim(var.r2)[1]){
+  env.temp <- rownames(var.r2)[i]
+  dis.temp <- get(paste("dist", env.temp, sep = "."))
+  dat.temp <- get(paste("eDNA.div", env.temp, sep = "."))
+  rda.temp <- capscale(dis.temp ~ dat.temp$treat + as.factor(dat.temp$qPCR.match))
+  aov.temp <- anova(rda.temp, by = "term")
+  r2 <- (aov.temp$SumOfSqs[1:2] / sum(aov.temp$SumOfSqs[1:3]))  
+  var.r2[i, 1] <- r2[1]
+  var.r2[i, 2] <- r2[2]
+  var.r2[i, 3] <- (1 - sum(r2))
+}
+```
+
+
+```{r, results = 'hide'}
+png(filename="../figures/variation.png",
+    width = 1200, height = 800, res = 96*2)
+layout(matrix(1:2, 2, 1) , heights = c(8, 2))
+par(mar = c(2, 5, 1, 0) + 0.5, oma = c(0.5, 0.5, 0.5, 0.5))
+
+barplot(t(as.matrix(var.r2)),
+        names.arg = c("Gut", "Sediment", "Soil", "Water"),
+        las = 1, ylab = "")
+
+mtext("Proportion of Variation", side = 2, cex = 1.25, line = 3)
+
+# Add Legend Outside
+par(mar = c(1, 5, 0, 1) + 0.5)
+plot.new()
+legend("top", c("DNase", "Replicates", "Unexplained"), 
+       pch = 22, pt.bg = c("gray40", "gray60", "gray90"),
+      bty = "n", y.intersp = 1.5, horiz = T)
+
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/variation.png")
+grid.raster(img)
+```
+
+# Variation based on Bray Curtis Distance
+```{r}
+bc.var <- as.data.frame(matrix(NA, 4, 3))
+colnames(bc.var) <- c("reps", "treat", "env")
+row.names(bc.var) <- c("gut", "sed", "sol", "wat")
+for (i  in 1:dim(bc.var)[1]){
+  env.temp <- rownames(bc.var)[i]
+  dis.temp <- get(paste("dist", env.temp, sep = "."))
+  dat.temp <- get(paste("eDNA.div", env.temp, sep = "."))
+  dat.temp <- dat.temp[order(dat.temp$samp.num), ]
+  if (all(attributes(dis.temp)$Labels != rownames(dat.temp))){
+    stop("distance matix and data are not arranged properly")
+  }
+  dis.temp.C <- as.matrix(dis.temp)[which(dat.temp$treat == "C"), 
+                                    which(dat.temp$treat == "C")]
+  dis.temp.C <- as.dist(dis.temp.C)
+  bc.var[i,3] <- mean(dis.temp.C)
+  dis.pair <- as.data.frame(matrix(NA, length(unique(dat.temp$pair)), 3))
+  colnames(dis.pair) <- c("C", "E", "dis")
+  dis.pair[,1] <- rownames(dat.temp)[dat.temp$treat == "C"]
+  for (j in 1:length(dis.pair$C)){
+    pair <- dat.temp$pair[which(rownames(dat.temp) == dis.pair$C[j])]
+    dis.pair[j, 2] <- rownames(dat.temp)[which(dat.temp$treat == "E" & 
+                                         dat.temp$pair == pair)]
+    dis.pair[j, 3] <- as.matrix(dis.temp)[which(rownames(dat.temp) == dis.pair[j, 1]), 
+                                    which(rownames(dat.temp) == dis.pair[j, 2])]
+  }
+  bc.var[i,2] <- mean(dis.pair[,3])
+  reps <- names(which(table(dat.temp$qPCR.match) > 2))
+  dis.rep <- as.data.frame(matrix(NA, length(reps), 3))
+  colnames(dis.rep) <- c("rep1", "rep2", "dis")
+  for (k in 1:length(reps)){
+    dis.rep[k, 1:2] <- rownames(dat.temp)[which(dat.temp$treat == "C" &
+                                          dat.temp$qPCR.match == reps[k])]
+    dis.rep[k, 3] <- as.matrix(dis.temp)[which(rownames(dat.temp) == dis.rep[k, 1]), 
+                                    which(rownames(dat.temp) == dis.rep[k, 2])]
+  }
+  bc.var[i, 1] <- mean(dis.rep[, 3])
+}
+
+bc.var
+
+bc.var.std <- bc.var/rowSums(bc.var)
+    
+```
+
+```{r, results = 'hide'}
+png(filename="../figures/BC_dist.png",
+    width = 1200, height = 800, res = 96*2)
+layout(matrix(1:2, 2, 1) , heights = c(8, 2))
+par(mar = c(2, 5, 1, 0) + 0.5, oma = c(0.5, 0.5, 0.5, 0.5))
+
+barplot(t(as.matrix(bc.var.std)),
+        names.arg = c("Gut", "Sediment", "Soil", "Water"),
+        las = 1, ylab = "", ylim = c(0, 1))
+
+mtext("Bray Curtis Distance", side = 2, cex = 1.25, line = 3)
+
+# Add Legend Outside
+par(mar = c(1, 5, 0, 1) + 0.5)
+plot.new()
+legend("top", c("Replicates", "Treatments", "Environments"), 
+       pch = 22, pt.bg = c("gray40", "gray60", "gray90"),
+      bty = "n", y.intersp = 1.5, horiz = T)
+
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/BC_dist.png")
+grid.raster(img)
+```
+
+
+
+```{r}
 
 # Mario's Stopping Point on 30 Sep 2016
 
