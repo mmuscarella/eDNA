@@ -762,7 +762,7 @@ par(mar = c(2, 5, 1, 0) + 0.5, oma = c(0.5, 0.5, 0.5, 0.5))
 
 barplot(t(as.matrix(bc.var.std)),
         names.arg = c("Gut", "Sediment", "Soil", "Water"),
-        las = 1, ylab = "", ylim = c(0, 2))
+        las = 1, ylab = "", ylim = c(0, 1))
 
 mtext("Bray Curtis Distance", side = 2, cex = 1.25, line = 3)
 
