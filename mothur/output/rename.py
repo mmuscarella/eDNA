@@ -19,11 +19,11 @@ for seq_record in SeqIO.parse(in_file, "fasta"):
     seqID_New = re.findall('Otu.{6}',seq_record.description)
     NewseqID.append(seqID_New)
     seq_record.id = seqID_New[0]
-    
+
     SeqIO.write(seq_record, output_handle, "fasta")
-    
+
 output_handle.close()
 renamed = len(NewseqID)
-    
+
 print("done")
-print("renamed %i sequence records" %(rename))
+print("renamed %i sequence records" %(renamed))
