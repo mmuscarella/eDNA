@@ -49,7 +49,7 @@ The following parameters were used:
 ```{sh}
 Note: eDNA.bac.final.0.03.rep.fasta is larger than the github limits. Please obtain the file from SDA or DC2
 
-> FastTree -gtr -nt -gamma -fastest eDNA.bac.final.0.03.rep.rename.fasta >> eDNA.bac.tree
+> FastTree -gtr -nt -gamma -fastest eDNA.bac.final.0.03.rep.rename.fasta >> eDNA.bac.rename.tree
 
 Output: 
 ML-NNI round 14: LogLk = -5469747.038 NNIs 18759 max delta 6.95 Time 4888.39 (final)ax delta 6.954)   
@@ -77,7 +77,7 @@ design <- read.delim(design, header=T, row.names=1)
 ```{r}
 OTU <- read.otu(shared = shared, cutoff = "0.03")
 OTU.tax <- read.tax(taxonomy = tax, format = "rdp")
-OTU.tre <- read.tree("../mothur/output/eDNA.bac.tree")
+OTU.tre <- read.tree("../mothur/output/eDNA.bac.rename.tree")
 ```
 
 # Remove OTUs with less than two occurences across all sites
