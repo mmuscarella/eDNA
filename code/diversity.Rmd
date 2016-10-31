@@ -12,7 +12,7 @@ Analysis of community sequence data to test whether the structure and compositio
 
 # Setup Work Environment 
 ```{r}
-rm(list=ls())
+# rm(list=ls())
 getwd()
 setwd("~/GitHub/eDNA/code")
 
@@ -235,7 +235,7 @@ arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$LCI, angle = 90,
        length = 0.1, lwd = 2)
 arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$UCI, angle = 90,
        length=0.1, lwd = 2)
-points(c(1:4), rich.table$mean,pch = 22, cex = 3, bg = "white", lwd = 2)
+points(c(1:4), rich.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
 
 mtext(expression('Richness Ratio'), side = 2, 
       outer = F, cex = 1.5, line = 2.5, adj = 0.5)  
@@ -282,7 +282,7 @@ arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$LCI, angle = 90,
        length = 0.1, lwd = 2)
 arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$UCI, angle = 90,
        length=0.1, lwd = 2)
-points(c(1:4), even.table$mean,pch = 22, cex = 3, bg = "white", lwd = 2)
+points(c(1:4), even.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
 
 mtext(expression('Evenness Ratio'), side = 2, 
         outer = F, cex = 1.5, line = 2.5, adj = 0.5)
@@ -379,7 +379,7 @@ arrows(x0 = c(1,2,3,4), y0 = phylo.table$mean, y1 = phylo.table$LCI, angle = 90,
        length = 0.1, lwd = 2)
 arrows(x0 = c(1,2,3,4), y0 = phylo.table$mean, y1 = phylo.table$UCI, angle = 90,
        length=0.1, lwd = 2)
-points(c(1:4), phylo.table$mean,pch = 22, cex = 3, bg = "white", lwd = 2)
+points(c(1:4), phylo.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
 
 mtext(expression('Faiths D Ratio'), side = 2, 
         outer = F, cex = 1.5, line = 2.5, adj = 0.5)
@@ -652,7 +652,6 @@ anova(gut.RDA, by = "term")
 RsquareAdj(gut.RDA)
 
 # Adjusted RSquare by Terms
-
 rda.aov <- (anova(gut.RDA, by = "term"))
 r2 <- (rda.aov$SumOfSqs[1:2] / sum(rda.aov$SumOfSqs[1:3]))
 m <- c(length(levels(eDNA.div.gut$treat)) - 1, 
@@ -760,9 +759,9 @@ png(filename="../figures/BC_dist.png",
 layout(matrix(1:2, 2, 1) , heights = c(8, 2))
 par(mar = c(2, 5, 1, 0) + 0.5, oma = c(0.5, 0.5, 0.5, 0.5))
 
-barplot(t(as.matrix(bc.var.std)),
+barplot(t(as.matrix(bc.var)),
         names.arg = c("Gut", "Sediment", "Soil", "Water"),
-        las = 1, ylab = "", ylim = c(0, 1))
+        las = 1, ylab = "", ylim = c(0, 2))
 
 mtext("Bray Curtis Distance", side = 2, cex = 1.25, line = 3)
 
@@ -782,6 +781,20 @@ graphics.off()
 img <- readPNG("../figures/BC_dist.png")
 grid.raster(img)
 ```
+
+# Standardized BC distances
+```{r}
+bc.var.std <- bc.var/rowSums(bc.var)
+
+
+
+
+```
+
+
+
+
+
 
 
 
@@ -833,7 +846,7 @@ arrows(y0 = 1:4, x0 = pair.mean$distance,
        x1 = pair.mean$distance + pair.sem$distance, 
        angle = 90, length = 0.1, lwd = 2)
 points(pair.mean$distance, 1:4, cex = 3, pch = 22, 
-       lwd = 2, col = "black", bg = "white")
+       lwd = 2, col = "black", bg = "gray90")
 abline(v = dist.env, lwd = 2, lty = 3)
 
 axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 1.25, las = 1)
