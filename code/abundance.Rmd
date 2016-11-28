@@ -69,6 +69,14 @@ write.table(eDNA.prop, "../data/eDNA.prop.txt", sep = "\t", col.names = T, row.n
 # Use glm to test whether amount of eDNA differs among environments
 eDNA.prop.test <- glm(prop ~ env, data = eDNA.prop)
 summary(eDNA.prop.test)
+Anova(eDNA.prop.test, type = "II", test.statistic = "F")
+
+# Use Anova to test whether the amount of dDNA differs among environments
+eDNA.prop.lm <- lm(prop ~ env, data = eDNA.prop)
+summary(eDNA.prop.lm)
+eDNA.anova <- Anova(eDNA.prop.lm, type = "II")
+eDNA.anova
+
 
 # Calculate means, sem, and sample size by enviroment
 eDNA.mean <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, mean)
