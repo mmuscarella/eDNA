@@ -28,7 +28,7 @@ pd2 <- function (samp, tree, include.root = TRUE) {
         else if (length(present) == 1) {
             # If tree is not rooted, parse error message
             if (!is.rooted(tree) || !include.root) {
-                warning("Rooted tree and include.root=TRUE argument required to calculate PD of single-species sampunities. Single species sampunity assigned PD value of NA.")
+                warning("Rooted tree and include.root=TRUE argument required to calculate PD of single-species communities. Single species community assigned PD value of NA.")
                 PDs[i] <- NA
             }
 

@@ -69,6 +69,14 @@ write.table(eDNA.prop, "../data/eDNA.prop.txt", sep = "\t", col.names = T, row.n
 # Use glm to test whether amount of eDNA differs among environments
 eDNA.prop.test <- glm(prop ~ env, data = eDNA.prop)
 summary(eDNA.prop.test)
+Anova(eDNA.prop.test, type = "II", test.statistic = "F")
+
+# Use Anova to test whether the amount of dDNA differs among environments
+eDNA.prop.lm <- lm(prop ~ env, data = eDNA.prop)
+summary(eDNA.prop.lm)
+eDNA.anova <- Anova(eDNA.prop.lm, type = "II")
+eDNA.anova
+
 
 # Calculate means, sem, and sample size by enviroment
 eDNA.mean <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, mean)
@@ -89,7 +97,7 @@ plot.new()
 par(lwd = 2)
 bp <- barplot(eDNA.table$mean, ylim =c(0, 0.6), 
               pch = 15, cex = 1.25, las = 1, cex.lab = 1.25, cex.axis = 1, 
-              col = "white", axis.lty = 1, lwd = 2, xlab = NA, 
+              col = "gray90", axis.lty = 1, lwd = 2, xlab = NA, 
               ylab = "Proportion eDNA",
               names.arg = c("Gut", "Soil", "Sediment", "Water"), cex.names = 0.9)
               box(lwd = 2)
@@ -114,7 +122,7 @@ png(filename="../figures/qPCR.nonbar.png",
 
 #plot.new()
 non.bp <- plot(eDNA.table$mean, ylim = c(0, 0.6), 
-               xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+               xlim = c(0.5, 4.5), pch = 22, bg = "gray90", lwd = 2, 
                cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
                las = 1, ylab = "", xlab = "")
 box(lwd = 2)
@@ -149,7 +157,7 @@ arrows(x0 = c(1,2,3,4), y0 = eDNA.table$mean,
        length=0.1, lwd = 2)
 
 points(x = c(1:4), eDNA.table$mean, 
-      pch = 22, bg = "white", lwd = 2, cex = 3)
+      pch = 22, bg = "gray90", lwd = 2, cex = 3)
 
 # Close Plot Device
 dev.off()
