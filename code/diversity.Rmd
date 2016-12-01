@@ -88,6 +88,8 @@ OTU <- OTU[, which(colSums(OTU) >= 2)]
 # Coverage Stats
 ```{r}
 cov.seqs <- count.groups(OTU)
+cov.mean <- mean(cov.seqs) # 222701
+cov.sem <- sem(cov.seqs) # 9560
 cov.min <- min(cov.seqs) # 31,475
 total.seqs <- sum(cov.seqs) # 12,916,632
 
@@ -182,9 +184,10 @@ eDNA.prop <- read.table("../data/eDNA.prop.txt", sep = "\t", header = T)
 eDNA.prop.sub <- eDNA.prop[eDNA.prop$sample.number %in% rich.2$qPCR.match, ]
 
 eDNA.prop.sub2 <- eDNA.prop.sub[order(eDNA.prop.sub$sample.number), ] 
-rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$prop + eDNA.prop.sub2$env)
+rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$env + eDNA.prop.sub2$prop)
 
 summary(rich.reg)
+Anova(rich.reg)
 # answer => no correlation between proportion eDNA and richness ratio. 
 # maybe a little in sediment
 ```
@@ -359,6 +362,12 @@ phylo.2.ag.95 <- aggregate(phylo.ratio ~ env, phylo.2,
 phylo.table <- data.frame(phylo.2.ag.mean$env, phylo.2.ag.mean$phylo.ratio,
                          phylo.2.ag.sem$phylo.ratio, phylo.2.ag.95$phylo.ratio)
 colnames(phylo.table) <- c("env", "mean", "sem", "LCI", "UCI")
+
+
+# Regression: PD ratio vs. proportion eDNA
+phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop * eDNA.prop.sub2$env )
+summary(phylo.reg) 
+# answer => no correlation between proportion eDNA and evenness ratio. 
 
 ```
 
@@ -749,7 +758,7 @@ for (i  in 1:dim(bc.var)[1]){
 
 bc.var
 
-bc.var.std <- bc.var/rowSums(bc.var)
+bc.var <- bc.var/rowSums(bc.var)
     
 ```
 
@@ -761,7 +770,7 @@ par(mar = c(2, 5, 1, 0) + 0.5, oma = c(0.5, 0.5, 0.5, 0.5))
 
 barplot(t(as.matrix(bc.var)),
         names.arg = c("Gut", "Sediment", "Soil", "Water"),
-        las = 1, ylab = "", ylim = c(0, 2))
+        las = 1, ylab = "", ylim = c(0, 1))
 
 mtext("Bray Curtis Distance", side = 2, cex = 1.25, line = 3)
 
@@ -798,7 +807,7 @@ bc.var.std <- bc.var/rowSums(bc.var)
 
 
 
-```{r}
+#```{r}
 
 # Mario's Stopping Point on 30 Sep 2016
 
@@ -831,7 +840,7 @@ dist.env <- c(dist.feces.m, dist.soil.m, dist.sed.m, dist.water.m)
 ```
 
 
-```{r}
+#```{r}
 
 par(mar = c(5, 8, 1, 1) + 0.5)
 plot(pair.mean$distance, 1:4, type = "n",
