@@ -20,7 +20,7 @@ import re
 from Bio import SeqIO
 
 # in_file = "./eDNA.bac.final.0.03.rep.fasta"
-# out_file ="./eDNA.bac.final.0.03.rep.rename.fasta"
+# out_file = "./eDNA.bac.final.0.03.rep.rename.fasta"
 
 in_file = sys.argv[1]
 out_file = sys.argv[2]

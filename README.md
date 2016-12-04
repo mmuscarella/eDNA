@@ -1,8 +1,8 @@
 eDNA Project
 ==========
 
-This repository contains open-source code, data, & text files for the extracellular DNA project (eDNA)
-Study to determine how extracellular DNA influences microbial structure
+This repository contains open-source code, data, & text files for the extracellular Bacterial DNA project (eDNA)
+Study to determine how extracellular DNA influences microbial community structure
 
 ## Project Goals
 
