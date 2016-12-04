@@ -193,6 +193,7 @@ rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$en
 
 summary(rich.reg)
 Anova(rich.reg)
+# MEM: what is the Anova() function?
 # answer => no correlation between proportion eDNA and richness ratio. 
 # maybe a little in sediment
 ```
@@ -611,7 +612,7 @@ dist.raw <- vegdist(OTU.REL.log, method = "bray", upper = T, diag = T)
 
 # Separate by Treatments
 eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
-eDNa.div.e <- eDNA.div[which(eDNA.div$treat == "C"), ]
+eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
 OTU.REL.log.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
 OTU.REL.log.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
 
