@@ -105,11 +105,11 @@ min.good.c <- min(goods.c.eDNA) # 0.98
 # Alpha diversity
 ```{r}
 # Mario's resampling to estimate alpha diversity in a sample (long)
-#rich <- round(richness.iter(input = OTU, size = 30000,
+# rich <- round(richness.iter(input = OTU, size = 30000,
 #             iters = 100, shared = "FALSE"), 3)
-#even <- round(evenness.iter(input = OTU, size = 30000,
+# even <- round(evenness.iter(input = OTU, size = 30000,
 #             iters = 100, shared = "FALSE", method = "simp_even"), 3)
-
+# 
 # rarefy(OTU, sample, se = FALSE, MARGIN = 1)
 
 # Write output to files
@@ -133,7 +133,6 @@ row.names(even.data) <- even.data$Row.names
 even.data <- even.data[sort(row.names(even.data)), ]
 even.mean <- round(apply(even.data[8:(7 + dim(even2)[2])], 1, mean, na.rm = TRUE),3)
 even.sem <- round(apply(even.data[8:(7 + dim(even2)[2])], 1, sem, na.rm = TRUE),4)
-
 
 # Make new dataframe merging design file and mean diversity
 eDNA.div <- data.frame(design[sort(row.names(design)), ], rich.mean, even.mean)
@@ -159,6 +158,12 @@ rich.rep.ave <- ddply(eDNA.div, .(env, treat, qPCR.match),
 # Reshape data
 rich.2 <- reshape(rich.rep.ave[,1:4], timevar = "treat", 
                    idvar = c("qPCR.match", "env"), direction = "wide")
+
+# Calcualte means +/- SEM of control and treated richness
+rich.2.ag.mean.control <- aggregate(rich.C ~ env, rich.2, mean)
+rich.2.ag.sem.control <- aggregate(rich.C ~ env, rich.2, sem)
+rich.2.ag.mean.treatment <- aggregate(rich.E ~ env, rich.2, mean)
+rich.2.ag.sem.treatment <- aggregate(rich.E ~ env, rich.2, sem)
 
 # Calculate ratios
 rich.2$rich.ratio <- rich.2$rich.E / rich.2$rich.C
@@ -201,6 +206,12 @@ even.rep.ave <- ddply(eDNA.div, .(env, treat, qPCR.match),
 # Reshape data
 even.2 <- reshape(even.rep.ave[,1:4], timevar = "treat", 
                    idvar = c("qPCR.match", "env"), direction = "wide")
+
+# Calcualte means +/- SEM of control and treated richness
+even.2.ag.mean.control <- aggregate(even.C ~ env, even.2, mean)
+even.2.ag.sem.control <- aggregate(even.C ~ env, even.2, sem)
+even.2.ag.mean.treatment <- aggregate(even.E ~ env, even.2, mean)
+even.2.ag.sem.treatment <- aggregate(even.E ~ env, even.2, sem)
 
 # Calculate ratios
 even.2$even.ratio <- even.2$even.E / even.2$even.C
@@ -350,6 +361,12 @@ pd.rep.ave <- ddply(eDNA.phylo, .(env, treat, qPCR.match),
 # Reshape data
 phylo.2 <- reshape(pd.rep.ave[,1:4], timevar = "treat", 
                    idvar = c("qPCR.match", "env"), direction = "wide")
+
+# Calcualte means +/- SEM of control and treated richness
+phylo.2.ag.mean.control <- aggregate(phylo.C ~ env, phylo.2, mean)
+phylo.2.ag.sem.control <- aggregate(phylo.C ~ env, phylo.2, sem)
+phylo.2.ag.mean.treatment <- aggregate(phylo.E ~ env, phylo.2, mean)
+phylo.2.ag.sem.treatment <- aggregate(phylo.E ~ env, phylo.2, sem)
 
 # Calculate ratios
 phylo.2$phylo.ratio <- phylo.2$phylo.E / phylo.2$phylo.C
