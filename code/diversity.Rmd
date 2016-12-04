@@ -37,6 +37,9 @@ sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
 
 # Save Default Plot Settings
 opar <- par(no.readonly = TRUE)  # Saves plot defaults
+
+# Run All: Select if all section are to be re-run
+run.all <- FALSE
 ```
 
 # Phylogenetic Diversity
@@ -46,8 +49,12 @@ Representatives were picked based on the most abundant unique sequence in each O
 Note: This must be done before performing the following analyses.
 The following parameters were used:
 
-```{sh}
+```{sh, eval = F}
 Note: eDNA.bac.final.0.03.rep.fasta is larger than the github limits. Please obtain the file from SDA or DC2
+
+Note: The names must be renamed so that they match the OTU names:
+
+> python ./bin/name_change.py "./eDNA.bac.final.0.03.rep.fasta" "./eDNA.bac.final.0.03.rep.rename.fasta"
 
 > FastTree -gtr -nt -gamma -fastest eDNA.bac.final.0.03.rep.rename.fasta >> eDNA.bac.rename.tree
 
@@ -65,7 +72,7 @@ Total time: 5529.61 seconds Unique: 174292/174292 Bad splits: 903/174289 Worst d
   # tax          = Taxonomy for 97% similarity OTUs
 design       <- "../data/eDNA_Design.txt"
 shared       <- "../mothur/output/eDNA.bac.final.shared"
-tax          <- "../mothur/output/eDNA.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.0.03.cons.taxonomy"
+tax          <- "../mothur/output/eDNA.bac.final.0.03.taxonomy"
 ```
 
 # Import Design
@@ -96,7 +103,8 @@ total.seqs <- sum(cov.seqs) # 12,916,632
 # Good's coverage 
 goods.c <- function(x = ""){
               1 - (apply(OTU, 1, function(x){sum(x == 1)}) / rowSums(x))
-           }
+}
+
 goods.c.eDNA <- goods.c(OTU)
 mean.good.c <- mean(goods.c.eDNA) # 0.99
 min.good.c <- min(goods.c.eDNA) # 0.98
@@ -104,17 +112,21 @@ min.good.c <- min(goods.c.eDNA) # 0.98
 
 # Alpha diversity
 ```{r}
-# Mario's resampling to estimate alpha diversity in a sample (long)
-# rich <- round(richness.iter(input = OTU, size = 30000,
-#             iters = 100, shared = "FALSE"), 3)
-# even <- round(evenness.iter(input = OTU, size = 30000,
-#             iters = 100, shared = "FALSE", method = "simp_even"), 3)
-# 
-# rarefy(OTU, sample, se = FALSE, MARGIN = 1)
+# Mario's resampling code to estimate alpha diversity (used if run.all = T)
 
-# Write output to files
-#write.table(rich, "../data/rich.txt", sep = "\t", col.names = T, row.names = T)
-#write.table(even, "../data/even.txt", sep = "\t", col.names = T, row.names = T)
+if (run.all = TRUE){
+  rich <- round(richness.iter(input = OTU, size = 30000,
+                              iters = 100, shared = "FALSE"), 3)
+  even <- round(evenness.iter(input = OTU, size = 30000,
+                              iters = 100, shared = "FALSE", 
+                              method = "simp_even"), 3)
+  
+  rare <- rarefy(OTU, 30000, se = FALSE, MARGIN = 1)
+
+  # Write output to files
+  write.table(rich, "../data/rich.txt", sep = "\t", col.names = T, row.names = T)
+  write.table(even, "../data/even.txt", sep = "\t", col.names = T, row.names = T)
+}
 
 # Read in alpha diversity files from above
 rich2 <- read.table("../data/rich.txt", sep = "\t")
@@ -126,7 +138,6 @@ row.names(rich.data) <- rich.data$Row.names
 rich.data <- rich.data[sort(row.names(rich.data)), ]
 rich.mean <- round(apply(rich.data[8:(7 + dim(rich2)[2])], 1, mean, na.rm = TRUE),3)
 rich.sem <- round(apply(rich.data[8:(7 + dim(rich2)[2])], 1, sem, na.rm = TRUE), 3)
-
 
 even.data <- merge(design, even2, by = "row.names")
 row.names(even.data) <- even.data$Row.names
@@ -177,7 +188,6 @@ rich.table <- data.frame(rich.2.ag.mean$env, rich.2.ag.mean$rich.ratio,
                          rich.2.ag.sem$rich.ratio, rich.2.ag.95$rich.ratio)
 colnames(rich.table) <- c("env", "mean", "sem", "LCI", "UCI")
 
-
 # Regression: richness ratio vs. proportion eDNA
 eDNA.prop <- read.table("../data/eDNA.prop.txt", sep = "\t", header = T)
 
@@ -193,7 +203,8 @@ rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$en
 
 summary(rich.reg)
 Anova(rich.reg)
-# MEM: what is the Anova() function?
+# MEM: what is the Anova() function? = prints the anova like table for the model
+#                                       Anova uses type II sums of squares
 # answer => no correlation between proportion eDNA and richness ratio. 
 # maybe a little in sediment
 ```
@@ -231,6 +242,67 @@ colnames(even.table) <- c("env", "mean", "sem", "LCI", "UCI")
 even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop + eDNA.prop.sub2$env )
 summary(even.reg) 
 # answer => no correlation between proportion eDNA and evenness ratio. 
+```
+
+# Phylogenetic Diversity: does eDNA "inflate" diversity?
+```{r}
+# Test if all OTUs are in tree
+sum(colnames(OTU) %in% OTU.tre$tip.label) == length(colnames(OTU) %in% OTU.tre$tip.label)
+
+# Root Tree if Needed
+is.rooted(OTU.tre)
+OTU.tre.rooted <- midpoint(OTU.tre)
+
+if (run.all = TRUE){
+  OTU.2 <- rrarefy(OTU, 30000)
+  OTU.2 <- OTU.2[,which(colSums(OTU.2) > 0)]
+  OTU.tre.2 <- prune.sample(OTU.2, OTU.tre.rooted)
+
+  # Calculate Faith's D
+  eDNA.pd <- pd(OTU.2, OTU.tre.2, include.root = F)
+
+  # Write output to files
+  write.table(eDNA.pd, "../data/phylo.txt", sep = "\t", col.names = T, row.names = T)
+}
+
+# Read in alpha diversity files from above
+eDNA.pd2 <- read.table("../data/phylo.txt", sep = "\t")
+
+# Make new dataframe merging design file and phylo diversity
+eDNA.phylo <- data.frame(design[sort(row.names(design)), ], pd = eDNA.pd2$PD)
+
+# Take averages of technial reps
+pd.rep.ave <- ddply(eDNA.phylo, .(env, treat, qPCR.match), 
+                      summarize, phylo = mean(pd))
+
+# Reshape data
+phylo.2 <- reshape(pd.rep.ave[,1:4], timevar = "treat", 
+                   idvar = c("qPCR.match", "env"), direction = "wide")
+
+# Calcualte means +/- SEM of control and treated richness
+phylo.2.ag.mean.control <- aggregate(phylo.C ~ env, phylo.2, mean)
+phylo.2.ag.sem.control <- aggregate(phylo.C ~ env, phylo.2, sem)
+phylo.2.ag.mean.treatment <- aggregate(phylo.E ~ env, phylo.2, mean)
+phylo.2.ag.sem.treatment <- aggregate(phylo.E ~ env, phylo.2, sem)
+
+# Calculate ratios
+phylo.2$phylo.ratio <- phylo.2$phylo.E / phylo.2$phylo.C
+
+# Richness table
+phylo.2.ag.mean <- aggregate(phylo.ratio ~ env, phylo.2, mean)
+phylo.2.ag.sem <- aggregate(phylo.ratio ~ env, phylo.2, sem)
+phylo.2.ag.95 <- aggregate(phylo.ratio ~ env, phylo.2, 
+                  FUN = function(x) t.test(x)$conf.int[1:2])
+phylo.table <- data.frame(phylo.2.ag.mean$env, phylo.2.ag.mean$phylo.ratio,
+                         phylo.2.ag.sem$phylo.ratio, phylo.2.ag.95$phylo.ratio)
+colnames(phylo.table) <- c("env", "mean", "sem", "LCI", "UCI")
+
+
+# Regression: PD ratio vs. proportion eDNA
+phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop * eDNA.prop.sub2$env )
+summary(phylo.reg) 
+# answer => no correlation between proportion eDNA and evenness ratio. 
+
 ```
 
 # Richness plot
@@ -329,66 +401,6 @@ img <- readPNG("../figures/ratio.evenness.png")
 grid.raster(img)
 ```
 
-
-# Phylogenetic Diversity: does eDNA "inflate" diversity?
-```{r}
-# Test if all OTUs are in tree
-sum(colnames(OTU) %in% OTU.tre$tip.label) == length(colnames(OTU) %in% OTU.tre$tip.label)
-
-# Root Tree if Needed
-is.rooted(OTU.tre)
-OTU.tre.rooted <- midpoint(OTU.tre)
-
-#OTU.2 <- rrarefy(OTU, 30000)
-#OTU.2 <- OTU.2[,which(colSums(OTU.2) > 0)]
-#OTU.tre.2 <- prune.sample(OTU.2, OTU.tre.rooted)
-
-# Calculate Faith's D
-#eDNA.pd <- pd(OTU.2, OTU.tre.2, include.root = F)
-
-# Write output to files
-#write.table(eDNA.pd, "../data/phylo.txt", sep = "\t", col.names = T, row.names = T)
-
-# Read in alpha diversity files from above
-eDNA.pd2 <- read.table("../data/phylo.txt", sep = "\t")
-
-# Make new dataframe merging design file and phylo diversity
-eDNA.phylo <- data.frame(design[sort(row.names(design)), ], pd = eDNA.pd2$PD)
-
-# Take averages of technial reps
-pd.rep.ave <- ddply(eDNA.phylo, .(env, treat, qPCR.match), 
-                      summarize, phylo = mean(pd))
-
-# Reshape data
-phylo.2 <- reshape(pd.rep.ave[,1:4], timevar = "treat", 
-                   idvar = c("qPCR.match", "env"), direction = "wide")
-
-# Calcualte means +/- SEM of control and treated richness
-phylo.2.ag.mean.control <- aggregate(phylo.C ~ env, phylo.2, mean)
-phylo.2.ag.sem.control <- aggregate(phylo.C ~ env, phylo.2, sem)
-phylo.2.ag.mean.treatment <- aggregate(phylo.E ~ env, phylo.2, mean)
-phylo.2.ag.sem.treatment <- aggregate(phylo.E ~ env, phylo.2, sem)
-
-# Calculate ratios
-phylo.2$phylo.ratio <- phylo.2$phylo.E / phylo.2$phylo.C
-
-# Richness table
-phylo.2.ag.mean <- aggregate(phylo.ratio ~ env, phylo.2, mean)
-phylo.2.ag.sem <- aggregate(phylo.ratio ~ env, phylo.2, sem)
-phylo.2.ag.95 <- aggregate(phylo.ratio ~ env, phylo.2, 
-                  FUN = function(x) t.test(x)$conf.int[1:2])
-phylo.table <- data.frame(phylo.2.ag.mean$env, phylo.2.ag.mean$phylo.ratio,
-                         phylo.2.ag.sem$phylo.ratio, phylo.2.ag.95$phylo.ratio)
-colnames(phylo.table) <- c("env", "mean", "sem", "LCI", "UCI")
-
-
-# Regression: PD ratio vs. proportion eDNA
-phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop * eDNA.prop.sub2$env )
-summary(phylo.reg) 
-# answer => no correlation between proportion eDNA and evenness ratio. 
-
-```
-
 # Faith's D plot
 ```{r}
 png(filename="../figures/ratio.phylo.png",
@@ -435,6 +447,124 @@ graphics.off()
 
 # Show Plot
 img <- readPNG("../figures/ratio.phylo.png")
+grid.raster(img)
+```
+
+
+# Alpha Diversity Multi-Panel Plot
+```{r}
+png(filename="../figures/alpha.ratios.png",
+    width = 800, height = 1600, res = 96*2)
+
+layout(matrix(c(1:3), byrow = T))
+par(mar = c(0.5, 4, 0.5, 1), oma = c(3, 1, 1, 1))
+
+# Richness Panel
+rich.plot <- plot(rich.table$mean, ylim = c(0.5, 1.5), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2) 
+abline(h = 1, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+points(c(1:4), rich.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
+
+mtext(expression('Richness Ratio'), side = 2, 
+      outer = F, cex = 1.5, line = 3, adj = 0.5)  
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, tck = -0.02, cex.axis = 1.5, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 0.9, las = 1,
+    labels = F, at = c(1, 2, 3, 4)) 
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F) 
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
+# Evenness Panel
+even.plot <- plot(even.table$mean, ylim = c(0.5, 1.5), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2)
+abline(h = 1, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+points(c(1:4), even.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
+
+mtext(expression('Evenness Ratio'), side = 2, 
+        outer = F, cex = 1.5, line = 3, adj = 0.5)
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
+ 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+
+axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 0.9, las = 1,
+    labels = F, at = c(1, 2, 3, 4))
+
+axis(side = 3, lwd.ticks = 2, tck = -0.02, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F)
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
+# Phylo Panel
+phylo.plot <- plot(phylo.table$mean, ylim = c(0.5, 1.5), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2)
+abline(h = 1, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = phylo.table$mean, y1 = phylo.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = phylo.table$mean, y1 = phylo.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+points(c(1:4), phylo.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
+
+mtext(expression('Faiths D Ratio'), side = 2, 
+        outer = F, cex = 1.5, line = 3, adj = 0.5)
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
+ 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+
+axis(side = 1, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
+
+axis(side = 3, lwd.ticks = 2, tck = -0.02, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F)
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/alpha.ratios.png")
 grid.raster(img)
 ```
 
