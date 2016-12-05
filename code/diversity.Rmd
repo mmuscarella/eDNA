@@ -710,6 +710,119 @@ permutest(beta.disp, 99)
 TukeyHSD(beta.disp)
 ```
 
+# PERMANOVA on Delta-Distances
+```{r}
+# Check order of design
+all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
+
+OTU.REL.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
+OTU.REL.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
+
+eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
+eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
+
+all.equal(sort(eDNA.div.c$samp.code), sort(eDNA.div.e$samp.code))
+
+eDNA.div.c <- eDNA.div.c[order(eDNA.div.c$samp.code), ]
+eDNA.div.e <- eDNA.div.e[order(eDNA.div.e$samp.code), ]
+
+OTU.REL.c2 <- OTU.REL.c[order(eDNA.div.c$samp.code), ]
+OTU.REL.e2 <- OTU.REL.e[order(eDNA.div.e$samp.code), ]
+
+dim(OTU.REL.c2); dim(OTU.REL.e2)
+all.equal(eDNA.div.e$samp.code, eDNA.div.c$samp.code)
+
+delta.abund <- OTU.REL.c2 - OTU.REL.e2
+
+eDNA.permanova <- adonis(delta.abund ~ eDNA.div.c$env,
+                         method = "euclidean", binary = FALSE)
+eDNA.permanova
+
+rowSums(delta.abund)
+
+# Distance Moved in PCoA Space
+eDNA.points.c <- eDNA.points[which(eDNA.points$treat == "C"), ]
+eDNA.points.e <- eDNA.points[which(eDNA.points$treat == "E"), ]
+
+eDNA.points.env <- eDNA.points.c$env
+
+eDNA.points.c <- eDNA.points.c[order(eDNA.points.c$samp.code), c(1:3)]
+eDNA.points.e <- eDNA.points.e[order(eDNA.points.e$samp.code), c(1:3)]
+
+delta.dis <- matrix(NA, dim(eDNA.points.c)[1], 2)
+rownames(delta.dis) <- eDNA.points.c$samp.code
+colnames(delta.dis) <- c("Abs", "Non_Abs")
+
+for (i in 1:dim(eDNA.points.c)[1]){
+  dis.temp <- matrix(NA, 3, 2)
+  for (j in 1:3){
+    dis.temp[j, 1] <- abs(eDNA.points.c[i,j] - eDNA.points.e[i,j])
+    dis.temp[j, 2] <- (eDNA.points.c[i,j] - eDNA.points.e[i,j])
+  }
+  delta.dis[i, 1] <- sum(dis.temp[,1])
+  delta.dis[i, 2] <- sum(dis.temp[,2])
+}
+
+delta.dis <- as.data.frame(delta.dis)
+
+delta.dis$env <- eDNA.points.env
+
+delta.dis.mean <- aggregate(Non_Abs ~ env, delta.dis, mean)
+delta.dis.sem <- aggregate(Non_Abs ~ env, delta.dis, sem)
+delta.dis.95 <- aggregate(Non_Abs ~ env, delta.dis, 
+                  FUN = function(x) t.test(x)$conf.int[1:2])
+delta.dis.table <- data.frame(env = delta.dis.mean$env, mean = delta.dis.mean$Non_Abs,
+                         sem = delta.dis.sem$Non_Abs, ci = delta.dis.95$Non_Abs)
+colnames(delta.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
+```
+
+# Delta Distance Plot
+```{r}
+png(filename="../figures/delta.dist.png",
+    width = 800, height = 600, res = 96*2)
+
+par(mar=c(3, 4, 1, 1) + 0.1)
+
+distance.plot <- plot(delta.dis.table$mean, ylim = c(-0.1, 0.1), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2) 
+abline(h = 0, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = delta.dis.table$mean, y1 = delta.dis.table$LCI, 
+       angle = 90, length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = delta.dis.table$mean, y1 = delta.dis.table$UCI, 
+       angle = 90, length=0.1, lwd = 2)
+points(c(1:4), delta.dis.table$mean, pch = 22, cex = 3, bg = "gray90", lwd = 2)
+
+mtext(expression('Distance'), side = 2, 
+      outer = F, cex = 1.5, line = 3, adj = 0.5)  
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = T, at = c(seq(-0.1, 0.1, 0.05))) 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
+    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4)) 
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F) 
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/delta.dist.png")
+grid.raster(img)
+```
+
 # Mantel Test 
 ```{r}
 # Check order of design
