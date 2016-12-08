@@ -740,6 +740,12 @@ eDNA.permanova
 
 rowSums(delta.abund)
 
+# Effect Size from lda
+require(MASS)
+eDNA.lda <- lda(delta.abund ~ eDNA.div.c$env, method = "euclidean")
+anova(eDNA.dbRDA)
+anova(eDNA.dbRDA, by = "terms")
+
 # Distance Moved in PCoA Space
 eDNA.points.c <- eDNA.points[which(eDNA.points$treat == "C"), ]
 eDNA.points.e <- eDNA.points[which(eDNA.points$treat == "E"), ]
@@ -802,7 +808,7 @@ mtext(expression('Distance'), side = 2,
 axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
     labels = T, at = c(seq(-0.1, 0.3, 0.1))) 
 axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
-   labels = F, at = c(0.5, 1, 1.5))
+   labels = F, at = c(-0.1, 0.3, 0.1))
 axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
     labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4)) 
 axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
@@ -810,9 +816,9 @@ axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
 
 # Minor ticks
 axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(-0.1, 0.3, 0.1))
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(-0.1, 0.3, 0.1))
 
 # Close Plot Device
 dev.off()
@@ -906,6 +912,14 @@ all.equal(eDNA.div.e$env, eDNA.div.c$env)
 # Create Distance Matrix for Treatments
 dist.c <- vegdist(OTU.REL.log.c, method = "bray", upper = T, diag = T)
 dist.e <- vegdist(OTU.REL.log.e, method = "bray", upper = T, diag = T)
+
+pcoa.c <- cmdscale(dist.c, k = 3)
+pcoa.e <- cmdscale(dist.e, k = 3)
+
+# Procrustes Analysis
+eDNA.ProC <- protest(pcoa.c, pcoa.e, scores = "sites", , permutations = how(nperm = 999))
+eDNA.ProC
+summary(eDNA.ProC)
 
 # Turn Distance Matrices into Matrices
 dist.raw <- as.matrix(dist.raw)
