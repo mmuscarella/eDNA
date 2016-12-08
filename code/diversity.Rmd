@@ -114,7 +114,7 @@ min.good.c <- min(goods.c.eDNA) # 0.98
 ```{r}
 # Mario's resampling code to estimate alpha diversity (used if run.all = T)
 
-if (run.all = TRUE){
+if (run.all == TRUE){
   rich <- round(richness.iter(input = OTU, size = 30000,
                               iters = 100, shared = "FALSE"), 3)
   even <- round(evenness.iter(input = OTU, size = 30000,
@@ -253,7 +253,7 @@ sum(colnames(OTU) %in% OTU.tre$tip.label) == length(colnames(OTU) %in% OTU.tre$t
 is.rooted(OTU.tre)
 OTU.tre.rooted <- midpoint(OTU.tre)
 
-if (run.all = TRUE){
+if (run.all == TRUE){
   OTU.2 <- rrarefy(OTU, 30000)
   OTU.2 <- OTU.2[,which(colSums(OTU.2) > 0)]
   OTU.tre.2 <- prune.sample(OTU.2, OTU.tre.rooted)
@@ -759,8 +759,8 @@ for (i in 1:dim(eDNA.points.c)[1]){
     dis.temp[j, 1] <- abs(eDNA.points.c[i,j] - eDNA.points.e[i,j])
     dis.temp[j, 2] <- (eDNA.points.c[i,j] - eDNA.points.e[i,j])
   }
-  delta.dis[i, 1] <- sum(dis.temp[,1])
-  delta.dis[i, 2] <- sum(dis.temp[,2])
+  delta.dis[i, 1] <- sum(abs(dis.temp[,1]))
+  delta.dis[i, 2] <- sum(abs(dis.temp[,2]))
 }
 
 delta.dis <- as.data.frame(delta.dis)
@@ -783,7 +783,7 @@ png(filename="../figures/delta.dist.png",
 
 par(mar=c(3, 4, 1, 1) + 0.1)
 
-distance.plot <- plot(delta.dis.table$mean, ylim = c(-0.1, 0.1), 
+distance.plot <- plot(delta.dis.table$mean, ylim = c(-0.1, 0.3), 
       xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
       cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
       las = 1, ylab = "", xlab = "")
@@ -800,7 +800,7 @@ mtext(expression('Distance'), side = 2,
 
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
-    labels = T, at = c(seq(-0.1, 0.1, 0.05))) 
+    labels = T, at = c(seq(-0.1, 0.3, 0.1))) 
 axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
    labels = F, at = c(0.5, 1, 1.5))
 axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
@@ -851,7 +851,44 @@ mantel.rtest(dist.c, dist.e, nrepet = 999)
 all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
 
 # Create Raw Distance Matrix
-dist.raw <- vegdist(OTU.REL.log, method = "bray", upper = T, diag = T)
+dist.raw <- as.matrix(vegdist(OTU.REL.log, method = "bray", upper = T, diag = T))
+
+# Create Pairing Matrix
+pair.names <- levels(as.factor(eDNA.div$pair))
+eDNA.pairs <- as.data.frame(matrix(NA, length(pair.names), 3))
+colnames(eDNA.pairs) <- c("pair", "env", "dis")
+eDNA.pairs$pair <- pair.names
+
+for (i in 1:length(pair.names)){
+  pair.temp <- eDNA.pairs$pair[i]
+  samp.temp <- rownames(eDNA.div)[which(eDNA.div$pair == pair.temp)]
+  if (length(samp.temp) != 2){
+    stop("more than two samples in pair")
+  }
+  dist.temp <- dist.raw[which(colnames(dist.raw) == samp.temp[1]),
+                        which(colnames(dist.raw) == samp.temp[2])]
+  eDNA.pairs$env[i] <- eDNA.div$env[which(colnames(dist.raw) == samp.temp[1])]
+  eDNA.pairs$dis[i] <- dist.temp
+}
+
+pair.dis.mean <- aggregate(dis ~ env, eDNA.pairs, mean)
+pair.dis.sem <- aggregate(dis ~ env, eDNA.pairs, sem)
+pair.dis.95 <- aggregate(dis ~ env, eDNA.pairs, 
+                  FUN = function(x) t.test(x)$conf.int[1:2])
+pair.dis.table <- data.frame(env = pair.dis.mean$env, mean = pair.dis.mean$dis,
+                         sem = pair.dis.sem$dis, ci = pair.dis.95$dis)
+colnames(pair.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
+```
+
+# Pair Distance as funciton of proportion eDNA
+```{r}
+eDNA.pairs
+eDNA.prop
+
+
+eDNA.div
+
+
 
 # Separate by Treatments
 eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
