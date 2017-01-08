@@ -326,7 +326,6 @@ phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub
 summary(phylo.reg) 
 # answer => no correlation between proportion eDNA and evenness ratio. 
 
-```
 
 # Phylo: differences among sites?
 ```{r}
@@ -948,7 +947,7 @@ pcoa.c <- cmdscale(dist.c, k = 3)
 pcoa.e <- cmdscale(dist.e, k = 3)
 
 # Procrustes Analysis
-eDNA.ProC <- protest(pcoa.c, pcoa.e, scores = "sites", , permutations = how(nperm = 999))
+eDNA.ProC <- protest(pcoa.c, pcoa.e, scores = "sites", permutations = how(nperm = 999))
 eDNA.ProC
 summary(eDNA.ProC)
 
@@ -1143,8 +1142,184 @@ bc.var.std <- bc.var/rowSums(bc.var)
 
 ```
 
+# Centroid Distance Ratios
+```{r}
+# Data Check
+all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
+
+eDNA.dist <- vegdist(OTU.REL.log, method = "bray")
+eDNA.env <- eDNA.div$env
+eDNA.group <- paste(eDNA.div$env, eDNA.div$treat, sep = "")
+
+disp.env <- betadisper(eDNA.dist, eDNA.env)
+disp.group <- betadisper(eDNA.dist, eDNA.group)
+
+disp.group$vectors
+disp.group$centroids
+
+# Soil
+env.soi <- which(eDNA.env == "soil")
+cent.soil <- as.data.frame(matrix(NA, nrow = length(env.soi), ncol = 3))
+colnames(cent.soil) <- c("T", "C", "E")
+rownames(cent.soil) <- rownames(eDNA.div)[env.soi]
+
+for (i in 1:length(env.soi)){
+  cent.soil[i, 1] <- dist(rbind(disp.env$vectors[env.soi[i]], 
+                               disp.env$centroids[3, ]), method = "euclidean")
+  cent.soil[i, 2] <- dist(rbind(disp.group$vectors[env.soi[i]], 
+                               disp.group$centroids[5, ]), method = "euclidean")
+  cent.soil[i, 3] <- dist(rbind(disp.group$vectors[env.soi[i]], 
+                               disp.group$centroids[6, ]), method = "euclidean")
+}
+
+pairs.soil <- eDNA.div[env.soi, c(3,4,5,7)]
+
+cent.soil.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.soil$pair)),
+                                        ncol = 3))
+colnames(cent.soil.ratio) <- c("T", "C", "E")
+rownames(cent.soil.ratio) <- paste(pairs.soil$env, pairs.soil$pair, 
+                                   sep = "")[which(pairs.soil$treat == "E") ]
+
+for (i in 1:dim(cent.soil.ratio)[1]){
+  pair <- as.numeric(gsub("soil", "", rownames(cent.soil.ratio)[i]))
+  cent.soil.ratio[i, 1] <- (cent.soil[, 1][which(pairs.soil$pair == pair & 
+                                                pairs.soil$treat == "C")]) /
+                           (cent.soil[, 1][which(pairs.soil$pair == pair & 
+                                                pairs.soil$treat == "E")])
+  cent.soil.ratio[i, 2] <- (cent.soil[, 2][which(pairs.soil$pair == pair & 
+                                              pairs.soil$treat == "C")]) /
+                           (cent.soil[, 2][which(pairs.soil$pair == pair & 
+                                              pairs.soil$treat == "E")])
+  cent.soil.ratio[i, 3] <- (cent.soil[, 3][which(pairs.soil$pair == pair & 
+                                              pairs.soil$treat == "C")]) /
+                           (cent.soil[, 3][which(pairs.soil$pair == pair & 
+                                              pairs.soil$treat == "E")])
+}
+
+# Water
+env.wat <- which(eDNA.env == "water")
+cent.water <- as.data.frame(matrix(NA, nrow = length(env.wat), ncol = 3))
+colnames(cent.water) <- c("T", "C", "E")
+rownames(cent.water) <- rownames(eDNA.div)[env.wat]
+
+for (i in 1:length(env.wat)){
+  cent.water[i, 1] <- dist(rbind(disp.env$vectors[env.wat[i]], 
+                               disp.env$centroids[3, ]), method = "euclidean")
+  cent.water[i, 2] <- dist(rbind(disp.group$vectors[env.wat[i]], 
+                               disp.group$centroids[5, ]), method = "euclidean")
+  cent.water[i, 3] <- dist(rbind(disp.group$vectors[env.wat[i]], 
+                               disp.group$centroids[6, ]), method = "euclidean")
+}
+
+pairs.water <- eDNA.div[env.wat, c(3,4,5,7)]
+
+cent.water.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.water$pair)),
+                                        ncol = 3))
+colnames(cent.water.ratio) <- c("T", "C", "E")
+rownames(cent.water.ratio) <- paste(pairs.water$env, pairs.water$pair, 
+                                   sep = "")[which(pairs.water$treat == "E") ]
+
+for (i in 1:dim(cent.water.ratio)[1]){
+  pair <- as.numeric(gsub("water", "", rownames(cent.water.ratio)[i]))
+  cent.water.ratio[i, 1] <- (cent.water[, 1][which(pairs.water$pair == pair & 
+                                                pairs.water$treat == "C")]) /
+                           (cent.water[, 1][which(pairs.water$pair == pair & 
+                                                pairs.water$treat == "E")])
+  cent.water.ratio[i, 2] <- (cent.water[, 2][which(pairs.water$pair == pair & 
+                                              pairs.water$treat == "C")]) /
+                           (cent.water[, 2][which(pairs.water$pair == pair & 
+                                              pairs.water$treat == "E")])
+  cent.water.ratio[i, 3] <- (cent.water[, 3][which(pairs.water$pair == pair & 
+                                              pairs.water$treat == "C")]) /
+                           (cent.water[, 3][which(pairs.water$pair == pair & 
+                                              pairs.water$treat == "E")])
+}
+
+# Sediments
+env.sed <- which(eDNA.env == "sed")
+cent.sed <- as.data.frame(matrix(NA, nrow = length(env.sed), ncol = 3))
+colnames(cent.sed) <- c("T", "C", "E")
+rownames(cent.sed) <- rownames(eDNA.div)[env.sed]
+
+for (i in 1:length(env.sed)){
+  cent.sed[i, 1] <- dist(rbind(disp.env$vectors[env.sed[i]], 
+                               disp.env$centroids[3, ]), method = "euclidean")
+  cent.sed[i, 2] <- dist(rbind(disp.group$vectors[env.sed[i]], 
+                               disp.group$centroids[5, ]), method = "euclidean")
+  cent.sed[i, 3] <- dist(rbind(disp.group$vectors[env.sed[i]], 
+                               disp.group$centroids[6, ]), method = "euclidean")
+}
+
+pairs.sed <- eDNA.div[env.sed, c(3,4,5,7)]
+
+cent.sed.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.sed$pair)),
+                                        ncol = 3))
+colnames(cent.sed.ratio) <- c("T", "C", "E")
+rownames(cent.sed.ratio) <- paste(pairs.sed$env, pairs.sed$pair, 
+                                   sep = "")[which(pairs.sed$treat == "E") ]
+
+for (i in 1:dim(cent.sed.ratio)[1]){
+  pair <- as.numeric(gsub("sed", "", rownames(cent.sed.ratio)[i]))
+  cent.sed.ratio[i, 1] <- (cent.sed[, 1][which(pairs.sed$pair == pair & 
+                                                pairs.sed$treat == "C")]) /
+                           (cent.sed[, 1][which(pairs.sed$pair == pair & 
+                                                pairs.sed$treat == "E")])
+  cent.sed.ratio[i, 2] <- (cent.sed[, 2][which(pairs.sed$pair == pair & 
+                                              pairs.sed$treat == "C")]) /
+                           (cent.sed[, 2][which(pairs.sed$pair == pair & 
+                                              pairs.sed$treat == "E")])
+  cent.sed.ratio[i, 3] <- (cent.sed[, 3][which(pairs.sed$pair == pair & 
+                                              pairs.sed$treat == "C")]) /
+                           (cent.sed[, 3][which(pairs.sed$pair == pair & 
+                                              pairs.sed$treat == "E")])
+}
+
+# Feces
+env.fec <- which(eDNA.env == "feces")
+cent.feces <- as.data.frame(matrix(NA, nrow = length(env.fec), ncol = 3))
+colnames(cent.feces) <- c("T", "C", "E")
+rownames(cent.feces) <- rownames(eDNA.div)[env.fec]
+
+for (i in 1:length(env.fec)){
+  cent.feces[i, 1] <- dist(rbind(disp.env$vectors[env.fec[i]], 
+                               disp.env$centroids[3, ]), method = "euclidean")
+  cent.feces[i, 2] <- dist(rbind(disp.group$vectors[env.fec[i]], 
+                               disp.group$centroids[5, ]), method = "euclidean")
+  cent.feces[i, 3] <- dist(rbind(disp.group$vectors[env.fec[i]], 
+                               disp.group$centroids[6, ]), method = "euclidean")
+}
+
+pairs.feces <- eDNA.div[env.fec, c(3,4,5,7)]
+
+cent.feces.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.feces$pair)),
+                                        ncol = 3))
+colnames(cent.feces.ratio) <- c("T", "C", "E")
+rownames(cent.feces.ratio) <- paste(pairs.feces$env, pairs.feces$pair, 
+                                   sep = "")[which(pairs.feces$treat == "E") ]
+
+for (i in 1:dim(cent.feces.ratio)[1]){
+  pair <- as.numeric(gsub("feces", "", rownames(cent.feces.ratio)[i]))
+  cent.feces.ratio[i, 1] <- (cent.feces[, 1][which(pairs.feces$pair == pair & 
+                                                pairs.feces$treat == "C")]) /
+                           (cent.feces[, 1][which(pairs.feces$pair == pair & 
+                                                pairs.feces$treat == "E")])
+  cent.feces.ratio[i, 2] <- (cent.feces[, 2][which(pairs.feces$pair == pair & 
+                                              pairs.feces$treat == "C")]) /
+                           (cent.feces[, 2][which(pairs.feces$pair == pair & 
+                                              pairs.feces$treat == "E")])
+  cent.feces.ratio[i, 3] <- (cent.feces[, 3][which(pairs.feces$pair == pair & 
+                                              pairs.feces$treat == "C")]) /
+                           (cent.feces[, 3][which(pairs.feces$pair == pair & 
+                                              pairs.feces$treat == "E")])
+}
+
+# Ratio Data Table
 
 
+
+
+
+```
 
 
 
