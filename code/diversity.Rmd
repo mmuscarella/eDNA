@@ -1314,11 +1314,67 @@ for (i in 1:dim(cent.feces.ratio)[1]){
 }
 
 # Ratio Data Table
+ratio.list <- list(cent.feces.ratio[,1], cent.sed.ratio[,1],
+                     cent.soil.ratio[,1], cent.water.ratio[,1])
+cent.dist.table <- as.data.frame(matrix(NA, nrow = 4, ncol = 5))
+colnames(cent.dist.table) <- c("env", "mean", "sem", "LCI", "UCI")
+cent.dist.table$env <- c("Gut", "Sediment", "Soil", "Water")
+cent.dist.table$mean <- unlist(lapply(ratio.list, mean))
+cent.dist.table$sem <- unlist(lapply(ratio.list, sem))
+cent.dist.table$LCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[1]))
+cent.dist.table$UCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[2]))
+cent.dist.table <- as.data.frame(cent.dist.table)
+
+```
 
 
+# Centoid Distance Ratio Plot
+```{r}
+png(filename="../figures/ratio.centroid.png",
+    width = 800, height = 600, res = 96*2)
 
+par(mar=c(3, 4, 1, 1) + 0.1)
 
+centroid.plot <- plot(cent.dist.table$mean, ylim = c(0.5, 1.7), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2)
+abline(h = 1, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+points(c(1:4), cent.dist.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
 
+mtext(expression('Centroid Distance Ratio'), side = 2, 
+        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
+ 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+
+axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
+    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
+
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F)
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/ratio.centroid.png")
+grid.raster(img)
 ```
 
 
