@@ -36,7 +36,7 @@ source("../bin/phylodiversity2.R")
 sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
 
 # Save Default Plot Settings
-opar <- par(no.readonly = TRUE)  # Saves plot defaults
+opar <- par(no.readonly = TRUE)  # Saves plot defauxlts
 
 # Run All: Select if all section are to be re-run
 run.all <- FALSE
@@ -160,6 +160,13 @@ even.2 <- reshape(even.rep.ave[,1:4], timevar = "treat",
                    idvar = c("qPCR.match", "env"), direction = "wide")
 ```
 
+# Richness: differences among sites?
+```{r}
+rich.anova <- aov(rich.2$rich.C ~rich.2$env)
+summary(rich.anova)
+TukeyHSD(rich.anova)
+```
+
 # Richness: does eDNA "inflate" diversity?
 ```{r}
 # Take averages of technial reps
@@ -207,6 +214,13 @@ Anova(rich.reg)
 #                                       Anova uses type II sums of squares
 # answer => no correlation between proportion eDNA and richness ratio. 
 # maybe a little in sediment
+```
+
+# Evennes: differences among sites?
+```{r}
+even.anova <- aov(even.2$even.C ~even.2$env)
+summary(even.anova)
+TukeyHSD(even.anova)
 ```
 
 # Evenness: does eDNA "inflate" diversity?
@@ -284,6 +298,15 @@ phylo.2.ag.mean.control <- aggregate(phylo.C ~ env, phylo.2, mean)
 phylo.2.ag.sem.control <- aggregate(phylo.C ~ env, phylo.2, sem)
 phylo.2.ag.mean.treatment <- aggregate(phylo.E ~ env, phylo.2, mean)
 phylo.2.ag.sem.treatment <- aggregate(phylo.E ~ env, phylo.2, sem)
+```
+
+# Phylo: differences among sites?
+```{r}
+faith.anova <- aov(phylo.2$phylo.C ~phylo.2$env)
+summary(faith.anova)
+TukeyHSD(faith.anova)
+```
+
 
 # Calculate ratios
 phylo.2$phylo.ratio <- phylo.2$phylo.E / phylo.2$phylo.C
@@ -303,6 +326,13 @@ phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub
 summary(phylo.reg) 
 # answer => no correlation between proportion eDNA and evenness ratio. 
 
+```
+
+# Phylo: differences among sites?
+```{r}
+faith.anova <- aov(even.2$even.C ~even.2$env)
+summary(even.anova)
+TukeyHSD(even.anova)
 ```
 
 # Richness plot
