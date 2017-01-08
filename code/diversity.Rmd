@@ -1,4 +1,4 @@
----
+d---
 title: "eDNA"
 author: "Jay T. Lennon, Mario E. Muscarella, ..."
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -861,8 +861,8 @@ dist.raw <- as.matrix(vegdist(OTU.REL.log, method = "bray", upper = T, diag = T)
 
 # Create Pairing Matrix
 pair.names <- levels(as.factor(eDNA.div$pair))
-eDNA.pairs <- as.data.frame(matrix(NA, length(pair.names), 3))
-colnames(eDNA.pairs) <- c("pair", "env", "dis")
+eDNA.pairs <- as.data.frame(matrix(NA, length(pair.names), 4))
+colnames(eDNA.pairs) <- c("pair", "env", "dis", "qPCR")
 eDNA.pairs$pair <- pair.names
 
 for (i in 1:length(pair.names)){
@@ -875,6 +875,7 @@ for (i in 1:length(pair.names)){
                         which(colnames(dist.raw) == samp.temp[2])]
   eDNA.pairs$env[i] <- eDNA.div$env[which(colnames(dist.raw) == samp.temp[1])]
   eDNA.pairs$dis[i] <- dist.temp
+  eDNA.pairs$qPCR[i] <- eDNA.div$qPCR.match[which(colnames(dist.raw) == samp.temp[1])]
 }
 
 pair.dis.mean <- aggregate(dis ~ env, eDNA.pairs, mean)
@@ -892,7 +893,7 @@ eDNA.pairs
 eDNA.prop
 
 
-eDNA.div
+eDNA.pairs$prop <- eDNA.prop$prop[match(eDNA.prop$sample.number, eDNA.pairs$qPCR)]
 
 
 
