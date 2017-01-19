@@ -1,0 +1,5 @@
+system(cp ./eDNA.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.0.03.rep.count_table ./eDNA.bac.final.count)
+
+system(cp ./eDNA.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.0.03.rep.fasta ./eDNA.bac.final.0.03.rep.fasta)
+
+unifrac.weighted(tree=eDNA.bac.tree, count=eDNA.bac.final.count, distance=square, processors=16)
