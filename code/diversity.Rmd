@@ -42,7 +42,8 @@ opar <- par(no.readonly = TRUE)  # Saves plot defauxlts
 run.all <- FALSE
 ```
 
-# Phylogenetic Diversity
+## Phylogenetic Diversity Notes
+
 A multi-fasta file was generated with representative sequences for each OTU. 
 Representatives were picked based on the most abundant unique sequence in each OTU.
 [FastTree](http://www.microbesonline.org/fasttree/) was used to construct a phylogenetic tree.
@@ -65,7 +66,8 @@ Gamma(20) LogLk = -5470984.148 alpha = 1.037 rescaling lengths by 1.659
 Total time: 5529.61 seconds Unique: 174292/174292 Bad splits: 903/174289 Worst delta-LogLk 10.311
 ```
 
-# Define Inputs
+# Data Input Section
+## Define Inputs
 ```{r}
   # Design       = general design file for experiment
   # shared       = OTU table from mothur with sequence similarity clustering
@@ -75,24 +77,24 @@ shared       <- "../mothur/output/eDNA.bac.final.shared"
 tax          <- "../mothur/output/eDNA.bac.final.0.03.taxonomy"
 ```
 
-# Import Design
+## Import Design
 ```{r}
 design <- read.delim(design, header=T, row.names=1)
 ```
 
-# Import Shared, Taxonomy, and Phylogeny Files
+## Import Shared, Taxonomy, and Phylogeny Files
 ```{r}
 OTU <- read.otu(shared = shared, cutoff = "0.03")
 OTU.tax <- read.tax(taxonomy = tax, format = "rdp")
 OTU.tre <- read.tree("../mothur/output/eDNA.bac.rename.tree")
 ```
 
-# Remove OTUs with less than two occurences across all sites
+## Remove OTUs with less than two occurences across all sites
 ```{r}
 OTU <- OTU[, which(colSums(OTU) >= 2)]
 ```
 
-# Coverage Stats
+## Calculate Coverage Stats
 ```{r}
 cov.seqs <- count.groups(OTU)
 cov.mean <- mean(cov.seqs) # 222701
@@ -110,7 +112,9 @@ mean.good.c <- mean(goods.c.eDNA) # 0.99
 min.good.c <- min(goods.c.eDNA) # 0.98
 ```
 
-# Alpha diversity
+# Alpha Diversity
+
+## Calculate Alpha diversity using Resampling
 ```{r}
 # Mario's resampling code to estimate alpha diversity (used if run.all = T)
 
@@ -124,8 +128,10 @@ if (run.all == TRUE){
   rare <- rarefy(OTU, 30000, se = FALSE, MARGIN = 1)
 
   # Write output to files
-  write.table(rich, "../data/rich.txt", sep = "\t", col.names = T, row.names = T)
-  write.table(even, "../data/even.txt", sep = "\t", col.names = T, row.names = T)
+  write.table(rich, "../data/rich.txt", sep = "\t", 
+              col.names = T, row.names = T)
+  write.table(even, "../data/even.txt", sep = "\t", 
+              col.names = T, row.names = T)
 }
 
 # Read in alpha diversity files from above
@@ -160,14 +166,14 @@ even.2 <- reshape(even.rep.ave[,1:4], timevar = "treat",
                    idvar = c("qPCR.match", "env"), direction = "wide")
 ```
 
-# Richness: differences among sites?
+## Richness: differences among sites?
 ```{r}
 rich.anova <- aov(rich.2$rich.C ~rich.2$env)
 summary(rich.anova)
 TukeyHSD(rich.anova)
 ```
 
-# Richness: does eDNA "inflate" diversity?
+## Richness: does eDNA "inflate" diversity?
 ```{r}
 # Take averages of technial reps
 rich.rep.ave <- ddply(eDNA.div, .(env, treat, qPCR.match), 
@@ -216,14 +222,14 @@ Anova(rich.reg)
 # maybe a little in sediment
 ```
 
-# Evennes: differences among sites?
+## Evennes: differences among sites?
 ```{r}
 even.anova <- aov(even.2$even.C ~even.2$env)
 summary(even.anova)
 TukeyHSD(even.anova)
 ```
 
-# Evenness: does eDNA "inflate" diversity?
+## Evenness: does eDNA "inflate" diversity?
 ```{r}
 # Take averages of technial reps
 even.rep.ave <- ddply(eDNA.div, .(env, treat, qPCR.match), 
@@ -258,7 +264,7 @@ summary(even.reg)
 # answer => no correlation between proportion eDNA and evenness ratio. 
 ```
 
-# Phylogenetic Diversity: does eDNA "inflate" diversity?
+## Calculate Phylogenetic Alpha Diversity
 ```{r}
 # Test if all OTUs are in tree
 sum(colnames(OTU) %in% OTU.tre$tip.label) == length(colnames(OTU) %in% OTU.tre$tip.label)
@@ -276,14 +282,16 @@ if (run.all == TRUE){
   eDNA.pd <- pd(OTU.2, OTU.tre.2, include.root = F)
 
   # Write output to files
-  write.table(eDNA.pd, "../data/phylo.txt", sep = "\t", col.names = T, row.names = T)
+  write.table(eDNA.pd, "../data/phylo.txt", sep = "\t", 
+              col.names = T, row.names = T)
 }
 
 # Read in alpha diversity files from above
 eDNA.pd2 <- read.table("../data/phylo.txt", sep = "\t")
 
 # Make new dataframe merging design file and phylo diversity
-eDNA.phylo <- data.frame(design[sort(row.names(design)), ], pd = eDNA.pd2$PD)
+eDNA.phylo <- data.frame(design[sort(row.names(design)), ], 
+                         pd = eDNA.pd2$PD)
 
 # Take averages of technial reps
 pd.rep.ave <- ddply(eDNA.phylo, .(env, treat, qPCR.match), 
@@ -300,13 +308,14 @@ phylo.2.ag.mean.treatment <- aggregate(phylo.E ~ env, phylo.2, mean)
 phylo.2.ag.sem.treatment <- aggregate(phylo.E ~ env, phylo.2, sem)
 ```
 
-# Phylo: differences among sites?
+## Phylogenetic: differences among sites?
 ```{r}
 faith.anova <- aov(phylo.2$phylo.C ~phylo.2$env)
 summary(faith.anova)
 TukeyHSD(faith.anova)
 ```
 
+## Phylogenetic Diversity: does eDNA "inflate" diversity?
 ```{r}
 # Calculate ratios
 phylo.2$phylo.ratio <- phylo.2$phylo.E / phylo.2$phylo.C
@@ -327,14 +336,8 @@ summary(phylo.reg)
 # answer => no correlation between proportion eDNA and evenness ratio. 
 ```
 
-# Phylo: differences among sites?
-```{r}
-faith.anova <- aov(even.2$even.C ~even.2$env)
-summary(even.anova)
-TukeyHSD(even.anova)
-```
-
-# Richness plot
+# Alpha Diversity Plots
+## Richness plot
 ```{r}
 png(filename="../figures/ratio.richness.png",
     width = 800, height = 600, res = 96*2)
@@ -381,7 +384,7 @@ img <- readPNG("../figures/ratio.richness.png")
 grid.raster(img)
 ```
 
-# Evenness plot
+## Evenness plot
 ```{r}
 png(filename="../figures/ratio.evenness.png",
     width = 800, height = 600, res = 96*2)
@@ -430,7 +433,7 @@ img <- readPNG("../figures/ratio.evenness.png")
 grid.raster(img)
 ```
 
-# Faith's D plot
+## Faith's D plot
 ```{r}
 png(filename="../figures/ratio.phylo.png",
     width = 800, height = 600, res = 96*2)
@@ -479,8 +482,7 @@ img <- readPNG("../figures/ratio.phylo.png")
 grid.raster(img)
 ```
 
-
-# Alpha Diversity Multi-Panel Plot
+## Alpha Diversity Multi-Panel Plot
 ```{r}
 png(filename="../figures/alpha.ratios.png",
     width = 800, height = 1600, res = 96*2)
@@ -599,6 +601,8 @@ grid.raster(img)
 
 
 # Beta diversity
+
+## Taxonomic Beta Diversity
 ```{r}
 # Make presence-absence matrix
 OTU.PA <- (OTU > 0) * 1
@@ -628,7 +632,31 @@ otu.scores <- as.matrix(otu.scores)[,1:2]
 otu.scores <- otu.scores[abs(otu.scores[,1]) > 0.7|abs(otu.scores[,2]) > 0.7,]
 ```
 
-## PcoA Plot
+## Phylogenetic Beta Diversity 
+```{r}
+phylo.dist <- read.delim("../mothur/output/eDNA.bac.tree.weighted.phylip.dist",
+                         skip = 1, row.names = 1, header = F)
+phylo.dist <- as.dist(phylo.dist)
+
+# Principal Coordinates Analysis (PCoA)
+eDNA.phylo.PCoA <- cmdscale(phylo.dist, eig = TRUE, k = 3) 
+explainvar1 <- round(eDNA.phylo.PCoA$eig[1] / 
+                       sum(eDNA.phylo.PCoA$eig), 3) * 100
+explainvar2 <- round(eDNA.phylo.PCoA$eig[2] / 
+                       sum(eDNA.phylo.PCoA$eig), 3) * 100
+explainvar3 <- round(eDNA.phylo.PCoA$eig[3] / 
+                       sum(eDNA.phylo.PCoA$eig), 3) * 100
+sum.eig <- sum(explainvar1, explainvar2, explainvar3)
+
+# OTU Scores
+otu.scores <- t(cor(eDNA.phylo.PCoA$points, OTU.REL))
+otu.scores <- as.matrix(otu.scores)[,1:2]
+otu.scores <- otu.scores[abs(otu.scores[,1]) > 0.7|
+                           abs(otu.scores[,2]) > 0.7,]
+```
+
+# PCoA Plots
+## Taxonomic PcoA Plot (Supplemental)
 ```{r, results = "hide"}
 png(filename="../figures/ordination.png",
     width = 1200, height = 800, res = 96*2)
@@ -661,58 +689,61 @@ all.equal(row.names(eDNA.PCoA$points), rownames(eDNA.div.sort))
 eDNA.points <- data.frame(eDNA.PCoA$points, eDNA.div.sort)
 
 # Gut
-eDNA.gut.C <- eDNA.points[ which(eDNA.points$env == "feces" & eDNA.points$treat == "C"), ]
-eDNA.gut.E <- eDNA.points[ which(eDNA.points$env == "feces" & eDNA.points$treat == "E"), ]
-
+eDNA.gut.C <- eDNA.points[ which(eDNA.points$env == "feces" &
+                                   eDNA.points$treat == "C"), ]
+eDNA.gut.E <- eDNA.points[ which(eDNA.points$env == "feces" &
+                                   eDNA.points$treat == "E"), ]
 # Sed
-eDNA.sed.C <- eDNA.points[ which(eDNA.points$env == "sed" & eDNA.points$treat == "C"), ]
-eDNA.sed.E <- eDNA.points[ which(eDNA.points$env == "sed" & eDNA.points$treat == "E"), ]
-
+eDNA.sed.C <- eDNA.points[ which(eDNA.points$env == "sed" &
+                                   eDNA.points$treat == "C"), ]
+eDNA.sed.E <- eDNA.points[ which(eDNA.points$env == "sed" &
+                                   eDNA.points$treat == "E"), ]
 # Soil
-eDNA.soil.C <- eDNA.points[ which(eDNA.points$env == "soil" & eDNA.points$treat == "C"), ]
-eDNA.soil.E <- eDNA.points[ which(eDNA.points$env == "soil" & eDNA.points$treat == "E"), ]
-
+eDNA.soil.C <- eDNA.points[ which(eDNA.points$env == "soil" &
+                                    eDNA.points$treat == "C"), ]
+eDNA.soil.E <- eDNA.points[ which(eDNA.points$env == "soil" &
+                                    eDNA.points$treat == "E"), ]
 # Water
-eDNA.water.C <- eDNA.points[ which(eDNA.points$env == "water" & eDNA.points$treat == "C"), ]
-eDNA.water.E <- eDNA.points[ which(eDNA.points$env == "water" & eDNA.points$treat == "E"), ]
+eDNA.water.C <- eDNA.points[ which(eDNA.points$env == "water" &
+                                     eDNA.points$treat == "C"), ]
+eDNA.water.E <- eDNA.points[ which(eDNA.points$env == "water" &
+                                     eDNA.points$treat == "E"), ]
 
 # Add points
-
 # Gut C
-points(eDNA.gut.C[ ,1], eDNA.gut.C[ ,2], pch = 21, cex = 2, col = "red", 
-       bg = "white", lwd = 2) 
+points(eDNA.gut.C[ ,1], eDNA.gut.C[ ,2], pch = 21, 
+       cex = 2, col = "red", bg = "white", lwd = 2) 
 # Gut E
-points(eDNA.gut.E[ ,1], eDNA.gut.E[ ,2], pch = 21, cex = 2, col = "red", 
-       bg = "red", lwd = 2)   
-
+points(eDNA.gut.E[ ,1], eDNA.gut.E[ ,2], pch = 21, 
+       cex = 2, col = "red", bg = "red", lwd = 2)   
 # Sed C
-points(eDNA.sed.C[ ,1], eDNA.sed.C[ ,2], pch = 22, cex = 2, col = "darkgreen", 
-       bg = "white", lwd = 2) 
+points(eDNA.sed.C[ ,1], eDNA.sed.C[ ,2], pch = 22, 
+       cex = 2, col = "darkgreen", bg = "white", lwd = 2) 
 # Sed E
-points(eDNA.sed.E[ ,1], eDNA.sed.E[ ,2], pch = 22, cex = 2, col = "darkgreen", 
-       bg = "darkgreen", lwd = 2) 
-
+points(eDNA.sed.E[ ,1], eDNA.sed.E[ ,2], pch = 22, 
+       cex = 2, col = "darkgreen", bg = "darkgreen", lwd = 2) 
 # Soil C
-points(eDNA.soil.C[ ,1], eDNA.soil.C[ ,2], pch = 24, cex = 2, col = "brown", 
-       bg = "white", lwd = 2) 
+points(eDNA.soil.C[ ,1], eDNA.soil.C[ ,2], pch = 24, 
+       cex = 2, col = "brown", bg = "white", lwd = 2) 
 # Soil E
-points(eDNA.soil.E[ ,1], eDNA.soil.E[ ,2], pch = 24, cex = 2, col = "brown", 
-       bg = "brown", lwd = 2) 
-
+points(eDNA.soil.E[ ,1], eDNA.soil.E[ ,2], pch = 24, 
+       cex = 2, col = "brown", bg = "brown", lwd = 2) 
 # Water C
-points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23, cex = 2, col = "blue", 
-       bg = "white", lwd = 2) 
+points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23, 
+       cex = 2, col = "blue", bg = "white", lwd = 2) 
 # Soil E
-points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, cex = 2, col = "blue", 
-       bg = "blue", lwd = 2) 
+points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, 
+       cex = 2, col = "blue", bg = "blue", lwd = 2) 
 
 # Add Legend Outside
 par(mar = c(4, 0, 1, 1) + 0.5)
 plot.new()
 legend(0, 1, c("Gut", "Sediment", "Soil", "Water"), 
-       pch = c(21, 22, 24, 23), pt.bg = c("red", "darkgreen", "brown", "blue"), 
+       pch = c(21, 22, 24, 23), 
+       pt.bg = c("red", "darkgreen", "brown", "blue"), 
        bty = "n", y.intersp = 1.5)
-legend(0, 0.25, c("Control", "DNase"), pch = 22, pt.bg = c("white", "black"),
+legend(0, 0.25, c("Control", "DNase"), pch = 22, 
+       pt.bg = c("white", "black"),
        bty = "n", y.intersp = 1.5)
 
 # Close Plot Device
@@ -724,7 +755,107 @@ img <- readPNG("../figures/ordination.png")
 grid.raster(img)
 ```
 
-# PERMANOVA
+## Phylogenetic PcoA Plot (Supplemental)
+```{r, results = "hide"}
+png(filename="../figures/phylo.ordination.png",
+    width = 1200, height = 800, res = 96*2)
+layout(matrix(1:2, 1, 2), widths = c(9, 3))
+par(mar = c(4, 5, 1, 0) + 0.5)
+
+plot(eDNA.phylo.PCoA$points[ ,1], eDNA.phylo.PCoA$points[ ,2], 
+     ylim = c(-0.3, 0.5), xlim = c(-0.3, 0.6), 
+     xlab = paste("PCoA 1 (", explainvar1, "%)", sep = ""),
+     ylab = paste("PCoA 2 (", explainvar2, "%)", sep = ""),
+     #xlab = "", ylab = "", xaxt = "n", yaxt = "n",
+     pch = 22, cex = 2.0, type = "n", cex.lab = 1.5, cex.axis = 1, 
+     axes = FALSE) 
+
+# Add Axes
+axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 1.25, las = 1)
+axis(side = 2, labels = T, lwd.ticks = 2, cex.axis = 1.25, las = 1)
+axis(side = 3, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=-0.02)
+axis(side = 4, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=-0.02)
+axis(side = 1, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
+axis(side = 2, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
+axis(side = 3, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
+axis(side = 4, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
+abline(h = 0, v = 0, lty = 3)
+box(lwd = 2)
+
+# Subset data
+eDNA.div.sort <- eDNA.div[order(eDNA.div[,1]) ,]
+all.equal(row.names(eDNA.phylo.PCoA$points), rownames(eDNA.div.sort))
+eDNA.points <- data.frame(eDNA.phylo.PCoA$points, eDNA.div.sort)
+
+# Gut
+eDNA.gut.C <- eDNA.points[ which(eDNA.points$env == "feces" &
+                                   eDNA.points$treat == "C"), ]
+eDNA.gut.E <- eDNA.points[ which(eDNA.points$env == "feces" &
+                                   eDNA.points$treat == "E"), ]
+# Sed
+eDNA.sed.C <- eDNA.points[ which(eDNA.points$env == "sed" &
+                                   eDNA.points$treat == "C"), ]
+eDNA.sed.E <- eDNA.points[ which(eDNA.points$env == "sed" &
+                                   eDNA.points$treat == "E"), ]
+# Soil
+eDNA.soil.C <- eDNA.points[ which(eDNA.points$env == "soil" &
+                                    eDNA.points$treat == "C"), ]
+eDNA.soil.E <- eDNA.points[ which(eDNA.points$env == "soil" &
+                                    eDNA.points$treat == "E"), ]
+# Water
+eDNA.water.C <- eDNA.points[ which(eDNA.points$env == "water" &
+                                     eDNA.points$treat == "C"), ]
+eDNA.water.E <- eDNA.points[ which(eDNA.points$env == "water" &
+                                     eDNA.points$treat == "E"), ]
+
+# Add points
+# Gut C
+points(eDNA.gut.C[ ,1], eDNA.gut.C[ ,2], pch = 21, 
+       cex = 2, col = "red", bg = "white", lwd = 2) 
+# Gut E
+points(eDNA.gut.E[ ,1], eDNA.gut.E[ ,2], pch = 21, 
+       cex = 2, col = "red", bg = "red", lwd = 2)   
+# Sed C
+points(eDNA.sed.C[ ,1], eDNA.sed.C[ ,2], pch = 22, 
+       cex = 2, col = "darkgreen", bg = "white", lwd = 2) 
+# Sed E
+points(eDNA.sed.E[ ,1], eDNA.sed.E[ ,2], pch = 22, 
+       cex = 2, col = "darkgreen", bg = "darkgreen", lwd = 2) 
+# Soil C
+points(eDNA.soil.C[ ,1], eDNA.soil.C[ ,2], pch = 24, 
+       cex = 2, col = "brown", bg = "white", lwd = 2) 
+# Soil E
+points(eDNA.soil.E[ ,1], eDNA.soil.E[ ,2], pch = 24, 
+       cex = 2, col = "brown", bg = "brown", lwd = 2) 
+# Water C
+points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23, 
+       cex = 2, col = "blue", bg = "white", lwd = 2) 
+# Soil E
+points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, 
+       cex = 2, col = "blue", bg = "blue", lwd = 2) 
+
+# Add Legend Outside
+par(mar = c(4, 0, 1, 1) + 0.5)
+plot.new()
+legend(0, 1, c("Gut", "Sediment", "Soil", "Water"), 
+       pch = c(21, 22, 24, 23), 
+       pt.bg = c("red", "darkgreen", "brown", "blue"), 
+       bty = "n", y.intersp = 1.5)
+legend(0, 0.25, c("Control", "DNase"), pch = 22, 
+       pt.bg = c("white", "black"),
+       bty = "n", y.intersp = 1.5)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/phylo.ordination.png")
+grid.raster(img)
+```
+
+# Beta Statistics
+## PERMANOVA: Taxonomic 
 ```{r}
 # Check Order of Dataframes
 all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
@@ -737,6 +868,683 @@ eDNA.bc.dis <- vegdist(OTU.REL.log, method = "bray", binary = "FALSE")
 beta.disp <- betadisper(d = eDNA.bc.dis, group = eDNA.div$env)
 permutest(beta.disp, 99)
 TukeyHSD(beta.disp)
+```
+
+## PERMANOVA: Phylogenetic 
+```{r}
+# Check Order of Dataframes
+all.equal(row.names(eDNA.div), row.names(as.matrix(phylo.dist)))
+
+eDNA.permanova <- adonis(phylo.dist ~ eDNA.div$env * eDNA.div$treat, 
+                         binary = FALSE)
+eDNA.permanova
+
+beta.disp <- betadisper(d = phylo.dist, group = eDNA.div$env)
+permutest(beta.disp, 99)
+TukeyHSD(beta.disp)
+```
+
+## Mantel Test: Taxonomic
+```{r}
+# Check order of design
+all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
+
+OTU.REL.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
+OTU.REL.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
+
+eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
+eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
+
+all.equal(sort(eDNA.div.c$samp.code), sort(eDNA.div.e$samp.code))
+
+OTU.REL.c2 <- OTU.REL.c[order(eDNA.div.c$samp.code), ]
+OTU.REL.e2 <- OTU.REL.e[order(eDNA.div.e$samp.code), ]
+
+dist.c <- vegdist(OTU.REL.c2, "bray") 
+dist.e <- vegdist(OTU.REL.e2, "bray") 
+
+mantel.rtest(dist.c, dist.e, nrepet = 999)
+```
+
+## Mantel Test: Phylogenetic
+```{r}
+# Turn into square matrix
+phylo.dist.m <- as.matrix(phylo.dist)
+rownames(phylo.dist.m) <- trimws(rownames(phylo.dist.m))
+
+# Check order of design
+all.equal(row.names(eDNA.div), row.names(phylo.dist.m))
+
+# Split into two and rearrange
+dist.c <- phylo.dist.m[which(eDNA.div$treat == "C"),
+                       which(eDNA.div$treat == "C")]
+dist.e <- phylo.dist.m[which(eDNA.div$treat == "E"), 
+                       which(eDNA.div$treat == "E")]
+
+ord.c <- order(as.numeric(eDNA.div$pair[which(eDNA.div$treat =="C")]))
+ord.e <- order(as.numeric(eDNA.div$pair[which(eDNA.div$treat =="E")]))
+
+dist.c <- dist.c[ord.c, ord.c]
+dist.e <- dist.e[ord.e, ord.e]
+
+dist.c <- as.dist(dist.c)
+dist.e <- as.dist(dist.e)
+
+mantel.rtest(dist.c, dist.e, nrepet = 999)
+```
+
+
+# Centroid Distances Calculations
+
+## Taxonomic Centroid Distance Ratios
+```{r}
+# Data Check
+all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
+
+eDNA.dist <- vegdist(OTU.REL.log, method = "bray")
+eDNA.env <- eDNA.div$env
+eDNA.group <- paste(eDNA.div$env, eDNA.div$treat, sep = "")
+
+disp.env <- betadisper(eDNA.dist, eDNA.env)
+disp.group <- betadisper(eDNA.dist, eDNA.group)
+
+disp.group$vectors
+disp.group$centroids
+
+# Soil
+env.soi <- which(eDNA.env == "soil")
+cent.soil <- as.data.frame(matrix(NA, nrow = length(env.soi), ncol = 3))
+colnames(cent.soil) <- c("T", "C", "E")
+rownames(cent.soil) <- rownames(eDNA.div)[env.soi]
+
+for (i in 1:length(env.soi)){
+  cent.soil[i, 1] <- dist(rbind(disp.env$vectors[env.soi[i]], 
+                               disp.env$centroids[3, ]), method = "euclidean")
+  cent.soil[i, 2] <- dist(rbind(disp.group$vectors[env.soi[i]], 
+                               disp.group$centroids[5, ]), method = "euclidean")
+  cent.soil[i, 3] <- dist(rbind(disp.group$vectors[env.soi[i]], 
+                               disp.group$centroids[6, ]), method = "euclidean")
+}
+
+pairs.soil <- eDNA.div[env.soi, c(3,4,5,7)]
+
+cent.soil.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.soil$pair)),
+                                        ncol = 3))
+colnames(cent.soil.ratio) <- c("T", "C", "E")
+rownames(cent.soil.ratio) <- paste(pairs.soil$env, pairs.soil$pair, 
+                                   sep = "")[which(pairs.soil$treat == "E") ]
+
+for (i in 1:dim(cent.soil.ratio)[1]){
+  pair <- as.numeric(gsub("soil", "", rownames(cent.soil.ratio)[i]))
+  cent.soil.ratio[i, 1] <- (cent.soil[, 1][which(pairs.soil$pair == pair & 
+                                                pairs.soil$treat == "C")]) /
+                           (cent.soil[, 1][which(pairs.soil$pair == pair & 
+                                                pairs.soil$treat == "E")])
+  cent.soil.ratio[i, 2] <- (cent.soil[, 2][which(pairs.soil$pair == pair & 
+                                              pairs.soil$treat == "C")]) /
+                           (cent.soil[, 2][which(pairs.soil$pair == pair & 
+                                              pairs.soil$treat == "E")])
+  cent.soil.ratio[i, 3] <- (cent.soil[, 3][which(pairs.soil$pair == pair & 
+                                              pairs.soil$treat == "C")]) /
+                           (cent.soil[, 3][which(pairs.soil$pair == pair & 
+                                              pairs.soil$treat == "E")])
+}
+
+# Water
+env.wat <- which(eDNA.env == "water")
+cent.water <- as.data.frame(matrix(NA, nrow = length(env.wat), ncol = 3))
+colnames(cent.water) <- c("T", "C", "E")
+rownames(cent.water) <- rownames(eDNA.div)[env.wat]
+
+for (i in 1:length(env.wat)){
+  cent.water[i, 1] <- dist(rbind(disp.env$vectors[env.wat[i]], 
+                               disp.env$centroids[3, ]), method = "euclidean")
+  cent.water[i, 2] <- dist(rbind(disp.group$vectors[env.wat[i]], 
+                               disp.group$centroids[5, ]), method = "euclidean")
+  cent.water[i, 3] <- dist(rbind(disp.group$vectors[env.wat[i]], 
+                               disp.group$centroids[6, ]), method = "euclidean")
+}
+
+pairs.water <- eDNA.div[env.wat, c(3,4,5,7)]
+
+cent.water.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.water$pair)),
+                                        ncol = 3))
+colnames(cent.water.ratio) <- c("T", "C", "E")
+rownames(cent.water.ratio) <- paste(pairs.water$env, pairs.water$pair, 
+                                   sep = "")[which(pairs.water$treat == "E") ]
+
+for (i in 1:dim(cent.water.ratio)[1]){
+  pair <- as.numeric(gsub("water", "", rownames(cent.water.ratio)[i]))
+  cent.water.ratio[i, 1] <- (cent.water[, 1][which(pairs.water$pair == pair & 
+                                                pairs.water$treat == "C")]) /
+                           (cent.water[, 1][which(pairs.water$pair == pair & 
+                                                pairs.water$treat == "E")])
+  cent.water.ratio[i, 2] <- (cent.water[, 2][which(pairs.water$pair == pair & 
+                                              pairs.water$treat == "C")]) /
+                           (cent.water[, 2][which(pairs.water$pair == pair & 
+                                              pairs.water$treat == "E")])
+  cent.water.ratio[i, 3] <- (cent.water[, 3][which(pairs.water$pair == pair & 
+                                              pairs.water$treat == "C")]) /
+                           (cent.water[, 3][which(pairs.water$pair == pair & 
+                                              pairs.water$treat == "E")])
+}
+
+# Sediments
+env.sed <- which(eDNA.env == "sed")
+cent.sed <- as.data.frame(matrix(NA, nrow = length(env.sed), ncol = 3))
+colnames(cent.sed) <- c("T", "C", "E")
+rownames(cent.sed) <- rownames(eDNA.div)[env.sed]
+
+for (i in 1:length(env.sed)){
+  cent.sed[i, 1] <- dist(rbind(disp.env$vectors[env.sed[i]], 
+                               disp.env$centroids[3, ]), method = "euclidean")
+  cent.sed[i, 2] <- dist(rbind(disp.group$vectors[env.sed[i]], 
+                               disp.group$centroids[5, ]), method = "euclidean")
+  cent.sed[i, 3] <- dist(rbind(disp.group$vectors[env.sed[i]], 
+                               disp.group$centroids[6, ]), method = "euclidean")
+}
+
+pairs.sed <- eDNA.div[env.sed, c(3,4,5,7)]
+
+cent.sed.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.sed$pair)),
+                                        ncol = 3))
+colnames(cent.sed.ratio) <- c("T", "C", "E")
+rownames(cent.sed.ratio) <- paste(pairs.sed$env, pairs.sed$pair, 
+                                   sep = "")[which(pairs.sed$treat == "E") ]
+
+for (i in 1:dim(cent.sed.ratio)[1]){
+  pair <- as.numeric(gsub("sed", "", rownames(cent.sed.ratio)[i]))
+  cent.sed.ratio[i, 1] <- (cent.sed[, 1][which(pairs.sed$pair == pair & 
+                                                pairs.sed$treat == "C")]) /
+                           (cent.sed[, 1][which(pairs.sed$pair == pair & 
+                                                pairs.sed$treat == "E")])
+  cent.sed.ratio[i, 2] <- (cent.sed[, 2][which(pairs.sed$pair == pair & 
+                                              pairs.sed$treat == "C")]) /
+                           (cent.sed[, 2][which(pairs.sed$pair == pair & 
+                                              pairs.sed$treat == "E")])
+  cent.sed.ratio[i, 3] <- (cent.sed[, 3][which(pairs.sed$pair == pair & 
+                                              pairs.sed$treat == "C")]) /
+                           (cent.sed[, 3][which(pairs.sed$pair == pair & 
+                                              pairs.sed$treat == "E")])
+}
+
+# Feces
+env.fec <- which(eDNA.env == "feces")
+cent.feces <- as.data.frame(matrix(NA, nrow = length(env.fec), ncol = 3))
+colnames(cent.feces) <- c("T", "C", "E")
+rownames(cent.feces) <- rownames(eDNA.div)[env.fec]
+
+for (i in 1:length(env.fec)){
+  cent.feces[i, 1] <- dist(rbind(disp.env$vectors[env.fec[i]], 
+                               disp.env$centroids[3, ]), method = "euclidean")
+  cent.feces[i, 2] <- dist(rbind(disp.group$vectors[env.fec[i]], 
+                               disp.group$centroids[5, ]), method = "euclidean")
+  cent.feces[i, 3] <- dist(rbind(disp.group$vectors[env.fec[i]], 
+                               disp.group$centroids[6, ]), method = "euclidean")
+}
+
+pairs.feces <- eDNA.div[env.fec, c(3,4,5,7)]
+
+cent.feces.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.feces$pair)),
+                                        ncol = 3))
+colnames(cent.feces.ratio) <- c("T", "C", "E")
+rownames(cent.feces.ratio) <- paste(pairs.feces$env, pairs.feces$pair, 
+                                   sep = "")[which(pairs.feces$treat == "E") ]
+
+for (i in 1:dim(cent.feces.ratio)[1]){
+  pair <- as.numeric(gsub("feces", "", rownames(cent.feces.ratio)[i]))
+  cent.feces.ratio[i, 1] <- (cent.feces[, 1][which(pairs.feces$pair == pair & 
+                                                pairs.feces$treat == "C")]) /
+                           (cent.feces[, 1][which(pairs.feces$pair == pair & 
+                                                pairs.feces$treat == "E")])
+  cent.feces.ratio[i, 2] <- (cent.feces[, 2][which(pairs.feces$pair == pair & 
+                                              pairs.feces$treat == "C")]) /
+                           (cent.feces[, 2][which(pairs.feces$pair == pair & 
+                                              pairs.feces$treat == "E")])
+  cent.feces.ratio[i, 3] <- (cent.feces[, 3][which(pairs.feces$pair == pair & 
+                                              pairs.feces$treat == "C")]) /
+                           (cent.feces[, 3][which(pairs.feces$pair == pair & 
+                                              pairs.feces$treat == "E")])
+}
+
+# Ratio Data Table
+ratio.list <- list(cent.feces.ratio[,1], cent.sed.ratio[,1],
+                     cent.soil.ratio[,1], cent.water.ratio[,1])
+cent.dist.table <- as.data.frame(matrix(NA, nrow = 4, ncol = 5))
+colnames(cent.dist.table) <- c("env", "mean", "sem", "LCI", "UCI")
+cent.dist.table$env <- c("Gut", "Sediment", "Soil", "Water")
+cent.dist.table$mean <- unlist(lapply(ratio.list, mean))
+cent.dist.table$sem <- unlist(lapply(ratio.list, sem))
+cent.dist.table$LCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[1]))
+cent.dist.table$UCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[2]))
+t.cent.dist.table <- as.data.frame(cent.dist.table)
+
+```
+
+
+## Phylogenetic Centroid Distance Ratios
+```{r}
+# Data Check
+all.equal(row.names(eDNA.div), row.names(phylo.dist.m))
+
+eDNA.dist <- as.dist(phylo.dist.m)
+eDNA.env <- eDNA.div$env
+eDNA.group <- paste(eDNA.div$env, eDNA.div$treat, sep = "")
+
+disp.env <- betadisper(eDNA.dist, eDNA.env)
+disp.group <- betadisper(eDNA.dist, eDNA.group)
+
+disp.group$vectors
+disp.group$centroids
+
+# Soil
+env.soi <- which(eDNA.env == "soil")
+cent.soil <- as.data.frame(matrix(NA, nrow = length(env.soi), ncol = 3))
+colnames(cent.soil) <- c("T", "C", "E")
+rownames(cent.soil) <- rownames(eDNA.div)[env.soi]
+
+for (i in 1:length(env.soi)){
+  cent.soil[i, 1] <- dist(rbind(disp.env$vectors[env.soi[i]], 
+                               disp.env$centroids[3, ]), method = "euclidean")
+  cent.soil[i, 2] <- dist(rbind(disp.group$vectors[env.soi[i]], 
+                               disp.group$centroids[5, ]), method = "euclidean")
+  cent.soil[i, 3] <- dist(rbind(disp.group$vectors[env.soi[i]], 
+                               disp.group$centroids[6, ]), method = "euclidean")
+}
+
+pairs.soil <- eDNA.div[env.soi, c(3,4,5,7)]
+
+cent.soil.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.soil$pair)),
+                                        ncol = 3))
+colnames(cent.soil.ratio) <- c("T", "C", "E")
+rownames(cent.soil.ratio) <- paste(pairs.soil$env, pairs.soil$pair, 
+                                   sep = "")[which(pairs.soil$treat == "E") ]
+
+for (i in 1:dim(cent.soil.ratio)[1]){
+  pair <- as.numeric(gsub("soil", "", rownames(cent.soil.ratio)[i]))
+  cent.soil.ratio[i, 1] <- (cent.soil[, 1][which(pairs.soil$pair == pair & 
+                                                pairs.soil$treat == "C")]) /
+                           (cent.soil[, 1][which(pairs.soil$pair == pair & 
+                                                pairs.soil$treat == "E")])
+  cent.soil.ratio[i, 2] <- (cent.soil[, 2][which(pairs.soil$pair == pair & 
+                                              pairs.soil$treat == "C")]) /
+                           (cent.soil[, 2][which(pairs.soil$pair == pair & 
+                                              pairs.soil$treat == "E")])
+  cent.soil.ratio[i, 3] <- (cent.soil[, 3][which(pairs.soil$pair == pair & 
+                                              pairs.soil$treat == "C")]) /
+                           (cent.soil[, 3][which(pairs.soil$pair == pair & 
+                                              pairs.soil$treat == "E")])
+}
+
+# Water
+env.wat <- which(eDNA.env == "water")
+cent.water <- as.data.frame(matrix(NA, nrow = length(env.wat), ncol = 3))
+colnames(cent.water) <- c("T", "C", "E")
+rownames(cent.water) <- rownames(eDNA.div)[env.wat]
+
+for (i in 1:length(env.wat)){
+  cent.water[i, 1] <- dist(rbind(disp.env$vectors[env.wat[i]], 
+                               disp.env$centroids[3, ]), method = "euclidean")
+  cent.water[i, 2] <- dist(rbind(disp.group$vectors[env.wat[i]], 
+                               disp.group$centroids[5, ]), method = "euclidean")
+  cent.water[i, 3] <- dist(rbind(disp.group$vectors[env.wat[i]], 
+                               disp.group$centroids[6, ]), method = "euclidean")
+}
+
+pairs.water <- eDNA.div[env.wat, c(3,4,5,7)]
+
+cent.water.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.water$pair)),
+                                        ncol = 3))
+colnames(cent.water.ratio) <- c("T", "C", "E")
+rownames(cent.water.ratio) <- paste(pairs.water$env, pairs.water$pair, 
+                                   sep = "")[which(pairs.water$treat == "E") ]
+
+for (i in 1:dim(cent.water.ratio)[1]){
+  pair <- as.numeric(gsub("water", "", rownames(cent.water.ratio)[i]))
+  cent.water.ratio[i, 1] <- (cent.water[, 1][which(pairs.water$pair == pair & 
+                                                pairs.water$treat == "C")]) /
+                           (cent.water[, 1][which(pairs.water$pair == pair & 
+                                                pairs.water$treat == "E")])
+  cent.water.ratio[i, 2] <- (cent.water[, 2][which(pairs.water$pair == pair & 
+                                              pairs.water$treat == "C")]) /
+                           (cent.water[, 2][which(pairs.water$pair == pair & 
+                                              pairs.water$treat == "E")])
+  cent.water.ratio[i, 3] <- (cent.water[, 3][which(pairs.water$pair == pair & 
+                                              pairs.water$treat == "C")]) /
+                           (cent.water[, 3][which(pairs.water$pair == pair & 
+                                              pairs.water$treat == "E")])
+}
+
+# Sediments
+env.sed <- which(eDNA.env == "sed")
+cent.sed <- as.data.frame(matrix(NA, nrow = length(env.sed), ncol = 3))
+colnames(cent.sed) <- c("T", "C", "E")
+rownames(cent.sed) <- rownames(eDNA.div)[env.sed]
+
+for (i in 1:length(env.sed)){
+  cent.sed[i, 1] <- dist(rbind(disp.env$vectors[env.sed[i]], 
+                               disp.env$centroids[3, ]), method = "euclidean")
+  cent.sed[i, 2] <- dist(rbind(disp.group$vectors[env.sed[i]], 
+                               disp.group$centroids[5, ]), method = "euclidean")
+  cent.sed[i, 3] <- dist(rbind(disp.group$vectors[env.sed[i]], 
+                               disp.group$centroids[6, ]), method = "euclidean")
+}
+
+pairs.sed <- eDNA.div[env.sed, c(3,4,5,7)]
+
+cent.sed.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.sed$pair)),
+                                        ncol = 3))
+colnames(cent.sed.ratio) <- c("T", "C", "E")
+rownames(cent.sed.ratio) <- paste(pairs.sed$env, pairs.sed$pair, 
+                                   sep = "")[which(pairs.sed$treat == "E") ]
+
+for (i in 1:dim(cent.sed.ratio)[1]){
+  pair <- as.numeric(gsub("sed", "", rownames(cent.sed.ratio)[i]))
+  cent.sed.ratio[i, 1] <- (cent.sed[, 1][which(pairs.sed$pair == pair & 
+                                                pairs.sed$treat == "C")]) /
+                           (cent.sed[, 1][which(pairs.sed$pair == pair & 
+                                                pairs.sed$treat == "E")])
+  cent.sed.ratio[i, 2] <- (cent.sed[, 2][which(pairs.sed$pair == pair & 
+                                              pairs.sed$treat == "C")]) /
+                           (cent.sed[, 2][which(pairs.sed$pair == pair & 
+                                              pairs.sed$treat == "E")])
+  cent.sed.ratio[i, 3] <- (cent.sed[, 3][which(pairs.sed$pair == pair & 
+                                              pairs.sed$treat == "C")]) /
+                           (cent.sed[, 3][which(pairs.sed$pair == pair & 
+                                              pairs.sed$treat == "E")])
+}
+
+# Feces
+env.fec <- which(eDNA.env == "feces")
+cent.feces <- as.data.frame(matrix(NA, nrow = length(env.fec), ncol = 3))
+colnames(cent.feces) <- c("T", "C", "E")
+rownames(cent.feces) <- rownames(eDNA.div)[env.fec]
+
+for (i in 1:length(env.fec)){
+  cent.feces[i, 1] <- dist(rbind(disp.env$vectors[env.fec[i]], 
+                               disp.env$centroids[3, ]), method = "euclidean")
+  cent.feces[i, 2] <- dist(rbind(disp.group$vectors[env.fec[i]], 
+                               disp.group$centroids[5, ]), method = "euclidean")
+  cent.feces[i, 3] <- dist(rbind(disp.group$vectors[env.fec[i]], 
+                               disp.group$centroids[6, ]), method = "euclidean")
+}
+
+pairs.feces <- eDNA.div[env.fec, c(3,4,5,7)]
+
+cent.feces.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.feces$pair)),
+                                        ncol = 3))
+colnames(cent.feces.ratio) <- c("T", "C", "E")
+rownames(cent.feces.ratio) <- paste(pairs.feces$env, pairs.feces$pair, 
+                                   sep = "")[which(pairs.feces$treat == "E") ]
+
+for (i in 1:dim(cent.feces.ratio)[1]){
+  pair <- as.numeric(gsub("feces", "", rownames(cent.feces.ratio)[i]))
+  cent.feces.ratio[i, 1] <- (cent.feces[, 1][which(pairs.feces$pair == pair & 
+                                                pairs.feces$treat == "C")]) /
+                           (cent.feces[, 1][which(pairs.feces$pair == pair & 
+                                                pairs.feces$treat == "E")])
+  cent.feces.ratio[i, 2] <- (cent.feces[, 2][which(pairs.feces$pair == pair & 
+                                              pairs.feces$treat == "C")]) /
+                           (cent.feces[, 2][which(pairs.feces$pair == pair & 
+                                              pairs.feces$treat == "E")])
+  cent.feces.ratio[i, 3] <- (cent.feces[, 3][which(pairs.feces$pair == pair & 
+                                              pairs.feces$treat == "C")]) /
+                           (cent.feces[, 3][which(pairs.feces$pair == pair & 
+                                              pairs.feces$treat == "E")])
+}
+
+# Ratio Data Table
+ratio.list <- list(cent.feces.ratio[,1], cent.sed.ratio[,1],
+                     cent.soil.ratio[,1], cent.water.ratio[,1])
+cent.dist.table <- as.data.frame(matrix(NA, nrow = 4, ncol = 5))
+colnames(cent.dist.table) <- c("env", "mean", "sem", "LCI", "UCI")
+cent.dist.table$env <- c("Gut", "Sediment", "Soil", "Water")
+cent.dist.table$mean <- unlist(lapply(ratio.list, mean))
+cent.dist.table$sem <- unlist(lapply(ratio.list, sem))
+cent.dist.table$LCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[1]))
+cent.dist.table$UCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[2]))
+p.cent.dist.table <- as.data.frame(cent.dist.table)
+
+```
+
+
+# Centroid Distance Plots
+## Taxonomic Centoid Distance Ratio Plot
+```{r}
+png(filename="../figures/ratio.centroid.png",
+    width = 800, height = 600, res = 96*2)
+
+par(mar=c(3, 4, 1, 1) + 0.1)
+
+cent.dist.table <- t.cent.dist.table
+
+centroid.plot <- plot(cent.dist.table$mean, ylim = c(0.5, 1.7), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2)
+abline(h = 1, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+points(c(1:4), cent.dist.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
+
+mtext(expression('Centroid Distance Ratio'), side = 2, 
+        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
+ 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+
+axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
+    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
+
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F)
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/ratio.centroid.png")
+grid.raster(img)
+```
+
+## Phylogenetic Centoid Distance Ratio Plot
+```{r}
+png(filename="../figures/ratio.phylo.centroid.png",
+    width = 800, height = 600, res = 96*2)
+
+par(mar=c(3, 4, 1, 1) + 0.1)
+
+cent.dist.table <- p.cent.dist.table
+
+centroid.plot <- plot(cent.dist.table$mean, ylim = c(0.5, 1.5), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2)
+abline(h = 1, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+points(c(1:4), cent.dist.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
+
+mtext(expression('Centroid Distance Ratio'), side = 2, 
+        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
+ 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+
+axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
+    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
+
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F)
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/ratio.phylo.centroid.png")
+grid.raster(img)
+```
+
+## Multipanel Centoid Distance Ratio Plot
+```{r}
+png(filename="../figures/panel.ratio.centroid.png",
+    width = 800, height = 1200, res = 96*2)
+
+layout(matrix(1:2, 2, 1))
+par(mar = c(0.5, 5, 0.5, 0) + 0.1, oma = c(4, 1, 1, 1))
+
+# Bray Curtis Plot
+cent.dist.table <- t.cent.dist.table
+centroid.plot <- plot(cent.dist.table$mean, ylim = c(0.6, 1.4), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2)
+abline(h = 1, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+points(c(1:4), cent.dist.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
+
+mtext('Centroid Distance Ratio\n(Bray Curtis Distance)', side = 2, 
+        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = T, at = c(0.7, 1, 1.3))
+ 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.7, 1, 1.3), tck = -0.02)
+
+axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
+    labels = F, at = c(1, 2, 3, 4), tck = -0.02)
+
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F, tck = -0.02)
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.7, 1, 1.3))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.7, 1, 1.3))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
+
+# Phylogenetic Plot
+cent.dist.table <- p.cent.dist.table
+centroid.plot <- plot(cent.dist.table$mean, ylim = c(0.6, 1.4), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2)
+abline(h = 1, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$LCI, angle = 90,
+       length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$UCI, angle = 90,
+       length=0.1, lwd = 2)
+points(c(1:4), cent.dist.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
+
+mtext('Centroid Distance Ratio\n(UniFrac Distance)', side = 2, 
+        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = T, at = c(0.7, 1, 1.3))
+ 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.7, 1, 1.3), tck = -0.02)
+
+axis(side = 1, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
+
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F, tck = -0.02)
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.7, 1, 1.3))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.7, 1, 1.3))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/panel.ratio.centroid.png")
+grid.raster(img)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Distances between pairs (Distance Ratio): Taxonomic
+```{r}
+# Data Check
+all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
+
+# Create Raw Distance Matrix
+dist.raw <- as.matrix(vegdist(OTU.REL.log, method = "bray", upper = T, diag = T))
+
+# Create Pairing Matrix
+pair.names <- levels(as.factor(eDNA.div$pair))
+eDNA.pairs <- as.data.frame(matrix(NA, length(pair.names), 4))
+colnames(eDNA.pairs) <- c("pair", "env", "dis", "qPCR")
+eDNA.pairs$pair <- pair.names
+
+for (i in 1:length(pair.names)){
+  pair.temp <- eDNA.pairs$pair[i]
+  samp.temp <- rownames(eDNA.div)[which(eDNA.div$pair == pair.temp)]
+  if (length(samp.temp) != 2){
+    stop("more than two samples in pair")
+  }
+  dist.temp <- dist.raw[which(colnames(dist.raw) == samp.temp[1]),
+                        which(colnames(dist.raw) == samp.temp[2])]
+  eDNA.pairs$env[i] <- eDNA.div$env[which(colnames(dist.raw) == samp.temp[1])]
+  eDNA.pairs$dis[i] <- dist.temp
+  eDNA.pairs$qPCR[i] <- eDNA.div$qPCR.match[which(colnames(dist.raw) == samp.temp[1])]
+}
+
+pair.dis.mean <- aggregate(dis ~ env, eDNA.pairs, mean)
+pair.dis.sem <- aggregate(dis ~ env, eDNA.pairs, sem)
+pair.dis.95 <- aggregate(dis ~ env, eDNA.pairs, 
+                  FUN = function(x) t.test(x)$conf.int[1:2])
+pair.dis.table <- data.frame(env = pair.dis.mean$env, mean = pair.dis.mean$dis,
+                         sem = pair.dis.sem$dis, ci = pair.dis.95$dis)
+colnames(pair.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
 ```
 
 # PERMANOVA on Delta-Distances
@@ -774,7 +1582,10 @@ require(MASS)
 eDNA.lda <- lda(delta.abund ~ eDNA.div.c$env, method = "euclidean")
 anova(eDNA.dbRDA)
 anova(eDNA.dbRDA, by = "terms")
+```
 
+# Delta Distances
+```{r}
 # Distance Moved in PCoA Space
 eDNA.points.c <- eDNA.points[which(eDNA.points$treat == "C"), ]
 eDNA.points.e <- eDNA.points[which(eDNA.points$treat == "E"), ]
@@ -858,63 +1669,11 @@ img <- readPNG("../figures/delta.dist.png")
 grid.raster(img)
 ```
 
-# Mantel Test 
-```{r}
-# Check order of design
-all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
 
-OTU.REL.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
-OTU.REL.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
 
-eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
-eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
 
-all.equal(sort(eDNA.div.c$samp.code), sort(eDNA.div.e$samp.code))
 
-OTU.REL.c2 <- OTU.REL.c[order(eDNA.div.c$samp.code), ]
-OTU.REL.e2 <- OTU.REL.e[order(eDNA.div.e$samp.code), ]
 
-dist.c <- vegdist(OTU.REL.c2, "bray") 
-dist.e <- vegdist(OTU.REL.e2, "bray") 
-
-mantel.rtest(dist.c, dist.e, nrepet = 999)
-```
-
-# Distances between pairs (Distance Ratio)
-```{r}
-# Data Check
-all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
-
-# Create Raw Distance Matrix
-dist.raw <- as.matrix(vegdist(OTU.REL.log, method = "bray", upper = T, diag = T))
-
-# Create Pairing Matrix
-pair.names <- levels(as.factor(eDNA.div$pair))
-eDNA.pairs <- as.data.frame(matrix(NA, length(pair.names), 4))
-colnames(eDNA.pairs) <- c("pair", "env", "dis", "qPCR")
-eDNA.pairs$pair <- pair.names
-
-for (i in 1:length(pair.names)){
-  pair.temp <- eDNA.pairs$pair[i]
-  samp.temp <- rownames(eDNA.div)[which(eDNA.div$pair == pair.temp)]
-  if (length(samp.temp) != 2){
-    stop("more than two samples in pair")
-  }
-  dist.temp <- dist.raw[which(colnames(dist.raw) == samp.temp[1]),
-                        which(colnames(dist.raw) == samp.temp[2])]
-  eDNA.pairs$env[i] <- eDNA.div$env[which(colnames(dist.raw) == samp.temp[1])]
-  eDNA.pairs$dis[i] <- dist.temp
-  eDNA.pairs$qPCR[i] <- eDNA.div$qPCR.match[which(colnames(dist.raw) == samp.temp[1])]
-}
-
-pair.dis.mean <- aggregate(dis ~ env, eDNA.pairs, mean)
-pair.dis.sem <- aggregate(dis ~ env, eDNA.pairs, sem)
-pair.dis.95 <- aggregate(dis ~ env, eDNA.pairs, 
-                  FUN = function(x) t.test(x)$conf.int[1:2])
-pair.dis.table <- data.frame(env = pair.dis.mean$env, mean = pair.dis.mean$dis,
-                         sem = pair.dis.sem$dis, ci = pair.dis.95$dis)
-colnames(pair.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
-```
 
 # Pair Distance as funciton of proportion eDNA
 ```{r}
@@ -922,9 +1681,15 @@ eDNA.pairs
 eDNA.prop
 
 
-eDNA.pairs$prop <- eDNA.prop$prop[match(eDNA.prop$sample.number, eDNA.pairs$qPCR)]
+eDNA.pairs$prop <- eDNA.prop.sub2$prop[match(eDNA.prop.sub2$sample.number, eDNA.pairs$pair)]
 
+# Reshape data
+eDNA.pairs.2 <- reshape(eDNA.pairs[,1:4], timevar = "treat", 
+                   idvar = c("qPCR.match", "env"), direction = "wide")
 
+# Regression: PD ratio vs. proportion eDNA
+phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop * eDNA.prop.sub2$env )
+summary(phylo.reg) 
 
 # Separate by Treatments
 eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
@@ -1142,374 +1907,10 @@ bc.var.std <- bc.var/rowSums(bc.var)
 
 ```
 
-# Centroid Distance Ratios
-```{r}
-# Data Check
-all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
-
-eDNA.dist <- vegdist(OTU.REL.log, method = "bray")
-eDNA.env <- eDNA.div$env
-eDNA.group <- paste(eDNA.div$env, eDNA.div$treat, sep = "")
-
-disp.env <- betadisper(eDNA.dist, eDNA.env)
-disp.group <- betadisper(eDNA.dist, eDNA.group)
-
-disp.group$vectors
-disp.group$centroids
-
-# Soil
-env.soi <- which(eDNA.env == "soil")
-cent.soil <- as.data.frame(matrix(NA, nrow = length(env.soi), ncol = 3))
-colnames(cent.soil) <- c("T", "C", "E")
-rownames(cent.soil) <- rownames(eDNA.div)[env.soi]
-
-for (i in 1:length(env.soi)){
-  cent.soil[i, 1] <- dist(rbind(disp.env$vectors[env.soi[i]], 
-                               disp.env$centroids[3, ]), method = "euclidean")
-  cent.soil[i, 2] <- dist(rbind(disp.group$vectors[env.soi[i]], 
-                               disp.group$centroids[5, ]), method = "euclidean")
-  cent.soil[i, 3] <- dist(rbind(disp.group$vectors[env.soi[i]], 
-                               disp.group$centroids[6, ]), method = "euclidean")
-}
-
-pairs.soil <- eDNA.div[env.soi, c(3,4,5,7)]
-
-cent.soil.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.soil$pair)),
-                                        ncol = 3))
-colnames(cent.soil.ratio) <- c("T", "C", "E")
-rownames(cent.soil.ratio) <- paste(pairs.soil$env, pairs.soil$pair, 
-                                   sep = "")[which(pairs.soil$treat == "E") ]
-
-for (i in 1:dim(cent.soil.ratio)[1]){
-  pair <- as.numeric(gsub("soil", "", rownames(cent.soil.ratio)[i]))
-  cent.soil.ratio[i, 1] <- (cent.soil[, 1][which(pairs.soil$pair == pair & 
-                                                pairs.soil$treat == "C")]) /
-                           (cent.soil[, 1][which(pairs.soil$pair == pair & 
-                                                pairs.soil$treat == "E")])
-  cent.soil.ratio[i, 2] <- (cent.soil[, 2][which(pairs.soil$pair == pair & 
-                                              pairs.soil$treat == "C")]) /
-                           (cent.soil[, 2][which(pairs.soil$pair == pair & 
-                                              pairs.soil$treat == "E")])
-  cent.soil.ratio[i, 3] <- (cent.soil[, 3][which(pairs.soil$pair == pair & 
-                                              pairs.soil$treat == "C")]) /
-                           (cent.soil[, 3][which(pairs.soil$pair == pair & 
-                                              pairs.soil$treat == "E")])
-}
-
-# Water
-env.wat <- which(eDNA.env == "water")
-cent.water <- as.data.frame(matrix(NA, nrow = length(env.wat), ncol = 3))
-colnames(cent.water) <- c("T", "C", "E")
-rownames(cent.water) <- rownames(eDNA.div)[env.wat]
-
-for (i in 1:length(env.wat)){
-  cent.water[i, 1] <- dist(rbind(disp.env$vectors[env.wat[i]], 
-                               disp.env$centroids[3, ]), method = "euclidean")
-  cent.water[i, 2] <- dist(rbind(disp.group$vectors[env.wat[i]], 
-                               disp.group$centroids[5, ]), method = "euclidean")
-  cent.water[i, 3] <- dist(rbind(disp.group$vectors[env.wat[i]], 
-                               disp.group$centroids[6, ]), method = "euclidean")
-}
-
-pairs.water <- eDNA.div[env.wat, c(3,4,5,7)]
-
-cent.water.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.water$pair)),
-                                        ncol = 3))
-colnames(cent.water.ratio) <- c("T", "C", "E")
-rownames(cent.water.ratio) <- paste(pairs.water$env, pairs.water$pair, 
-                                   sep = "")[which(pairs.water$treat == "E") ]
-
-for (i in 1:dim(cent.water.ratio)[1]){
-  pair <- as.numeric(gsub("water", "", rownames(cent.water.ratio)[i]))
-  cent.water.ratio[i, 1] <- (cent.water[, 1][which(pairs.water$pair == pair & 
-                                                pairs.water$treat == "C")]) /
-                           (cent.water[, 1][which(pairs.water$pair == pair & 
-                                                pairs.water$treat == "E")])
-  cent.water.ratio[i, 2] <- (cent.water[, 2][which(pairs.water$pair == pair & 
-                                              pairs.water$treat == "C")]) /
-                           (cent.water[, 2][which(pairs.water$pair == pair & 
-                                              pairs.water$treat == "E")])
-  cent.water.ratio[i, 3] <- (cent.water[, 3][which(pairs.water$pair == pair & 
-                                              pairs.water$treat == "C")]) /
-                           (cent.water[, 3][which(pairs.water$pair == pair & 
-                                              pairs.water$treat == "E")])
-}
-
-# Sediments
-env.sed <- which(eDNA.env == "sed")
-cent.sed <- as.data.frame(matrix(NA, nrow = length(env.sed), ncol = 3))
-colnames(cent.sed) <- c("T", "C", "E")
-rownames(cent.sed) <- rownames(eDNA.div)[env.sed]
-
-for (i in 1:length(env.sed)){
-  cent.sed[i, 1] <- dist(rbind(disp.env$vectors[env.sed[i]], 
-                               disp.env$centroids[3, ]), method = "euclidean")
-  cent.sed[i, 2] <- dist(rbind(disp.group$vectors[env.sed[i]], 
-                               disp.group$centroids[5, ]), method = "euclidean")
-  cent.sed[i, 3] <- dist(rbind(disp.group$vectors[env.sed[i]], 
-                               disp.group$centroids[6, ]), method = "euclidean")
-}
-
-pairs.sed <- eDNA.div[env.sed, c(3,4,5,7)]
-
-cent.sed.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.sed$pair)),
-                                        ncol = 3))
-colnames(cent.sed.ratio) <- c("T", "C", "E")
-rownames(cent.sed.ratio) <- paste(pairs.sed$env, pairs.sed$pair, 
-                                   sep = "")[which(pairs.sed$treat == "E") ]
-
-for (i in 1:dim(cent.sed.ratio)[1]){
-  pair <- as.numeric(gsub("sed", "", rownames(cent.sed.ratio)[i]))
-  cent.sed.ratio[i, 1] <- (cent.sed[, 1][which(pairs.sed$pair == pair & 
-                                                pairs.sed$treat == "C")]) /
-                           (cent.sed[, 1][which(pairs.sed$pair == pair & 
-                                                pairs.sed$treat == "E")])
-  cent.sed.ratio[i, 2] <- (cent.sed[, 2][which(pairs.sed$pair == pair & 
-                                              pairs.sed$treat == "C")]) /
-                           (cent.sed[, 2][which(pairs.sed$pair == pair & 
-                                              pairs.sed$treat == "E")])
-  cent.sed.ratio[i, 3] <- (cent.sed[, 3][which(pairs.sed$pair == pair & 
-                                              pairs.sed$treat == "C")]) /
-                           (cent.sed[, 3][which(pairs.sed$pair == pair & 
-                                              pairs.sed$treat == "E")])
-}
-
-# Feces
-env.fec <- which(eDNA.env == "feces")
-cent.feces <- as.data.frame(matrix(NA, nrow = length(env.fec), ncol = 3))
-colnames(cent.feces) <- c("T", "C", "E")
-rownames(cent.feces) <- rownames(eDNA.div)[env.fec]
-
-for (i in 1:length(env.fec)){
-  cent.feces[i, 1] <- dist(rbind(disp.env$vectors[env.fec[i]], 
-                               disp.env$centroids[3, ]), method = "euclidean")
-  cent.feces[i, 2] <- dist(rbind(disp.group$vectors[env.fec[i]], 
-                               disp.group$centroids[5, ]), method = "euclidean")
-  cent.feces[i, 3] <- dist(rbind(disp.group$vectors[env.fec[i]], 
-                               disp.group$centroids[6, ]), method = "euclidean")
-}
-
-pairs.feces <- eDNA.div[env.fec, c(3,4,5,7)]
-
-cent.feces.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.feces$pair)),
-                                        ncol = 3))
-colnames(cent.feces.ratio) <- c("T", "C", "E")
-rownames(cent.feces.ratio) <- paste(pairs.feces$env, pairs.feces$pair, 
-                                   sep = "")[which(pairs.feces$treat == "E") ]
-
-for (i in 1:dim(cent.feces.ratio)[1]){
-  pair <- as.numeric(gsub("feces", "", rownames(cent.feces.ratio)[i]))
-  cent.feces.ratio[i, 1] <- (cent.feces[, 1][which(pairs.feces$pair == pair & 
-                                                pairs.feces$treat == "C")]) /
-                           (cent.feces[, 1][which(pairs.feces$pair == pair & 
-                                                pairs.feces$treat == "E")])
-  cent.feces.ratio[i, 2] <- (cent.feces[, 2][which(pairs.feces$pair == pair & 
-                                              pairs.feces$treat == "C")]) /
-                           (cent.feces[, 2][which(pairs.feces$pair == pair & 
-                                              pairs.feces$treat == "E")])
-  cent.feces.ratio[i, 3] <- (cent.feces[, 3][which(pairs.feces$pair == pair & 
-                                              pairs.feces$treat == "C")]) /
-                           (cent.feces[, 3][which(pairs.feces$pair == pair & 
-                                              pairs.feces$treat == "E")])
-}
-
-# Ratio Data Table
-ratio.list <- list(cent.feces.ratio[,1], cent.sed.ratio[,1],
-                     cent.soil.ratio[,1], cent.water.ratio[,1])
-cent.dist.table <- as.data.frame(matrix(NA, nrow = 4, ncol = 5))
-colnames(cent.dist.table) <- c("env", "mean", "sem", "LCI", "UCI")
-cent.dist.table$env <- c("Gut", "Sediment", "Soil", "Water")
-cent.dist.table$mean <- unlist(lapply(ratio.list, mean))
-cent.dist.table$sem <- unlist(lapply(ratio.list, sem))
-cent.dist.table$LCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[1]))
-cent.dist.table$UCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[2]))
-cent.dist.table <- as.data.frame(cent.dist.table)
-
-```
 
 
-# Centoid Distance Ratio Plot
-```{r}
-png(filename="../figures/ratio.centroid.png",
-    width = 800, height = 600, res = 96*2)
-
-par(mar=c(3, 4, 1, 1) + 0.1)
-
-centroid.plot <- plot(cent.dist.table$mean, ylim = c(0.5, 1.7), 
-      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
-      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
-      las = 1, ylab = "", xlab = "")
-      box(lwd = 2)
-abline(h = 1, lty = 3, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$LCI, angle = 90,
-       length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$UCI, angle = 90,
-       length=0.1, lwd = 2)
-points(c(1:4), cent.dist.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
-
-mtext(expression('Centroid Distance Ratio'), side = 2, 
-        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
-# Major Axes
-axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
-    labels = T, at = c(0.5, 1, 1.5))
- 
-axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
-   labels = F, at = c(0.5, 1, 1.5))
-
-axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
-
-axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at = c(1, 2, 3, 4), labels = F)
-
-# Minor ticks
-axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/ratio.centroid.png")
-grid.raster(img)
-```
 
 
-# Phylogenetic Beta Diversity
-```{r}
-phylo.dist <- read.delim("../mothur/output/eDNA.bac.tree.weighted.phylip.dist",
-                         skip = 1, row.names = 1, header = F)
-phylo.dist <- as.dist(phylo.dist)
-
-```
-
-
-```{r}
-# Principal Coordinates Analysis (PCoA)
-eDNA.phylo.PCoA <- cmdscale(phylo.dist, eig = TRUE, k = 3) 
-explainvar1 <- round(eDNA.phylo.PCoA$eig[1] / sum(eDNA.phylo.PCoA$eig), 3) * 100
-explainvar2 <- round(eDNA.phylo.PCoA$eig[2] / sum(eDNA.phylo.PCoA$eig), 3) * 100
-explainvar3 <- round(eDNA.phylo.PCoA$eig[3] / sum(eDNA.phylo.PCoA$eig), 3) * 100
-sum.eig <- sum(explainvar1, explainvar2, explainvar3)
-
-# OTU Scores
-otu.scores <- t(cor(eDNA.phylo.PCoA$points, OTU.REL))
-otu.scores <- as.matrix(otu.scores)[,1:2]
-otu.scores <- otu.scores[abs(otu.scores[,1]) > 0.7|abs(otu.scores[,2]) > 0.7,]
-```
-
-## PcoA Plot
-```{r, results = "hide"}
-png(filename="../figures/phylo.ordination.png",
-    width = 1200, height = 800, res = 96*2)
-layout(matrix(1:2, 1, 2), widths = c(9, 3))
-par(mar = c(4, 5, 1, 0) + 0.5)
-
-plot(eDNA.phylo.PCoA$points[ ,1], eDNA.phylo.PCoA$points[ ,2], 
-     ylim = c(-0.3, 0.5), xlim = c(-0.3, 0.6), 
-     xlab = paste("PCoA 1 (", explainvar1, "%)", sep = ""),
-     ylab = paste("PCoA 2 (", explainvar2, "%)", sep = ""),
-     #xlab = "", ylab = "", xaxt = "n", yaxt = "n",
-     pch = 22, cex = 2.0, type = "n", cex.lab = 1.5, cex.axis = 1, 
-     axes = FALSE) 
-
-# Add Axes
-axis(side = 1, labels = T, lwd.ticks = 2, cex.axis = 1.25, las = 1)
-axis(side = 2, labels = T, lwd.ticks = 2, cex.axis = 1.25, las = 1)
-axis(side = 3, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=-0.02)
-axis(side = 4, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=-0.02)
-axis(side = 1, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
-axis(side = 2, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
-axis(side = 3, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
-axis(side = 4, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
-abline(h = 0, v = 0, lty = 3)
-box(lwd = 2)
-
-# Subset data
-eDNA.div.sort <- eDNA.div[order(eDNA.div[,1]) ,]
-all.equal(row.names(eDNA.phylo.PCoA$points), rownames(eDNA.div.sort))
-eDNA.points <- data.frame(eDNA.phylo.PCoA$points, eDNA.div.sort)
-
-# Gut
-eDNA.gut.C <- eDNA.points[ which(eDNA.points$env == "feces" & eDNA.points$treat == "C"), ]
-eDNA.gut.E <- eDNA.points[ which(eDNA.points$env == "feces" & eDNA.points$treat == "E"), ]
-
-# Sed
-eDNA.sed.C <- eDNA.points[ which(eDNA.points$env == "sed" & eDNA.points$treat == "C"), ]
-eDNA.sed.E <- eDNA.points[ which(eDNA.points$env == "sed" & eDNA.points$treat == "E"), ]
-
-# Soil
-eDNA.soil.C <- eDNA.points[ which(eDNA.points$env == "soil" & eDNA.points$treat == "C"), ]
-eDNA.soil.E <- eDNA.points[ which(eDNA.points$env == "soil" & eDNA.points$treat == "E"), ]
-
-# Water
-eDNA.water.C <- eDNA.points[ which(eDNA.points$env == "water" & eDNA.points$treat == "C"), ]
-eDNA.water.E <- eDNA.points[ which(eDNA.points$env == "water" & eDNA.points$treat == "E"), ]
-
-# Add points
-
-# Gut C
-points(eDNA.gut.C[ ,1], eDNA.gut.C[ ,2], pch = 21, cex = 2, col = "red", 
-       bg = "white", lwd = 2) 
-# Gut E
-points(eDNA.gut.E[ ,1], eDNA.gut.E[ ,2], pch = 21, cex = 2, col = "red", 
-       bg = "red", lwd = 2)   
-
-# Sed C
-points(eDNA.sed.C[ ,1], eDNA.sed.C[ ,2], pch = 22, cex = 2, col = "darkgreen", 
-       bg = "white", lwd = 2) 
-# Sed E
-points(eDNA.sed.E[ ,1], eDNA.sed.E[ ,2], pch = 22, cex = 2, col = "darkgreen", 
-       bg = "darkgreen", lwd = 2) 
-
-# Soil C
-points(eDNA.soil.C[ ,1], eDNA.soil.C[ ,2], pch = 24, cex = 2, col = "brown", 
-       bg = "white", lwd = 2) 
-# Soil E
-points(eDNA.soil.E[ ,1], eDNA.soil.E[ ,2], pch = 24, cex = 2, col = "brown", 
-       bg = "brown", lwd = 2) 
-
-# Water C
-points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23, cex = 2, col = "blue", 
-       bg = "white", lwd = 2) 
-# Soil E
-points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, cex = 2, col = "blue", 
-       bg = "blue", lwd = 2) 
-
-# Add Legend Outside
-par(mar = c(4, 0, 1, 1) + 0.5)
-plot.new()
-legend(0, 1, c("Gut", "Sediment", "Soil", "Water"), 
-       pch = c(21, 22, 24, 23), pt.bg = c("red", "darkgreen", "brown", "blue"), 
-       bty = "n", y.intersp = 1.5)
-legend(0, 0.25, c("Control", "DNase"), pch = 22, pt.bg = c("white", "black"),
-       bty = "n", y.intersp = 1.5)
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/phylo.ordination.png")
-grid.raster(img)
-```
-
-# Phylogenetic PERMANOVA
-```{r}
-# Check Order of Dataframes
-all.equal(row.names(eDNA.div), row.names(as.matrix(phylo.dist)))
-
-eDNA.permanova <- adonis(phylo.dist ~ eDNA.div$env * eDNA.div$treat, 
-                         binary = FALSE)
-eDNA.permanova
-
-beta.disp <- betadisper(d = phylo.dist, group = eDNA.div$env)
-permutest(beta.disp, 99)
-TukeyHSD(beta.disp)
-```
 
 # PERMANOVA on Delta-Distances
 ```{r}
@@ -1585,7 +1986,7 @@ colnames(delta.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
 
 # Delta Distance Plot
 ```{r}
-png(filename="../figures/delta.dist.png",
+png(filename="../figures/phylo.delta.dist.png",
     width = 800, height = 600, res = 96*2)
 
 par(mar=c(3, 4, 1, 1) + 0.1)
@@ -1626,34 +2027,11 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/delta.dist.png")
+img <- readPNG("../figures/phylo.delta.dist.png")
 grid.raster(img)
 ```
 
-# Mantel Test 
-```{r}
-# Turn into square matrix
-phylo.dist.m <- as.matrix(phylo.dist)
-rownames(phylo.dist.m) <- trimws(rownames(phylo.dist.m))
 
-# Check order of design
-all.equal(row.names(eDNA.div), row.names(phylo.dist.m))
-
-# Split into two and rearrange
-dist.c <- phylo.dist.m[which(eDNA.div$treat == "C"), which(eDNA.div$treat == "C")]
-dist.e <- phylo.dist.m[which(eDNA.div$treat == "E"), which(eDNA.div$treat == "E")]
-
-ord.c <- order(as.numeric(eDNA.div$pair[which(eDNA.div$treat =="C")]))
-ord.e <- order(as.numeric(eDNA.div$pair[which(eDNA.div$treat =="E")]))
-
-dist.c <- dist.c[ord.c, ord.c]
-dist.e <- dist.e[ord.e, ord.e]
-
-dist.c <- as.dist(dist.c)
-dist.e <- as.dist(dist.e)
-
-mantel.rtest(dist.c, dist.e, nrepet = 999)
-```
 
 # Distances between pairs (Distance Ratio)
 ```{r}
@@ -1690,240 +2068,5 @@ pair.dis.95 <- aggregate(dis ~ env, eDNA.pairs,
 pair.dis.table <- data.frame(env = pair.dis.mean$env, mean = pair.dis.mean$dis,
                          sem = pair.dis.sem$dis, ci = pair.dis.95$dis)
 colnames(pair.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
-```
-
-# Centroid Distance Ratios
-```{r}
-# Data Check
-all.equal(row.names(eDNA.div), row.names(phylo.dist.m))
-
-eDNA.dist <- as.dist(phylo.dist.m)
-eDNA.env <- eDNA.div$env
-eDNA.group <- paste(eDNA.div$env, eDNA.div$treat, sep = "")
-
-disp.env <- betadisper(eDNA.dist, eDNA.env)
-disp.group <- betadisper(eDNA.dist, eDNA.group)
-
-disp.group$vectors
-disp.group$centroids
-
-# Soil
-env.soi <- which(eDNA.env == "soil")
-cent.soil <- as.data.frame(matrix(NA, nrow = length(env.soi), ncol = 3))
-colnames(cent.soil) <- c("T", "C", "E")
-rownames(cent.soil) <- rownames(eDNA.div)[env.soi]
-
-for (i in 1:length(env.soi)){
-  cent.soil[i, 1] <- dist(rbind(disp.env$vectors[env.soi[i]], 
-                               disp.env$centroids[3, ]), method = "euclidean")
-  cent.soil[i, 2] <- dist(rbind(disp.group$vectors[env.soi[i]], 
-                               disp.group$centroids[5, ]), method = "euclidean")
-  cent.soil[i, 3] <- dist(rbind(disp.group$vectors[env.soi[i]], 
-                               disp.group$centroids[6, ]), method = "euclidean")
-}
-
-pairs.soil <- eDNA.div[env.soi, c(3,4,5,7)]
-
-cent.soil.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.soil$pair)),
-                                        ncol = 3))
-colnames(cent.soil.ratio) <- c("T", "C", "E")
-rownames(cent.soil.ratio) <- paste(pairs.soil$env, pairs.soil$pair, 
-                                   sep = "")[which(pairs.soil$treat == "E") ]
-
-for (i in 1:dim(cent.soil.ratio)[1]){
-  pair <- as.numeric(gsub("soil", "", rownames(cent.soil.ratio)[i]))
-  cent.soil.ratio[i, 1] <- (cent.soil[, 1][which(pairs.soil$pair == pair & 
-                                                pairs.soil$treat == "C")]) /
-                           (cent.soil[, 1][which(pairs.soil$pair == pair & 
-                                                pairs.soil$treat == "E")])
-  cent.soil.ratio[i, 2] <- (cent.soil[, 2][which(pairs.soil$pair == pair & 
-                                              pairs.soil$treat == "C")]) /
-                           (cent.soil[, 2][which(pairs.soil$pair == pair & 
-                                              pairs.soil$treat == "E")])
-  cent.soil.ratio[i, 3] <- (cent.soil[, 3][which(pairs.soil$pair == pair & 
-                                              pairs.soil$treat == "C")]) /
-                           (cent.soil[, 3][which(pairs.soil$pair == pair & 
-                                              pairs.soil$treat == "E")])
-}
-
-# Water
-env.wat <- which(eDNA.env == "water")
-cent.water <- as.data.frame(matrix(NA, nrow = length(env.wat), ncol = 3))
-colnames(cent.water) <- c("T", "C", "E")
-rownames(cent.water) <- rownames(eDNA.div)[env.wat]
-
-for (i in 1:length(env.wat)){
-  cent.water[i, 1] <- dist(rbind(disp.env$vectors[env.wat[i]], 
-                               disp.env$centroids[3, ]), method = "euclidean")
-  cent.water[i, 2] <- dist(rbind(disp.group$vectors[env.wat[i]], 
-                               disp.group$centroids[5, ]), method = "euclidean")
-  cent.water[i, 3] <- dist(rbind(disp.group$vectors[env.wat[i]], 
-                               disp.group$centroids[6, ]), method = "euclidean")
-}
-
-pairs.water <- eDNA.div[env.wat, c(3,4,5,7)]
-
-cent.water.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.water$pair)),
-                                        ncol = 3))
-colnames(cent.water.ratio) <- c("T", "C", "E")
-rownames(cent.water.ratio) <- paste(pairs.water$env, pairs.water$pair, 
-                                   sep = "")[which(pairs.water$treat == "E") ]
-
-for (i in 1:dim(cent.water.ratio)[1]){
-  pair <- as.numeric(gsub("water", "", rownames(cent.water.ratio)[i]))
-  cent.water.ratio[i, 1] <- (cent.water[, 1][which(pairs.water$pair == pair & 
-                                                pairs.water$treat == "C")]) /
-                           (cent.water[, 1][which(pairs.water$pair == pair & 
-                                                pairs.water$treat == "E")])
-  cent.water.ratio[i, 2] <- (cent.water[, 2][which(pairs.water$pair == pair & 
-                                              pairs.water$treat == "C")]) /
-                           (cent.water[, 2][which(pairs.water$pair == pair & 
-                                              pairs.water$treat == "E")])
-  cent.water.ratio[i, 3] <- (cent.water[, 3][which(pairs.water$pair == pair & 
-                                              pairs.water$treat == "C")]) /
-                           (cent.water[, 3][which(pairs.water$pair == pair & 
-                                              pairs.water$treat == "E")])
-}
-
-# Sediments
-env.sed <- which(eDNA.env == "sed")
-cent.sed <- as.data.frame(matrix(NA, nrow = length(env.sed), ncol = 3))
-colnames(cent.sed) <- c("T", "C", "E")
-rownames(cent.sed) <- rownames(eDNA.div)[env.sed]
-
-for (i in 1:length(env.sed)){
-  cent.sed[i, 1] <- dist(rbind(disp.env$vectors[env.sed[i]], 
-                               disp.env$centroids[3, ]), method = "euclidean")
-  cent.sed[i, 2] <- dist(rbind(disp.group$vectors[env.sed[i]], 
-                               disp.group$centroids[5, ]), method = "euclidean")
-  cent.sed[i, 3] <- dist(rbind(disp.group$vectors[env.sed[i]], 
-                               disp.group$centroids[6, ]), method = "euclidean")
-}
-
-pairs.sed <- eDNA.div[env.sed, c(3,4,5,7)]
-
-cent.sed.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.sed$pair)),
-                                        ncol = 3))
-colnames(cent.sed.ratio) <- c("T", "C", "E")
-rownames(cent.sed.ratio) <- paste(pairs.sed$env, pairs.sed$pair, 
-                                   sep = "")[which(pairs.sed$treat == "E") ]
-
-for (i in 1:dim(cent.sed.ratio)[1]){
-  pair <- as.numeric(gsub("sed", "", rownames(cent.sed.ratio)[i]))
-  cent.sed.ratio[i, 1] <- (cent.sed[, 1][which(pairs.sed$pair == pair & 
-                                                pairs.sed$treat == "C")]) /
-                           (cent.sed[, 1][which(pairs.sed$pair == pair & 
-                                                pairs.sed$treat == "E")])
-  cent.sed.ratio[i, 2] <- (cent.sed[, 2][which(pairs.sed$pair == pair & 
-                                              pairs.sed$treat == "C")]) /
-                           (cent.sed[, 2][which(pairs.sed$pair == pair & 
-                                              pairs.sed$treat == "E")])
-  cent.sed.ratio[i, 3] <- (cent.sed[, 3][which(pairs.sed$pair == pair & 
-                                              pairs.sed$treat == "C")]) /
-                           (cent.sed[, 3][which(pairs.sed$pair == pair & 
-                                              pairs.sed$treat == "E")])
-}
-
-# Feces
-env.fec <- which(eDNA.env == "feces")
-cent.feces <- as.data.frame(matrix(NA, nrow = length(env.fec), ncol = 3))
-colnames(cent.feces) <- c("T", "C", "E")
-rownames(cent.feces) <- rownames(eDNA.div)[env.fec]
-
-for (i in 1:length(env.fec)){
-  cent.feces[i, 1] <- dist(rbind(disp.env$vectors[env.fec[i]], 
-                               disp.env$centroids[3, ]), method = "euclidean")
-  cent.feces[i, 2] <- dist(rbind(disp.group$vectors[env.fec[i]], 
-                               disp.group$centroids[5, ]), method = "euclidean")
-  cent.feces[i, 3] <- dist(rbind(disp.group$vectors[env.fec[i]], 
-                               disp.group$centroids[6, ]), method = "euclidean")
-}
-
-pairs.feces <- eDNA.div[env.fec, c(3,4,5,7)]
-
-cent.feces.ratio <- as.data.frame(matrix(NA, nrow = length(unique(pairs.feces$pair)),
-                                        ncol = 3))
-colnames(cent.feces.ratio) <- c("T", "C", "E")
-rownames(cent.feces.ratio) <- paste(pairs.feces$env, pairs.feces$pair, 
-                                   sep = "")[which(pairs.feces$treat == "E") ]
-
-for (i in 1:dim(cent.feces.ratio)[1]){
-  pair <- as.numeric(gsub("feces", "", rownames(cent.feces.ratio)[i]))
-  cent.feces.ratio[i, 1] <- (cent.feces[, 1][which(pairs.feces$pair == pair & 
-                                                pairs.feces$treat == "C")]) /
-                           (cent.feces[, 1][which(pairs.feces$pair == pair & 
-                                                pairs.feces$treat == "E")])
-  cent.feces.ratio[i, 2] <- (cent.feces[, 2][which(pairs.feces$pair == pair & 
-                                              pairs.feces$treat == "C")]) /
-                           (cent.feces[, 2][which(pairs.feces$pair == pair & 
-                                              pairs.feces$treat == "E")])
-  cent.feces.ratio[i, 3] <- (cent.feces[, 3][which(pairs.feces$pair == pair & 
-                                              pairs.feces$treat == "C")]) /
-                           (cent.feces[, 3][which(pairs.feces$pair == pair & 
-                                              pairs.feces$treat == "E")])
-}
-
-# Ratio Data Table
-ratio.list <- list(cent.feces.ratio[,1], cent.sed.ratio[,1],
-                     cent.soil.ratio[,1], cent.water.ratio[,1])
-cent.dist.table <- as.data.frame(matrix(NA, nrow = 4, ncol = 5))
-colnames(cent.dist.table) <- c("env", "mean", "sem", "LCI", "UCI")
-cent.dist.table$env <- c("Gut", "Sediment", "Soil", "Water")
-cent.dist.table$mean <- unlist(lapply(ratio.list, mean))
-cent.dist.table$sem <- unlist(lapply(ratio.list, sem))
-cent.dist.table$LCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[1]))
-cent.dist.table$UCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[2]))
-cent.dist.table <- as.data.frame(cent.dist.table)
-
-```
-
-
-# Centoid Distance Ratio Plot
-```{r}
-png(filename="../figures/ratio.phylo.centroid.png",
-    width = 800, height = 600, res = 96*2)
-
-par(mar=c(3, 4, 1, 1) + 0.1)
-
-centroid.plot <- plot(cent.dist.table$mean, ylim = c(0.5, 1.7), 
-      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
-      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
-      las = 1, ylab = "", xlab = "")
-      box(lwd = 2)
-abline(h = 1, lty = 3, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$LCI, angle = 90,
-       length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$UCI, angle = 90,
-       length=0.1, lwd = 2)
-points(c(1:4), cent.dist.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
-
-mtext(expression('Centroid Distance Ratio'), side = 2, 
-        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
-# Major Axes
-axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
-    labels = T, at = c(0.5, 1, 1.5))
- 
-axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
-   labels = F, at = c(0.5, 1, 1.5))
-
-axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
-
-axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at = c(1, 2, 3, 4), labels = F)
-
-# Minor ticks
-axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/ratio.phylo.centroid.png")
-grid.raster(img)
 ```
 
