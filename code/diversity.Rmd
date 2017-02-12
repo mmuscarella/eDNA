@@ -113,7 +113,6 @@ min.good.c <- min(goods.c.eDNA) # 0.98
 ```
 
 # Alpha Diversity
-
 ## Calculate Alpha diversity using Resampling
 ```{r}
 # Mario's resampling code to estimate alpha diversity (used if run.all = T)
@@ -601,7 +600,6 @@ grid.raster(img)
 
 
 # Beta diversity
-
 ## Taxonomic Beta Diversity
 ```{r}
 # Make presence-absence matrix
@@ -635,7 +633,8 @@ otu.scores <- otu.scores[abs(otu.scores[,1]) > 0.7|abs(otu.scores[,2]) > 0.7,]
 ## Phylogenetic Beta Diversity 
 ```{r}
 phylo.dist <- read.delim("../mothur/output/eDNA.bac.tree.weighted.phylip.dist",
-                         skip = 1, row.names = 1, header = F)
+                         skip = 1, row.names = 1, header = F, strip.white = T)
+
 phylo.dist <- as.dist(phylo.dist)
 
 # Principal Coordinates Analysis (PCoA)
@@ -834,6 +833,10 @@ points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23,
 points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, 
        cex = 2, col = "blue", bg = "blue", lwd = 2) 
 
+# Add Labels to Test Outgroups
+# text(eDNA.gut.C[ ,1], eDNA.gut.C[ ,2], labels = eDNA.gut.C$label)
+# text(eDNA.gut.E[ ,1], eDNA.gut.E[ ,2], labels = eDNA.gut.E$label)
+
 # Add Legend Outside
 par(mar = c(4, 0, 1, 1) + 0.5)
 plot.new()
@@ -854,7 +857,7 @@ img <- readPNG("../figures/phylo.ordination.png")
 grid.raster(img)
 ```
 
-# Beta Statistics
+# Beta Diversity Statistics
 ## PERMANOVA: Taxonomic 
 ```{r}
 # Check Order of Dataframes
@@ -889,20 +892,26 @@ TukeyHSD(beta.disp)
 # Check order of design
 all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
 
+# Subset OTU Matrix for Each Molecule
 OTU.REL.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
 OTU.REL.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
 
+# Subset the Design Matrix
 eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
 eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
 
+# Check Order of Subsets
 all.equal(sort(eDNA.div.c$samp.code), sort(eDNA.div.e$samp.code))
 
+# Make Sure Subset OTU Matrices are Aligned by Sample Code
 OTU.REL.c2 <- OTU.REL.c[order(eDNA.div.c$samp.code), ]
 OTU.REL.e2 <- OTU.REL.e[order(eDNA.div.e$samp.code), ]
 
+# Calculate Bray-Curtis Distances
 dist.c <- vegdist(OTU.REL.c2, "bray") 
 dist.e <- vegdist(OTU.REL.e2, "bray") 
 
+# Run Mantel Test of Distance Matrix
 mantel.rtest(dist.c, dist.e, nrepet = 999)
 ```
 
@@ -910,32 +919,33 @@ mantel.rtest(dist.c, dist.e, nrepet = 999)
 ```{r}
 # Turn into square matrix
 phylo.dist.m <- as.matrix(phylo.dist)
-rownames(phylo.dist.m) <- trimws(rownames(phylo.dist.m))
 
 # Check order of design
 all.equal(row.names(eDNA.div), row.names(phylo.dist.m))
 
-# Split into two and rearrange
+# Subset Phylo Distance Matrix Based on Design
 dist.c <- phylo.dist.m[which(eDNA.div$treat == "C"),
                        which(eDNA.div$treat == "C")]
 dist.e <- phylo.dist.m[which(eDNA.div$treat == "E"), 
                        which(eDNA.div$treat == "E")]
 
+# Define Order Based on Pairs
 ord.c <- order(as.numeric(eDNA.div$pair[which(eDNA.div$treat =="C")]))
 ord.e <- order(as.numeric(eDNA.div$pair[which(eDNA.div$treat =="E")]))
 
+# Reorder Distance Matices
 dist.c <- dist.c[ord.c, ord.c]
 dist.e <- dist.e[ord.e, ord.e]
 
+# Turn Square into Lower Triangle Matrix
 dist.c <- as.dist(dist.c)
 dist.e <- as.dist(dist.e)
 
+# Run Mantel Test of Distance Matrix
 mantel.rtest(dist.c, dist.e, nrepet = 999)
 ```
 
-
-# Centroid Distances Calculations
-## Taxonomic Centroid Distance Ratios
+## Centroid Distances Ratios: Taxonomic
 ```{r}
 # Data Check
 all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
@@ -997,11 +1007,11 @@ rownames(cent.water) <- rownames(eDNA.div)[env.wat]
 
 for (i in 1:length(env.wat)){
   cent.water[i, 1] <- dist(rbind(disp.env$vectors[env.wat[i]], 
-                      disp.env$centroids[3, ]), method = "euclidean")
+                      disp.env$centroids[4, ]), method = "euclidean")
   cent.water[i, 2] <- dist(rbind(disp.group$vectors[env.wat[i]], 
-                      disp.group$centroids[5, ]), method = "euclidean")
+                      disp.group$centroids[7, ]), method = "euclidean")
   cent.water[i, 3] <- dist(rbind(disp.group$vectors[env.wat[i]], 
-                      disp.group$centroids[6, ]), method = "euclidean")
+                      disp.group$centroids[8, ]), method = "euclidean")
 }
 
 pairs.water <- eDNA.div[env.wat, c(3,4,5,7)]
@@ -1039,11 +1049,11 @@ rownames(cent.sed) <- rownames(eDNA.div)[env.sed]
 
 for (i in 1:length(env.sed)){
   cent.sed[i, 1] <- dist(rbind(disp.env$vectors[env.sed[i]], 
-                         disp.env$centroids[3, ]), method = "euclidean")
+                         disp.env$centroids[2, ]), method = "euclidean")
   cent.sed[i, 2] <- dist(rbind(disp.group$vectors[env.sed[i]], 
-                         disp.group$centroids[5, ]), method = "euclidean")
+                         disp.group$centroids[3, ]), method = "euclidean")
   cent.sed[i, 3] <- dist(rbind(disp.group$vectors[env.sed[i]], 
-                         disp.group$centroids[6, ]), method = "euclidean")
+                         disp.group$centroids[4, ]), method = "euclidean")
 }
 
 pairs.sed <- eDNA.div[env.sed, c(3,4,5,7)]
@@ -1081,11 +1091,11 @@ rownames(cent.feces) <- rownames(eDNA.div)[env.fec]
 
 for (i in 1:length(env.fec)){
   cent.feces[i, 1] <- dist(rbind(disp.env$vectors[env.fec[i]], 
-                          disp.env$centroids[3, ]), method = "euclidean")
+                          disp.env$centroids[1, ]), method = "euclidean")
   cent.feces[i, 2] <- dist(rbind(disp.group$vectors[env.fec[i]], 
-                          disp.group$centroids[5, ]), method = "euclidean")
+                          disp.group$centroids[1, ]), method = "euclidean")
   cent.feces[i, 3] <- dist(rbind(disp.group$vectors[env.fec[i]], 
-                          disp.group$centroids[6, ]), method = "euclidean")
+                          disp.group$centroids[2, ]), method = "euclidean")
 }
 
 pairs.feces <- eDNA.div[env.fec, c(3,4,5,7)]
@@ -1129,8 +1139,7 @@ t.cent.dist.table <- as.data.frame(cent.dist.table)
 
 ```
 
-
-## Phylogenetic Centroid Distance Ratios
+## Centroid Distances Ratios: Phylogenetic
 ```{r}
 # Data Check
 all.equal(row.names(eDNA.div), row.names(phylo.dist.m))
@@ -1151,6 +1160,7 @@ cent.soil <- as.data.frame(matrix(NA, nrow = length(env.soi), ncol = 3))
 colnames(cent.soil) <- c("T", "C", "E")
 rownames(cent.soil) <- rownames(eDNA.div)[env.soi]
 
+# Centriod Ratio Calculaed for 1: vs Env; 2: vs C; 3 vs E
 for (i in 1:length(env.soi)){
   cent.soil[i, 1] <- dist(rbind(disp.env$vectors[env.soi[i]], 
                                disp.env$centroids[3, ]), method = "euclidean")
@@ -1192,11 +1202,11 @@ rownames(cent.water) <- rownames(eDNA.div)[env.wat]
 
 for (i in 1:length(env.wat)){
   cent.water[i, 1] <- dist(rbind(disp.env$vectors[env.wat[i]], 
-                               disp.env$centroids[3, ]), method = "euclidean")
+                               disp.env$centroids[4, ]), method = "euclidean")
   cent.water[i, 2] <- dist(rbind(disp.group$vectors[env.wat[i]], 
-                               disp.group$centroids[5, ]), method = "euclidean")
+                               disp.group$centroids[7, ]), method = "euclidean")
   cent.water[i, 3] <- dist(rbind(disp.group$vectors[env.wat[i]], 
-                               disp.group$centroids[6, ]), method = "euclidean")
+                               disp.group$centroids[8, ]), method = "euclidean")
 }
 
 pairs.water <- eDNA.div[env.wat, c(3,4,5,7)]
@@ -1231,11 +1241,11 @@ rownames(cent.sed) <- rownames(eDNA.div)[env.sed]
 
 for (i in 1:length(env.sed)){
   cent.sed[i, 1] <- dist(rbind(disp.env$vectors[env.sed[i]], 
-                               disp.env$centroids[3, ]), method = "euclidean")
+                               disp.env$centroids[2, ]), method = "euclidean")
   cent.sed[i, 2] <- dist(rbind(disp.group$vectors[env.sed[i]], 
-                               disp.group$centroids[5, ]), method = "euclidean")
+                               disp.group$centroids[3, ]), method = "euclidean")
   cent.sed[i, 3] <- dist(rbind(disp.group$vectors[env.sed[i]], 
-                               disp.group$centroids[6, ]), method = "euclidean")
+                               disp.group$centroids[4, ]), method = "euclidean")
 }
 
 pairs.sed <- eDNA.div[env.sed, c(3,4,5,7)]
@@ -1270,11 +1280,11 @@ rownames(cent.feces) <- rownames(eDNA.div)[env.fec]
 
 for (i in 1:length(env.fec)){
   cent.feces[i, 1] <- dist(rbind(disp.env$vectors[env.fec[i]], 
-                               disp.env$centroids[3, ]), method = "euclidean")
+                               disp.env$centroids[1, ]), method = "euclidean")
   cent.feces[i, 2] <- dist(rbind(disp.group$vectors[env.fec[i]], 
-                               disp.group$centroids[5, ]), method = "euclidean")
+                               disp.group$centroids[1, ]), method = "euclidean")
   cent.feces[i, 3] <- dist(rbind(disp.group$vectors[env.fec[i]], 
-                               disp.group$centroids[6, ]), method = "euclidean")
+                               disp.group$centroids[2, ]), method = "euclidean")
 }
 
 pairs.feces <- eDNA.div[env.fec, c(3,4,5,7)]
@@ -1429,7 +1439,7 @@ par(mar = c(0.5, 5, 0.5, 0) + 0.1, oma = c(4, 1, 1, 1))
 
 # Bray Curtis Plot
 cent.dist.table <- t.cent.dist.table
-centroid.plot <- plot(cent.dist.table$mean, ylim = c(0.6, 1.6), 
+centroid.plot <- plot(cent.dist.table$mean, ylim = c(0.5, 1.6), 
       xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
       cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
       las = 1, ylab = "", xlab = "")
