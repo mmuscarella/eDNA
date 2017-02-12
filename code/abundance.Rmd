@@ -12,13 +12,14 @@ Analysis of quantitative PCR data to test whether the abundance of bacterial
 communities is affected by extracellular DNA
 
 # Setup Work Environment 
-```{r}
+```{r, results='hide', warning=FALSE, message=FALSE}
 rm(list=ls())
 getwd()
 setwd("~/GitHub/eDNA/code")
 require("plyr")
 require("grid")
 require("png")
+require("car")
 sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
 ```
 
@@ -90,11 +91,10 @@ eDNA.table <- eDNA.table[order(eDNA.table[,2]), ]
 ```
 
 # Make bar plot with error bars by environment
-```{r}
+```{r, eval=F}
 png(filename="../figures/qPCR.bar.png",
     width = 800, height = 800, res = 96*2)
-plot.new()
-par(lwd = 2)
+
 bp <- barplot(eDNA.table$mean, ylim =c(0, 0.6), 
               pch = 15, cex = 1.25, las = 1, cex.lab = 1.25, cex.axis = 1, 
               col = "gray90", axis.lty = 1, lwd = 2, xlab = NA, 
@@ -117,10 +117,10 @@ grid.raster(img)
 
 # Make x-y plot with error bars by environment
 ```{r}
-png(filename="../figures/qPCR.nonbar.png",
+png(filename="../figures/Prop_eDNA.png",
     width = 800, height = 800, res = 96*2)
 
-#plot.new()
+par(mar = c(3, 5, 1, 1))
 non.bp <- plot(eDNA.table$mean, ylim = c(0, 0.6), 
                xlim = c(0.5, 4.5), pch = 22, bg = "gray90", lwd = 2, 
                cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
@@ -128,20 +128,20 @@ non.bp <- plot(eDNA.table$mean, ylim = c(0, 0.6),
 box(lwd = 2)
 
 mtext(expression('Proportion eDNA'), side = 2, 
-      outer = TRUE, cex = 1.5, line = -1.5, adj = 0.5)
+      outer = FALSE, cex = 1.5, line = 3, adj = 0.5)
 
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1.25, las = 1,
      labels = c(0.0, 0.2, 0.4, 0.6), at = c(0.0, 0.2, 0.4, 0.6))
  
 axis(side = 4, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-     at=c(0.0, 0.2, 0.4, 0.6), labels = F)
+     at=c(0.0, 0.2, 0.4, 0.6), labels = F, tck = -0.02)
 
 axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
      labels = c("Gut", "Soil", "Sediment", "Water"), at = c(1, 2, 3, 4))
 
 axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-     at = c(1, 2, 3, 4), labels = F)
+     at = c(1, 2, 3, 4), labels = F, tck = -0.02)
 
 axis(side = 1, labels = F, lwd.ticks = 2, tck = 0.02, at = c(1, 2, 3, 4))
 axis(side = 2, labels = F, lwd.ticks = 2, tck = 0.02, at = c(0, 0.2, 0.4, 0.6))
@@ -164,7 +164,7 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/qPCR.nonbar.png")
+img <- readPNG("../figures/Prop_eDNA.png")
 grid.raster(img)
 ```
 

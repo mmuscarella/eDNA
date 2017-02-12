@@ -1,4 +1,4 @@
-d---
+---
 title: "eDNA"
 author: "Jay T. Lennon, Mario E. Muscarella, ..."
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -12,13 +12,14 @@ Analysis of community sequence data to test whether the structure and compositio
 
 # Setup Work Environment 
 ```{r}
-# rm(list=ls())
+rm(list=ls())
 getwd()
 setwd("~/GitHub/eDNA/code")
 
 # Load dependencies
 require("vegan")
 require("plyr")
+require("car")
 require("grid")
 require("png")
 require("ape")
@@ -203,14 +204,9 @@ colnames(rich.table) <- c("env", "mean", "sem", "LCI", "UCI")
 # Regression: richness ratio vs. proportion eDNA
 eDNA.prop <- read.table("../data/eDNA.prop.txt", sep = "\t", header = T)
 
-# The following is not needed
-## sample.list <- paste(as.character(rich.2$qPCR.match), collapse=", ")
-## eDNA.prop.sub<-eDNA.prop[eDNA.prop$sample.number %in% c(30, 31, 33, 34, 2, 7, 11, 
-##                  13, 15, 16, 5, 6, 26, 27, 29, 3, 10, 12, 14, 17, 20),]
-
 eDNA.prop.sub <- eDNA.prop[eDNA.prop$sample.number %in% rich.2$qPCR.match, ]
-
 eDNA.prop.sub2 <- eDNA.prop.sub[order(eDNA.prop.sub$sample.number), ] 
+
 rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$env + eDNA.prop.sub2$prop)
 
 summary(rich.reg)
@@ -1137,6 +1133,34 @@ cent.dist.table$LCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$con
 cent.dist.table$UCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[2]))
 t.cent.dist.table <- as.data.frame(cent.dist.table)
 
+# Regression: centroid ratio vs. proportion eDNA
+# Combine Centroid Distances
+centroid.dists <- c(cent.feces.ratio$T, cent.sed.ratio$T, cent.soil.ratio$T,
+                        cent.water.ratio$T)
+names(centroid.dists) <- c(rownames(cent.feces.ratio), rownames(cent.sed.ratio),
+                           rownames(cent.soil.ratio), rownames(cent.water.ratio))
+
+# Reorganize
+names(centroid.dists) %in% paste(eDNA.div.c$env, eDNA.div.c$pair, sep = "")
+all.equal(names(centroid.dists), paste(eDNA.div.c$env, eDNA.div.c$pair, sep = ""))
+cent.dist <- centroid.dists[match(names(centroid.dists),
+                      paste(eDNA.div.c$env, eDNA.div.c$pair, sep = ""))]
+
+# Combine Centroid Distance and Design Information
+centroid.div <- cbind(eDNA.div.c[,c(1:3, 5:7)], cent.dist)
+
+centroid.div$qPCR.match %in% eDNA.prop$sample.number
+
+centroid.div$prop <- NA
+for (i in 1:length(centroid.div$prop)){
+  centroid.div$prop[i] <- eDNA.prop$prop[which(eDNA.prop$sample.number == 
+                                                 centroid.div$qPCR.match[i])]
+}
+
+t.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div)
+summary(t.cent.reg) 
+
+# answer => no correlation between proportion eDNA and centroid dist ratio. 
 ```
 
 ## Centroid Distances Ratios: Phylogenetic
@@ -1322,6 +1346,35 @@ cent.dist.table$sem <- unlist(lapply(ratio.list, sem))
 cent.dist.table$LCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[1]))
 cent.dist.table$UCI <- unlist(lapply(ratio.list, FUN = function(x) t.test(x)$conf.int[2]))
 p.cent.dist.table <- as.data.frame(cent.dist.table)
+
+# Regression: centroid ratio vs. proportion eDNA
+# Combine Centroid Distances
+centroid.dists <- c(cent.feces.ratio$T, cent.sed.ratio$T, cent.soil.ratio$T,
+                        cent.water.ratio$T)
+names(centroid.dists) <- c(rownames(cent.feces.ratio), rownames(cent.sed.ratio),
+                           rownames(cent.soil.ratio), rownames(cent.water.ratio))
+
+# Reorganize
+names(centroid.dists) %in% paste(eDNA.div.c$env, eDNA.div.c$pair, sep = "")
+all.equal(names(centroid.dists), paste(eDNA.div.c$env, eDNA.div.c$pair, sep = ""))
+cent.dist <- centroid.dists[match(names(centroid.dists),
+                      paste(eDNA.div.c$env, eDNA.div.c$pair, sep = ""))]
+
+# Combine Centroid Distance and Design Information
+centroid.div <- cbind(eDNA.div.c[,c(1:3, 5:7)], cent.dist)
+
+centroid.div$qPCR.match %in% eDNA.prop$sample.number
+
+centroid.div$prop <- NA
+for (i in 1:length(centroid.div$prop)){
+  centroid.div$prop[i] <- eDNA.prop$prop[which(eDNA.prop$sample.number == 
+                                                 centroid.div$qPCR.match[i])]
+}
+
+t.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div)
+summary(t.cent.reg) 
+
+# answer => no correlation between proportion eDNA and centroid dist ratio. 
 
 ```
 
@@ -1521,26 +1574,72 @@ grid.raster(img)
 
 
 
+################################################################################
+# Old Code
+```{r, eval = F}
+# Delta Distance as Funciton of Proportion eDNA
+eDNA.pairs
+eDNA.prop
 
+eDNA.pairs$prop <- eDNA.prop.sub2$prop[match(eDNA.prop.sub2$sample.number, eDNA.pairs$qPCR)]
 
+# Reshape data
+eDNA.pairs.2 <- reshape(eDNA.pairs[,1:4], timevar = "treat", 
+                   idvar = c("qPCR.match", "env"), direction = "wide")
 
+# Regression: PD ratio vs. proportion eDNA
+phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop * eDNA.prop.sub2$env )
+summary(phylo.reg) 
 
+# Separate by Treatments
+eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
+eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
+OTU.REL.log.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
+OTU.REL.log.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
 
+# Order Each by Pairings
+eDNA.div.c <- eDNA.div.c[order(eDNA.div.c$pair), ]
+eDNA.div.e <- eDNA.div.e[order(eDNA.div.e$pair), ]
+OTU.REL.log.c <- OTU.REL.log.c[order(eDNA.div.c$pair), ]
+OTU.REL.log.e <- OTU.REL.log.e[order(eDNA.div.e$pair), ]
+all.equal(eDNA.div.e$env, eDNA.div.c$env)
 
+# Create Distance Matrix for Treatments
+dist.c <- vegdist(OTU.REL.log.c, method = "bray", upper = T, diag = T)
+dist.e <- vegdist(OTU.REL.log.e, method = "bray", upper = T, diag = T)
 
+pcoa.c <- cmdscale(dist.c, k = 3)
+pcoa.e <- cmdscale(dist.e, k = 3)
 
-# What is this stuff for????? Check all calculations
+# Procrustes Analysis
+eDNA.ProC <- protest(pcoa.c, pcoa.e, scores = "sites", permutations = how(nperm = 999))
+eDNA.ProC
+summary(eDNA.ProC)
 
-
-
-
-# Distances between pairs (Distance Ratio): Taxonomic
-```{r}
+# Delta Distances
+## Taxonomic Distances Between Pairs
 # Data Check
 all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
 
 # Create Raw Distance Matrix
 dist.raw <- as.matrix(vegdist(OTU.REL.log, method = "bray", upper = T, diag = T))
+
+# Calculate Average Distance For Each Environment
+mean.dist.env <- matrix(NA, length(unique(eDNA.div$env)), 3)
+rownames(mean.dist.env) <- unique(eDNA.div$env)
+colnames(mean.dist.env) <- c("Total", "C", "E")
+for (i in 1:dim(mean.dist.env)[1]){
+  mean.dist.env[i, 1] <- mean(dist.raw[eDNA.div$env == rownames(mean.dist.env)[i], 
+                                    eDNA.div$env == rownames(mean.dist.env)[i]])
+  mean.dist.env[i, 2] <- mean(dist.raw[eDNA.div$env == rownames(mean.dist.env)[i] &
+                                        eDNA.div$treat == "C", 
+                                    eDNA.div$env == rownames(mean.dist.env)[i] &
+                                        eDNA.div$treat == "C"])
+  mean.dist.env[i, 3] <- mean(dist.raw[eDNA.div$env == rownames(mean.dist.env)[i] &
+                                        eDNA.div$treat == "E", 
+                                    eDNA.div$env == rownames(mean.dist.env)[i] &
+                                        eDNA.div$treat == "E"])
+}
 
 # Create Pairing Matrix
 pair.names <- levels(as.factor(eDNA.div$pair))
@@ -1548,6 +1647,7 @@ eDNA.pairs <- as.data.frame(matrix(NA, length(pair.names), 4))
 colnames(eDNA.pairs) <- c("pair", "env", "dis", "qPCR")
 eDNA.pairs$pair <- pair.names
 
+# Calculate Distance for Pairs
 for (i in 1:length(pair.names)){
   pair.temp <- eDNA.pairs$pair[i]
   samp.temp <- rownames(eDNA.div)[which(eDNA.div$pair == pair.temp)]
@@ -1556,110 +1656,113 @@ for (i in 1:length(pair.names)){
   }
   dist.temp <- dist.raw[which(colnames(dist.raw) == samp.temp[1]),
                         which(colnames(dist.raw) == samp.temp[2])]
-  eDNA.pairs$env[i] <- eDNA.div$env[which(colnames(dist.raw) == samp.temp[1])]
+  eDNA.pairs$env[i] <- eDNA.div$env[which(row.names(eDNA.div) == samp.temp[1])]
   eDNA.pairs$dis[i] <- dist.temp
-  eDNA.pairs$qPCR[i] <- eDNA.div$qPCR.match[which(colnames(dist.raw) == samp.temp[1])]
+  eDNA.pairs$qPCR[i] <- eDNA.div$qPCR.match[which(row.names(eDNA.div) == samp.temp[1])]
+}
+
+# Organize Data
+pair.dis.mean <- aggregate(dis ~ env, eDNA.pairs, mean)
+pair.dis.sem <- aggregate(dis ~ env, eDNA.pairs, sem)
+pair.dis.95 <- aggregate(dis ~ env, eDNA.pairs, 
+                  FUN = function(x) t.test(x)$conf.int[1:2])
+t.pair.dis.table <- data.frame(env = pair.dis.mean$env, mean = pair.dis.mean$dis,
+                         sem = pair.dis.sem$dis, ci = pair.dis.95$dis)
+colnames(t.pair.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
+
+# Organize Data as Ratio
+env.means <- 
+
+
+## Phylogenetic Distances between Pairs
+
+# Data Check
+all.equal(row.names(eDNA.div), row.names(as.matrix(phylo.dist.m)))
+
+# Create Raw Distance Matrix
+dist.raw <- phylo.dist.m
+colnames(dist.raw) <- rownames(dist.raw)
+
+# Create Pairing Matrix
+pair.names <- levels(as.factor(eDNA.div$pair))
+eDNA.pairs <- as.data.frame(matrix(NA, length(pair.names), 4))
+colnames(eDNA.pairs) <- c("pair", "env", "dis", "qPCR")
+eDNA.pairs$pair <- pair.names
+
+# Calculate Distance for Pairs
+for (i in 1:length(pair.names)){
+  pair.temp <- eDNA.pairs$pair[i]
+  samp.temp <- rownames(eDNA.div)[which(eDNA.div$pair == pair.temp)]
+  if (length(samp.temp) != 2){
+    stop("more than two samples in pair")
+  }
+  dist.temp <- dist.raw[which(colnames(dist.raw) == samp.temp[1]),
+                        which(colnames(dist.raw) == samp.temp[2])]
+  eDNA.pairs$env[i] <- eDNA.div$env[which(row.names(eDNA.div) == samp.temp[1])]
+  eDNA.pairs$dis[i] <- dist.temp
+  eDNA.pairs$qPCR[i] <- eDNA.div$qPCR.match[which(row.names(eDNA.div) == samp.temp[1])]
 }
 
 pair.dis.mean <- aggregate(dis ~ env, eDNA.pairs, mean)
 pair.dis.sem <- aggregate(dis ~ env, eDNA.pairs, sem)
 pair.dis.95 <- aggregate(dis ~ env, eDNA.pairs, 
                   FUN = function(x) t.test(x)$conf.int[1:2])
-pair.dis.table <- data.frame(env = pair.dis.mean$env, mean = pair.dis.mean$dis,
+p.pair.dis.table <- data.frame(env = pair.dis.mean$env, mean = pair.dis.mean$dis,
                          sem = pair.dis.sem$dis, ci = pair.dis.95$dis)
-colnames(pair.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
-```
+colnames(p.pair.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
 
 
-
-
-
-
-
-# Extra
-## PERMANOVA on Delta-Abundances
-```{r}
-# Check order of design
-all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
-
-OTU.REL.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
-OTU.REL.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
-
-eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
-eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
-
-all.equal(sort(eDNA.div.c$samp.code), sort(eDNA.div.e$samp.code))
-
-eDNA.div.c <- eDNA.div.c[order(eDNA.div.c$samp.code), ]
-eDNA.div.e <- eDNA.div.e[order(eDNA.div.e$samp.code), ]
-
-OTU.REL.c2 <- OTU.REL.c[order(eDNA.div.c$samp.code), ]
-OTU.REL.e2 <- OTU.REL.e[order(eDNA.div.e$samp.code), ]
-
-dim(OTU.REL.c2); dim(OTU.REL.e2)
-all.equal(eDNA.div.e$samp.code, eDNA.div.c$samp.code)
-
-delta.abund <- OTU.REL.c2 - OTU.REL.e2
-
-eDNA.permanova <- adonis(delta.abund ~ eDNA.div.c$env,
-                         method = "euclidean", binary = FALSE)
-eDNA.permanova
-
-rowSums(delta.abund)
-
-# Effect Size from lda
-require(MASS)
-eDNA.lda <- lda(delta.abund ~ eDNA.div.c$env, method = "euclidean")
-anova(eDNA.dbRDA)
-anova(eDNA.dbRDA, by = "terms")
-```
-
-
-
-
-# Delta Distances
-## Taxonomic Delta Distances (PCoA)
-```{r}
-# Distance Moved in PCoA Space
-eDNA.points.c <- eDNA.points[which(eDNA.points$treat == "C"), ]
-eDNA.points.e <- eDNA.points[which(eDNA.points$treat == "E"), ]
-
-eDNA.points.env <- eDNA.points.c$env
-
-eDNA.points.c <- eDNA.points.c[order(eDNA.points.c$samp.code), c(1:3)]
-eDNA.points.e <- eDNA.points.e[order(eDNA.points.e$samp.code), c(1:3)]
-
-delta.dis <- matrix(NA, dim(eDNA.points.c)[1], 2)
-rownames(delta.dis) <- eDNA.points.c$samp.code
-colnames(delta.dis) <- c("Abs", "Non_Abs")
-
-for (i in 1:dim(eDNA.points.c)[1]){
-  dis.temp <- matrix(NA, 3, 2)
-  for (j in 1:3){
-    dis.temp[j, 1] <- abs(eDNA.points.c[i,j] - eDNA.points.e[i,j])
-    dis.temp[j, 2] <- (eDNA.points.c[i,j] - eDNA.points.e[i,j])
-  }
-  delta.dis[i, 1] <- sum(abs(dis.temp[,1]))
-  delta.dis[i, 2] <- sum(abs(dis.temp[,2]))
-}
-
-delta.dis <- as.data.frame(delta.dis)
-
-delta.dis$env <- eDNA.points.env
-
-delta.dis.mean <- aggregate(Non_Abs ~ env, delta.dis, mean)
-delta.dis.sem <- aggregate(Non_Abs ~ env, delta.dis, sem)
-delta.dis.95 <- aggregate(Non_Abs ~ env, delta.dis, 
-                  FUN = function(x) t.test(x)$conf.int[1:2])
-delta.dis.table <- data.frame(env = delta.dis.mean$env, mean = delta.dis.mean$Non_Abs,
-                         sem = delta.dis.sem$Non_Abs, ci = delta.dis.95$Non_Abs)
-colnames(delta.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
-```
-
-# Delta Distance Plot
+# Delta Distance Plots
 ## Taxonomic Plot
-```{r}
+
 png(filename="../figures/delta.dist.png",
+    width = 800, height = 600, res = 96*2)
+
+par(mar=c(3, 4, 1, 1) + 0.1)
+
+distance.plot <- plot(t.pair.dis.table$mean, ylim = c(-0.1, 0.6), 
+      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
+      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2) 
+abline(h = 0, lty = 3, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = delta.dis.table$mean, y1 = delta.dis.table$LCI, 
+       angle = 90, length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = delta.dis.table$mean, y1 = delta.dis.table$UCI, 
+       angle = 90, length=0.1, lwd = 2)
+points(c(1:4), delta.dis.table$mean, pch = 22, cex = 3, bg = "gray90", lwd = 2)
+
+mtext(expression('Distance'), side = 2, 
+      outer = F, cex = 1.5, line = 3, adj = 0.5)  
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = T, at = c(seq(-0.1, 0.3, 0.1))) 
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(-0.1, 0.3, 0.1))
+axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
+    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4)) 
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    at = c(1, 2, 3, 4), labels = F) 
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(-0.1, 0.3, 0.1))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(-0.1, 0.3, 0.1))
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/delta.dist.png")
+grid.raster(img)
+
+
+## Phylogenetic Plot
+
+png(filename="../figures/phylo.delta.dist.png",
     width = 800, height = 600, res = 96*2)
 
 par(mar=c(3, 4, 1, 1) + 0.1)
@@ -1700,60 +1803,46 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/delta.dist.png")
+img <- readPNG("../figures/phylo.delta.dist.png")
 grid.raster(img)
-```
 
 
+## Delta-Abundances
 
+# Check order of design
+all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
 
+OTU.REL.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
+OTU.REL.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
 
-
-
-# Pair Distance as funciton of proportion eDNA
-```{r}
-eDNA.pairs
-eDNA.prop
-
-
-eDNA.pairs$prop <- eDNA.prop.sub2$prop[match(eDNA.prop.sub2$sample.number, eDNA.pairs$pair)]
-
-# Reshape data
-eDNA.pairs.2 <- reshape(eDNA.pairs[,1:4], timevar = "treat", 
-                   idvar = c("qPCR.match", "env"), direction = "wide")
-
-# Regression: PD ratio vs. proportion eDNA
-phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop * eDNA.prop.sub2$env )
-summary(phylo.reg) 
-
-# Separate by Treatments
 eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
 eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
-OTU.REL.log.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
-OTU.REL.log.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
 
-# Order Each by Pairings
-eDNA.div.c <- eDNA.div.c[order(eDNA.div.c$pair), ]
-eDNA.div.e <- eDNA.div.e[order(eDNA.div.e$pair), ]
-OTU.REL.log.c <- OTU.REL.log.c[order(eDNA.div.c$pair), ]
-OTU.REL.log.e <- OTU.REL.log.e[order(eDNA.div.e$pair), ]
-all.equal(eDNA.div.e$env, eDNA.div.c$env)
+all.equal(sort(eDNA.div.c$samp.code), sort(eDNA.div.e$samp.code))
 
-# Create Distance Matrix for Treatments
-dist.c <- vegdist(OTU.REL.log.c, method = "bray", upper = T, diag = T)
-dist.e <- vegdist(OTU.REL.log.e, method = "bray", upper = T, diag = T)
+eDNA.div.c <- eDNA.div.c[order(eDNA.div.c$samp.code), ]
+eDNA.div.e <- eDNA.div.e[order(eDNA.div.e$samp.code), ]
 
-pcoa.c <- cmdscale(dist.c, k = 3)
-pcoa.e <- cmdscale(dist.e, k = 3)
+OTU.REL.c2 <- OTU.REL.c[order(eDNA.div.c$samp.code), ]
+OTU.REL.e2 <- OTU.REL.e[order(eDNA.div.e$samp.code), ]
 
-# Procrustes Analysis
-eDNA.ProC <- protest(pcoa.c, pcoa.e, scores = "sites", permutations = how(nperm = 999))
-eDNA.ProC
-summary(eDNA.ProC)
-```
+dim(OTU.REL.c2); dim(OTU.REL.e2)
+all.equal(eDNA.div.e$samp.code, eDNA.div.c$samp.code)
 
+delta.abund <- OTU.REL.c2 - OTU.REL.e2
+
+eDNA.permanova <- adonis(delta.abund ~ eDNA.div.c$env,
+                         method = "euclidean", binary = FALSE)
+eDNA.permanova
+
+
+
+
+
+
+# What is this stuff for????? Check all calculations
 # Variation Parititioning
-```{r}
+
 # Turn Distance Matrices into Matrices
 dist.raw <- as.matrix(dist.raw)
 dist.e <- as.matrix(dist.e)
@@ -1830,10 +1919,7 @@ for (i  in 1:dim(var.r2)[1]){
   var.r2[i, 2] <- r2[2]
   var.r2[i, 3] <- (1 - sum(r2))
 }
-```
 
-
-```{r, results = 'hide'}
 png(filename="../figures/variation.png",
     width = 1200, height = 800, res = 96*2)
 layout(matrix(1:2, 2, 1) , heights = c(8, 2))
@@ -1860,10 +1946,10 @@ graphics.off()
 # Show Plot
 img <- readPNG("../figures/variation.png")
 grid.raster(img)
-```
+
 
 # Variation based on Bray Curtis Distance
-```{r}
+
 bc.var <- as.data.frame(matrix(NA, 4, 3))
 colnames(bc.var) <- c("reps", "treat", "env")
 row.names(bc.var) <- c("gut", "sed", "sol", "wat")
@@ -1908,10 +1994,10 @@ bc.var
 
 # Standardized BC distances
 bc.var.std <- bc.var/rowSums(bc.var)  
-```
+
 
 ## Distance Partitioning Plot
-```{r, results = 'hide'}
+
 png(filename="../figures/BC_dist.png",
     width = 1200, height = 800, res = 96*2)
 layout(matrix(1:2, 2, 1) , heights = c(8, 2))
@@ -1938,14 +2024,9 @@ graphics.off()
 # Show Plot
 img <- readPNG("../figures/BC_dist.png")
 grid.raster(img)
-```
-
-
-
-
 
 # PERMANOVA on Delta-Distances
-```{r}
+
 # Check order of design
 all.equal(row.names(eDNA.div), row.names(as.matrix(phylo.dist)))
 
@@ -2016,92 +2097,4 @@ delta.dis.table <- data.frame(env = delta.dis.mean$env, mean = delta.dis.mean$No
 colnames(delta.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
 ```
 
-# Delta Distance Plots
-
-
-## Phylogenetic Delta Distance
-```{r}
-png(filename="../figures/phylo.delta.dist.png",
-    width = 800, height = 600, res = 96*2)
-
-par(mar=c(3, 4, 1, 1) + 0.1)
-
-distance.plot <- plot(delta.dis.table$mean, ylim = c(-0.1, 0.3), 
-      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
-      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
-      las = 1, ylab = "", xlab = "")
-      box(lwd = 2) 
-abline(h = 0, lty = 3, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = delta.dis.table$mean, y1 = delta.dis.table$LCI, 
-       angle = 90, length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = delta.dis.table$mean, y1 = delta.dis.table$UCI, 
-       angle = 90, length=0.1, lwd = 2)
-points(c(1:4), delta.dis.table$mean, pch = 22, cex = 3, bg = "gray90", lwd = 2)
-
-mtext(expression('Distance'), side = 2, 
-      outer = F, cex = 1.5, line = 3, adj = 0.5)  
-
-# Major Axes
-axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
-    labels = T, at = c(seq(-0.1, 0.3, 0.1))) 
-axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
-   labels = F, at = c(-0.1, 0.3, 0.1))
-axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4)) 
-axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at = c(1, 2, 3, 4), labels = F) 
-
-# Minor ticks
-axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(-0.1, 0.3, 0.1))
-axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(-0.1, 0.3, 0.1))
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/phylo.delta.dist.png")
-grid.raster(img)
-```
-
-
-
-# Distances between pairs (Distance Ratio)
-```{r}
-# Data Check
-all.equal(row.names(eDNA.div), row.names(as.matrix(phylo.dist.m)))
-
-# Create Raw Distance Matrix
-dist.raw <- phylo.dist.m
-colnames(dist.raw) <- rownames(dist.raw)
-
-# Create Pairing Matrix
-pair.names <- levels(as.factor(eDNA.div$pair))
-eDNA.pairs <- as.data.frame(matrix(NA, length(pair.names), 4))
-colnames(eDNA.pairs) <- c("pair", "env", "dis", "qPCR")
-eDNA.pairs$pair <- pair.names
-
-for (i in 1:length(pair.names)){
-  pair.temp <- eDNA.pairs$pair[i]
-  samp.temp <- rownames(eDNA.div)[which(eDNA.div$pair == pair.temp)]
-  if (length(samp.temp) != 2){
-    stop("more than two samples in pair")
-  }
-  dist.temp <- dist.raw[which(colnames(dist.raw) == samp.temp[1]),
-                        which(colnames(dist.raw) == samp.temp[2])]
-  eDNA.pairs$env[i] <- eDNA.div$env[which(colnames(dist.raw) == samp.temp[1])]
-  eDNA.pairs$dis[i] <- dist.temp
-  eDNA.pairs$qPCR[i] <- eDNA.div$qPCR.match[which(colnames(dist.raw) == samp.temp[1])]
-}
-
-pair.dis.mean <- aggregate(dis ~ env, eDNA.pairs, mean)
-pair.dis.sem <- aggregate(dis ~ env, eDNA.pairs, sem)
-pair.dis.95 <- aggregate(dis ~ env, eDNA.pairs, 
-                  FUN = function(x) t.test(x)$conf.int[1:2])
-pair.dis.table <- data.frame(env = pair.dis.mean$env, mean = pair.dis.mean$dis,
-                         sem = pair.dis.sem$dis, ci = pair.dis.95$dis)
-colnames(pair.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
-```
 
