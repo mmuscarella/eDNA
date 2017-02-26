@@ -67,6 +67,12 @@ eDNA.prop <- eDNA.prop[order(eDNA.prop[,3]) ,]
 eDNA.prop$prop <- ifelse(eDNA.prop$prop < 0, 0, eDNA.prop$prop)
 write.table(eDNA.prop, "../data/eDNA.prop.txt", sep = "\t", col.names = T, row.names = F)
 
+# Distribution of eDNA
+qqnorm(eDNA.prop$prop)
+plot(density(eDNA.prop$prop))
+mean(eDNA.prop$prop)
+sd(eDNA.prop$prop)
+
 # Use glm to test whether amount of eDNA differs among environments
 eDNA.prop.test <- glm(prop ~ env, data = eDNA.prop)
 summary(eDNA.prop.test)

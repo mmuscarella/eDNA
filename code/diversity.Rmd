@@ -35,6 +35,12 @@ source("../bin/phylodiversity2.R")
 
 # Small custom functions
 sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
+ttest <- function(reg, coefnum, val){
+  co <- coef(summary(reg))
+  tstat <- (co[coefnum,1]-val)/co[coefnum,2]
+  pstat <- 2 * pt(abs(tstat), reg$df.residual, lower.tail = FALSE)
+  return(list = c(t = tstat, df = reg$df.residual, p =  pstat))
+}
 
 # Save Default Plot Settings
 opar <- par(no.readonly = TRUE)  # Saves plot defauxlts
@@ -209,8 +215,14 @@ eDNA.prop.sub2 <- eDNA.prop.sub[order(eDNA.prop.sub$sample.number), ]
 
 rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$env + eDNA.prop.sub2$prop)
 
+rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$prop)
+
 summary(rich.reg)
 Anova(rich.reg)
+
+ttest(rich.reg, 1, 1)
+ttest(rich.reg, 2, 0)
+
 # MEM: what is the Anova() function? = prints the anova like table for the model
 #                                       Anova uses type II sums of squares
 # answer => no correlation between proportion eDNA and richness ratio. 
@@ -255,7 +267,13 @@ colnames(even.table) <- c("env", "mean", "sem", "LCI", "UCI")
 
 # Regression: evennes ratio vs. proportion eDNA
 even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop + eDNA.prop.sub2$env )
+even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop)
+
+
 summary(even.reg) 
+
+ttest(even.reg, 1, 1)
+ttest(even.reg, 2, 0)
 # answer => no correlation between proportion eDNA and evenness ratio. 
 ```
 
@@ -327,7 +345,13 @@ colnames(phylo.table) <- c("env", "mean", "sem", "LCI", "UCI")
 
 # Regression: PD ratio vs. proportion eDNA
 phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop * eDNA.prop.sub2$env )
+
+phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop)
+
+
 summary(phylo.reg) 
+
+ttest(phylo.reg, 1, 1)
 # answer => no correlation between proportion eDNA and evenness ratio. 
 ```
 
@@ -624,6 +648,32 @@ sum.eig <- sum(explainvar1, explainvar2, explainvar3)
 otu.scores <- t(cor(eDNA.PCoA$points, OTU.REL))
 otu.scores <- as.matrix(otu.scores)[,1:2]
 otu.scores <- otu.scores[abs(otu.scores[,1]) > 0.7|abs(otu.scores[,2]) > 0.7,]
+
+# Average BC Distance Between Treatments
+eDNA.bc.dis.m <- as.matrix(eDNA.bc.dis)
+all.equal(row.names(eDNA.div), rownames(eDNA.bc.dis.m))
+
+pair.div <- unique(eDNA.div$pair)
+pair.dis <- rep(NA, length(pair.div))
+for(i in 1:length(pair.div)){
+  temp <- row.names(eDNA.div[eDNA.div$pair == pair.div[i], ])
+  pair.dis[i] <- eDNA.bc.dis.m[temp[1], temp[2]]
+}
+
+mean(pair.dis)
+
+# Average BC Distance Between Replicates
+reps <- names(which(table(eDNA.div$qPCR.match) == 4))
+reps.dis <- rep(NA, length(reps))
+
+for(i in 1:length(reps)){
+  temp <- eDNA.div[eDNA.div$qPCR.match == reps[i] & eDNA.div$treat == "C", ]
+  temp.names <- row.names(temp)
+  reps.dis[i] <- eDNA.bc.dis.m[temp.names[1], temp.names[2]]
+}
+mean(reps.dis)
+t.test(pair.dis, reps.dis)
+
 ```
 
 ## Phylogenetic Beta Diversity 
@@ -648,6 +698,32 @@ otu.scores <- t(cor(eDNA.phylo.PCoA$points, OTU.REL))
 otu.scores <- as.matrix(otu.scores)[,1:2]
 otu.scores <- otu.scores[abs(otu.scores[,1]) > 0.7|
                            abs(otu.scores[,2]) > 0.7,]
+
+# Average UniFrac Distance Between Treatments
+eDNA.phylo.m <- as.matrix(phylo.dist)
+all.equal(row.names(eDNA.div), rownames(eDNA.phylo.m))
+
+pair.div <- unique(eDNA.div$pair)
+pair.dis <- rep(NA, length(pair.div))
+for(i in 1:length(pair.div)){
+  temp <- row.names(eDNA.div[eDNA.div$pair == pair.div[i], ])
+  pair.dis[i] <- eDNA.phylo.m[temp[1], temp[2]]
+}
+
+mean(pair.dis)
+
+# Average BC Distance Between Replicates
+reps <- names(which(table(eDNA.div$qPCR.match) == 4))
+reps.dis <- rep(NA, length(reps))
+
+for(i in 1:length(reps)){
+  temp <- eDNA.div[eDNA.div$qPCR.match == reps[i] & eDNA.div$treat == "C", ]
+  temp.names <- row.names(temp)
+  reps.dis[i] <- eDNA.phylo.m[temp.names[1], temp.names[2]]
+}
+mean(reps.dis)
+
+t.test(pair.dis, reps.dis)
 ```
 
 # PCoA Plots
@@ -1157,8 +1233,16 @@ for (i in 1:length(centroid.div$prop)){
                                                  centroid.div$qPCR.match[i])]
 }
 
-t.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div)
+# Take averages of technial reps
+centroid.div.2 <- ddply(centroid.div, .(env, qPCR.match, prop), 
+                      summarize, cent.dist = mean(cent.dist))
+
+
+t.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div.2)
+t.cent.reg <- lm(cent.dist ~ prop, data = centroid.div.2)
+
 summary(t.cent.reg) 
+ttest(t.cent.reg, 1, 1)
 
 # answer => no correlation between proportion eDNA and centroid dist ratio. 
 ```
@@ -1371,8 +1455,15 @@ for (i in 1:length(centroid.div$prop)){
                                                  centroid.div$qPCR.match[i])]
 }
 
-t.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div)
-summary(t.cent.reg) 
+# Take averages of technial reps
+centroid.div.2 <- ddply(centroid.div, .(env, qPCR.match, prop), 
+                      summarize, cent.dist = mean(cent.dist))
+
+p.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div)
+p.cent.reg <- lm(cent.dist ~ prop, data = centroid.div)
+summary(p.cent.reg) 
+ttest(p.cent.reg, 1, 1)
+
 
 # answer => no correlation between proportion eDNA and centroid dist ratio. 
 
