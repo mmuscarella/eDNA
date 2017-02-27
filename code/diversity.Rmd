@@ -959,6 +959,40 @@ permutest(beta.disp, 99)
 TukeyHSD(beta.disp)
 ```
 
+## Paired PERMANOVA
+```{r}
+# Check order of design
+all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
+
+OTU.REL.c <- OTU.REL[which(eDNA.div$treat == "C"), ]
+OTU.REL.e <- OTU.REL[which(eDNA.div$treat == "E"), ]
+
+eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
+eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
+
+all.equal(sort(eDNA.div.c$samp.code), sort(eDNA.div.e$samp.code))
+
+eDNA.div.c <- eDNA.div.c[order(eDNA.div.c$samp.code), ]
+eDNA.div.e <- eDNA.div.e[order(eDNA.div.e$samp.code), ]
+
+OTU.REL.c2 <- OTU.REL.c[order(eDNA.div.c$samp.code), ]
+OTU.REL.e2 <- OTU.REL.e[order(eDNA.div.e$samp.code), ]
+
+dim(OTU.REL.c2); dim(OTU.REL.e2)
+all.equal(eDNA.div.e$samp.code, eDNA.div.c$samp.code)
+
+delta.abund <- OTU.REL.c2 - OTU.REL.e2
+
+pair.permanova <- adonis(delta.abund ~ eDNA.div.c$env,
+                         method = "euclidean", binary = FALSE)
+pair.permanova
+
+
+adonis(OTU.REL.log ~ eDNA.div$env * eDNA.div$pair, 
+                         method = "bray", strata = eDNA.div$treat)
+
+```
+
 ## Mantel Test: Taxonomic
 ```{r}
 # Check order of design
@@ -1900,31 +1934,7 @@ grid.raster(img)
 
 ## Delta-Abundances
 
-# Check order of design
-all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
 
-OTU.REL.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
-OTU.REL.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
-
-eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
-eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
-
-all.equal(sort(eDNA.div.c$samp.code), sort(eDNA.div.e$samp.code))
-
-eDNA.div.c <- eDNA.div.c[order(eDNA.div.c$samp.code), ]
-eDNA.div.e <- eDNA.div.e[order(eDNA.div.e$samp.code), ]
-
-OTU.REL.c2 <- OTU.REL.c[order(eDNA.div.c$samp.code), ]
-OTU.REL.e2 <- OTU.REL.e[order(eDNA.div.e$samp.code), ]
-
-dim(OTU.REL.c2); dim(OTU.REL.e2)
-all.equal(eDNA.div.e$samp.code, eDNA.div.c$samp.code)
-
-delta.abund <- OTU.REL.c2 - OTU.REL.e2
-
-eDNA.permanova <- adonis(delta.abund ~ eDNA.div.c$env,
-                         method = "euclidean", binary = FALSE)
-eDNA.permanova
 
 
 
