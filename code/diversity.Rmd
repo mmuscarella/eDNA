@@ -981,12 +981,10 @@ OTU.REL.e2 <- OTU.REL.e[order(eDNA.div.e$samp.code), ]
 dim(OTU.REL.c2); dim(OTU.REL.e2)
 all.equal(eDNA.div.e$samp.code, eDNA.div.c$samp.code)
 
-delta.abund <- OTU.REL.c2 - OTU.REL.e2
+delta.abund <- (OTU.REL.c2 - OTU.REL.e2)
 
-pair.permanova <- adonis(delta.abund ~ eDNA.div.c$env,
+adonis(delta.abund ~ eDNA.div.c$env,
                          method = "euclidean", binary = FALSE)
-pair.permanova
-
 
 adonis(OTU.REL.log ~ eDNA.div$env * eDNA.div$pair, 
                          method = "bray", strata = eDNA.div$treat)
