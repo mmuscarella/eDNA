@@ -986,10 +986,36 @@ delta.abund <- (OTU.REL.c2 - OTU.REL.e2)
 adonis(delta.abund ~ eDNA.div.c$env,
                          method = "euclidean", binary = FALSE)
 
-adonis(OTU.REL.log ~ eDNA.div$env * eDNA.div$pair, 
-                         method = "bray", strata = eDNA.div$treat)
+adonis(OTU.REL.log ~ eDNA.div$env * eDNA.div$treat, 
+                         method = "bray", strata = eDNA.div$qPCR.match)
 
 ```
+
+```{r}
+
+eDNA.bc.m <- as.matrix(eDNA.bc.dis)
+
+# Check order of design
+all.equal(row.names(eDNA.div), colnames(eDNA.bc.m))
+
+soil.div <- eDNA.div[which(eDNA.div$env == "soil"), 3:5]
+pairs <- unique(soil.div$pair)
+pair.dis <- rep(NA, length(pairs))
+for(i in 1:length(pairs)){
+  temp <- rownames(soil.div[which(soil.div$pair == pairs[i]), ])
+  pair.dis[i] <- eDNA.bc.m[temp[1], temp[2]]
+}
+
+ctrls <- which(soil.div$treat == "C")
+ctrl.m <- as.dist(eDNA.bc.m[ctrls, ctrls])
+ctrl.dis <- as.vector(ctrl.m)
+
+soil.p.e
+pair.dis <- eDNA.bc.m[]
+
+
+```
+
 
 ## Mantel Test: Taxonomic
 ```{r}
