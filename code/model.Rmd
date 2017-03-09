@@ -199,6 +199,8 @@ otus1 <- paste("OTU", sprintf("%05d", seq(1:length(gamma1))), sep = "")
 otus2 <- paste("OTU", sprintf("%05d", seq(1:length(gamma2))), sep = "")
 otus3 <- paste("OTU", sprintf("%05d", seq(1:length(gamma3))), sep = "")
 
+otus <- union(union(otus1, otus2), otus3)
+
 # Initiate Communities
 site1 <- sample(otus1, size = 100000, replace = T, prob = gamma1)
 site2 <- sample(otus2, size = 100000, replace = T, prob = gamma2)
@@ -209,7 +211,6 @@ site1.t <- table(site1); site2.t <- table(site2); site3.t <- table(site3)
 specnumber(site1.t)
 specnumber(site2.t)
 specnumber(site3.t)
-
 
 size.comm <- 1000000
 props <- seq(size.comm/100, size.comm, 50000)
@@ -318,7 +319,7 @@ par(mar = c(4, 4, 1, 1) + 0.5)
 plot(ratio.tab[4, ], ratio.tab[1, ], type = 'n',
      xlab = "Proportion of Relic DNA",
      ylab = "Richness Ratio",
-     ylim = c(0.98,1.22), las = 1)
+     ylim = c(0.98,1.23), las = 1)
 points(ratio.tab[4, ], ratio.tab[2, ], pch = 22,bg = "gray40")
 points(ratio.tab[4, ], ratio.tab[3, ], pch = 21, bg = "gray60")
 abline(h=1, lty = 3, lwd = 1.5)
@@ -357,6 +358,7 @@ otus1 <- paste("OTU", sprintf("%05d", seq(1:length(gamma1))), sep = "")
 otus2 <- paste("OTU", sprintf("%05d", seq(1:length(gamma2))), sep = "")
 otus3 <- paste("OTU", sprintf("%05d", seq(1:length(gamma3))), sep = "")
 
+otus <- union(union(otus1, otus2), otus3)
 
 # Initiate Communities
 site1 <- sample(otus1, size = 100000, replace = T, prob = gamma1)
@@ -509,6 +511,7 @@ otus2 <- paste("OTU", sprintf("%05d", seq(1:length(gamma2))), sep = "")
 otus3 <- paste("OTU", sprintf("%05d", seq(1:length(gamma3)) + 
                                 length(otus1)), sep = "")
 
+otus <- union(union(otus1, otus2), otus3)
 
 # Initiate Communities
 site1 <- sample(otus1, size = 100000, replace = T, prob = gamma1)
@@ -539,8 +542,6 @@ for(i in 1:length(props)){
   tab2 <- table(temp.uneven)
   tab3 <- table(temp.even)
   
-  otus <- union(union(otus1, otus2), otus3)
-
   sbys <- matrix(NA, ncol = length(otus), nrow = 5)
   colnames(sbys) <- otus
   rownames(sbys) <- c("site1", "site2", "site3",
