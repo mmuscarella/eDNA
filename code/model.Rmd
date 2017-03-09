@@ -11,23 +11,26 @@ geometry: margin=2.54cm
 A model approach to relic DNA.
 
 
+# Initial Setup
+```{r}
 
-# Sampling Mixing Model: Different SAD
+library("vegan")
+library("png")
+library("grid")
+
+```
+
+
+
+# Sampling Mixing Models
+## Different Evenness
 ```{r}
 gamma1 <- rlnorm(n=10000, meanlog = 1, sdlog = 0.98)
 gamma1 <- gamma1[rev(order(gamma1))]
-gamma2 <- rlnorm(n=10000, meanlog = 1, sdlog = 1.5)
+gamma2 <- rlnorm(n=10000, meanlog = 1, sdlog = 2)
 gamma2 <- gamma2[rev(order(gamma2))]
-gamma3 <- rlnorm(n=10000, meanlog = 1, sdlog = 0.5)
+gamma3 <- rlnorm(n=10000, meanlog = 1, sdlog = 0.1)
 gamma3 <- gamma3[rev(order(gamma3))]
-
-
-plot(log10(gamma1), col = "forestgreen",
-     main = "Species Abundance Distributions",
-     xlab = "Species Index", ylab = "Log Probability",
-     las = 1)
-points(log10(gamma2), col = "red")
-points(log10(gamma3), col = "blue")
 
 # Define OTUs
 otus <- paste("OTU", sprintf("%05d", seq(1:length(gamma1))), sep = "")
@@ -43,11 +46,12 @@ specnumber(site1.t)
 specnumber(site2.t)
 specnumber(site3.t)
 
-ratio.tab <- matrix(NA, nrow = 4, ncol = 100)
+size.comm <- 1000000
+props <- seq(size.comm/100, size.comm, 50000)
+
+ratio.tab <- matrix(NA, nrow = 4, ncol = length(props))
 rownames(ratio.tab) <- c("Null", "Uneven", "Even", "Proportion")
 
-size.comm <- 1000000
-props <- seq(size.comm/100, size.comm, 10000)
 
 for(i in 1:length(props)){
   n <- props[i]
@@ -95,31 +99,92 @@ for(i in 1:length(props)){
   print(paste(i, " of ", dim(ratio.tab)[2], sep = ""))
 }
 
-par(mar = c(4, 4, 1, 1) + 0.5)
+```
+
+### Species Abundance Distrubtions
+```{r}
+png(filename="../figures/Sim.Even.SAD.png",
+    width = 1500, height = 600, res = 96*2)
+
+layout(matrix(1:3, ncol = 3))
+par(mar = c(4, 2, 4, 1), oma = c(0, 3, 1, 1))
+plot(log10(site1.t[rev(order(site1.t))]), col = "blue", ylim = c(0, 3.5),
+     main = "", axes = F,
+     xlab = "", ylab = "",
+     las = 1, type = "p", pch = 21, cex = 0.5)
+axis(side = 1, labels = F, tick = F)
+axis(side = 2, labels = T, las = 1)
+mtext(side = 2, "Log Abundance", line = 3)
+mtext(side = 3, "Intact\n", line = -2, cex = 0.8)
+box(lwd = 1.5, bty = "l")
+plot(log10(site2.t[rev(order(site2.t))]), col = "gray40",ylim = c(0, 3.5),
+     main = "", axes = F,
+     xlab = "", ylab = "",
+     las = 1, type = "p", pch = 21, cex = 0.5)
+axis(side = 1, labels = F, tick = F)
+axis(side = 2, labels = T, las = 1)
+mtext(side = 1, "Species Index (OTU)", line = 1.5)
+mtext(side = 3, "Species Abundance Distributions", line = 1.5)
+mtext(side = 3, "Less Even\nRelic", line = -2, cex = 0.8)
+box(lwd = 1.5, bty = "l")
+plot(log10(site3.t[rev(order(site3.t))]), col = "gray60", ylim = c(0, 3.5),
+     main = "", axes = F,
+     xlab = "", ylab = "",
+     las = 1, type = "p", pch = 21, cex = 0.5)
+axis(side = 1, labels = F, tick = F)
+axis(side = 2, labels = T, las = 1)
+mtext(side = 3, "More Even\nRelic", line = -2, cex = 0.8)
+
+box(lwd = 1.5, bty = "l")
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/Sim.Even.SAD.png")
+grid.raster(img)
+```
+
+### Richness Ratio
+```{r}
+png(filename="../figures/Sim.Even.Rich.png",
+    width = 800, height = 800, res = 96*2)
+
+layout(1)
+par(mar = c(4, 4, 1, 1) + 0.5, oma = c(0, 0, 0, 0))
 plot(ratio.tab[4, ], ratio.tab[1, ], type = 'n',
      xlab = "Proportion of Relic DNA",
      ylab = "Richness Ratio",
-     ylim = c(0.9,1.1), las = 1)
+     xlim = c(0, 1), ylim = c(0.8,1.2), las = 1)
 points(ratio.tab[4, ], ratio.tab[2, ], pch = 22,bg = "gray40")
 points(ratio.tab[4, ], ratio.tab[3, ], pch = 21, bg = "gray60")
 abline(h=1, lty = 3, lwd = 1.5)
-legend("topleft", c("Relic Less Even", "Relic More Even"), 
+legend("topleft", c("Mixed with Less Even Relic", 
+                    "Mixed with More Even Relic"), 
        pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
        cex = 0.8)
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/Sim.Even.Rich.png")
+grid.raster(img)
 ```
 
-# Sampling Mixing Model: Different Ranks
+## Different Rank Orders
 ```{r}
 gamma1 <- rlnorm(n=10000, meanlog = 1, sdlog = 0.98)
 gamma1 <- gamma1[rev(order(gamma1))]
-gamma2 <- gamma2[(order(gamma1))]
+gamma2 <- gamma1[(order(gamma1))]
 ord1 <- rev(order(gamma3))
-seqs <- seq(0, max(ord1), 100)
+seqs <- seq(0, max(ord1), 5000)
 ord3 <- vector()
 for(i in 2:length(seqs)){
   ord3 <- c(ord3, sample(seq(seqs[i - 1], seqs[i])))
 }
-gamma3 <- gamma3[rev(order(gamma3))]
+gamma3 <- gamma1[ord3]
 
 
 plot(log10(gamma1), col = "forestgreen",
@@ -130,12 +195,14 @@ points(log10(gamma2), col = "red")
 points(log10(gamma3), col = "blue")
 
 # Define OTUs
-otus <- paste("OTU", sprintf("%05d", seq(1:length(gamma1))), sep = "")
+otus1 <- paste("OTU", sprintf("%05d", seq(1:length(gamma1))), sep = "")
+otus2 <- paste("OTU", sprintf("%05d", seq(1:length(gamma2))), sep = "")
+otus3 <- paste("OTU", sprintf("%05d", seq(1:length(gamma3))), sep = "")
 
 # Initiate Communities
-site1 <- sample(otus, size = 100000, replace = T, prob = gamma1)
-site2 <- sample(otus, size = 100000, replace = T, prob = gamma2)
-site3 <- sample(otus, size = 100000, replace = T, prob = gamma3)
+site1 <- sample(otus1, size = 100000, replace = T, prob = gamma1)
+site2 <- sample(otus2, size = 100000, replace = T, prob = gamma2)
+site3 <- sample(otus3, size = 100000, replace = T, prob = gamma3)
 
 site1.t <- table(site1); site2.t <- table(site2); site3.t <- table(site3)
 
@@ -143,23 +210,24 @@ specnumber(site1.t)
 specnumber(site2.t)
 specnumber(site3.t)
 
-ratio.tab <- matrix(NA, nrow = 4, ncol = 100)
-rownames(ratio.tab) <- c("Null", "Uneven", "Even", "Proportion")
 
 size.comm <- 1000000
-props <- seq(size.comm/100, size.comm, 10000)
+props <- seq(size.comm/100, size.comm, 50000)
+
+ratio.tab <- matrix(NA, nrow = 4, ncol = length(props))
+rownames(ratio.tab) <- c("Null", "Uneven", "Even", "Proportion")
 
 for(i in 1:length(props)){
   n <- props[i]
   # Initialize
-  temp.null <- c(sample(otus, size = size.comm, replace = T, prob = gamma1))
-  temp.uneven <- c(sample(otus, size = size.comm, replace = T, prob = gamma1), 
-                   sample(otus, size = n, replace = T, prob = gamma2))
-  temp.even <- c(sample(otus, size = size.comm, replace = T, prob = gamma1), 
-                 sample(otus, size = n, replace = T, prob = gamma3))
+  temp.null <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1))
+  temp.revSAD <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1), 
+                   sample(otus2, size = n, replace = T, prob = gamma2))
+  temp.radSAD <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1), 
+                 sample(otus3, size = n, replace = T, prob = gamma3))
   tab1 <- table(temp.null)
-  tab2 <- table(temp.uneven)
-  tab3 <- table(temp.even)
+  tab2 <- table(temp.revSAD)
+  tab3 <- table(temp.radSAD)
 
   sbys <- matrix(NA, ncol = length(otus), nrow = 5)
   colnames(sbys) <- otus
@@ -194,25 +262,84 @@ for(i in 1:length(props)){
   ratio.tab[4, i] <- props[i] / size.comm
   print(paste(i, " of ", dim(ratio.tab)[2], sep = ""))
 }
+```
+
+### Species Abundance Distrubtions
+```{r}
+png(filename="../figures/Sim.RAD.SAD.png",
+    width = 1500, height = 600, res = 96*2)
+
+layout(matrix(1:3, ncol = 3))
+par(mar = c(4, 2, 4, 1), oma = c(0, 3, 1, 1))
+plot(log10(site1.t[rev(order(site1.t))]), col = "blue", ylim = c(0, 3.5),
+     main = "", axes = F,
+     xlab = "", ylab = "",
+     las = 1, type = "p", pch = 21, cex = 0.5)
+axis(side = 1, labels = F, tick = F)
+axis(side = 2, labels = T, las = 1)
+mtext(side = 2, "Log Abundance", line = 3)
+mtext(side = 3, "Intact\n", line = -2, cex = 0.8)
+box(lwd = 1.5, bty = "l")
+plot(log10(site2.t[rev(order(site2.t))]), col = "gray40",ylim = c(0, 3.5),
+     main = "", axes = F,
+     xlab = "", ylab = "",
+     las = 1, type = "p", pch = 21, cex = 0.5)
+axis(side = 1, labels = F, tick = F)
+axis(side = 2, labels = T, las = 1)
+mtext(side = 1, "Species Index (OTU)", line = 1.5)
+mtext(side = 3, "Species Abundance Distributions", line = 1.5)
+mtext(side = 3, "Less Even\nRelic", line = -2, cex = 0.8)
+box(lwd = 1.5, bty = "l")
+plot(log10(site3.t[rev(order(site3.t))]), col = "gray60", ylim = c(0, 3.5),
+     main = "", axes = F,
+     xlab = "", ylab = "",
+     las = 1, type = "p", pch = 21, cex = 0.5)
+axis(side = 1, labels = F, tick = F)
+axis(side = 2, labels = T, las = 1)
+mtext(side = 3, "More Even\nRelic", line = -2, cex = 0.8)
+
+box(lwd = 1.5, bty = "l")
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/Sim.RAD.SAD.png")
+grid.raster(img)
+```
+
+### Richness Ratio
+```{r}
+png(filename="../figures/Sim.RAD.Rich.png",
+    width = 800, height = 800, res = 96*2)
 
 par(mar = c(4, 4, 1, 1) + 0.5)
 plot(ratio.tab[4, ], ratio.tab[1, ], type = 'n',
      xlab = "Proportion of Relic DNA",
      ylab = "Richness Ratio",
-     ylim = c(0.9,1.2), las = 1)
+     ylim = c(0.98,1.2), las = 1)
 points(ratio.tab[4, ], ratio.tab[2, ], pch = 22,bg = "gray40")
 points(ratio.tab[4, ], ratio.tab[3, ], pch = 21, bg = "gray60")
 abline(h=1, lty = 3, lwd = 1.5)
-legend("topleft", c("Reversed SAD", "Window Randomized SAD"), 
+legend("topleft", c("Reversed SAD", "2-Stage Randomized SAD"), 
        pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
        cex = 0.8)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/Sim.RAD.Rich.png")
+grid.raster(img)
 ```
 
-# Sampling Mixing Model: Different N
+## Different S
 ```{r}
-gamma1 <- rlnorm(n=10000, meanlog = 1, sdlog = 0.98)
+gamma1 <- rlnorm(n=5000, meanlog = 1, sdlog = 0.98)
 gamma1 <- gamma1[rev(order(gamma1))]
-gamma2 <- rlnorm(n=100000, meanlog = 1, sdlog = 0.98)
+gamma2 <- rlnorm(n=10000, meanlog = 1, sdlog = 0.98)
 gamma2 <- gamma2[rev(order(gamma2))]
 gamma3 <- rlnorm(n=1000, meanlog = 1, sdlog = 0.98)
 gamma3 <- gamma3[rev(order(gamma3))]
@@ -242,19 +369,19 @@ specnumber(site1.t)
 specnumber(site2.t)
 specnumber(site3.t)
 
-ratio.tab <- matrix(NA, nrow = 4, ncol = 100)
-rownames(ratio.tab) <- c("Null", "Uneven", "Even", "Proportion")
-
 size.comm <- 1000000
-props <- seq(size.comm/100, size.comm, 10000)
+props <- seq(size.comm/100, size.comm, 50000)
+
+ratio.tab <- matrix(NA, nrow = 4, ncol = length(props))
+rownames(ratio.tab) <- c("Null", "Uneven", "Even", "Proportion")
 
 for(i in 1:length(props)){
   n <- props[i]
   # Initialize
   temp.null <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1))
-  temp.uneven <- c(sample(otus2, size = size.comm, replace = T, prob = gamma2), 
+  temp.uneven <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1), 
                    sample(otus2, size = n, replace = T, prob = gamma2))
-  temp.even <- c(sample(otus3, size = size.comm, replace = T, prob = gamma3), 
+  temp.even <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1), 
                  sample(otus3, size = n, replace = T, prob = gamma3))
   tab1 <- table(temp.null)
   tab2 <- table(temp.uneven)
@@ -293,18 +420,77 @@ for(i in 1:length(props)){
   ratio.tab[4, i] <- props[i] / size.comm
   print(paste(i, " of ", dim(ratio.tab)[2], sep = ""))
 }
+```
+
+### Species Abundance Distrubtions
+```{r}
+png(filename="../figures/Sim.S.SAD.png",
+    width = 1500, height = 600, res = 96*2)
+
+layout(matrix(1:3, ncol = 3))
+par(mar = c(4, 2, 4, 1), oma = c(0, 3, 1, 1))
+plot(log10(site1.t[rev(order(site1.t))]), col = "blue", ylim = c(0, 3.5),
+     main = "", axes = F,
+     xlab = "", ylab = "",
+     las = 1, type = "p", pch = 21, cex = 0.5)
+axis(side = 1, labels = F, tick = F)
+axis(side = 2, labels = T, las = 1)
+mtext(side = 2, "Log Abundance", line = 3)
+mtext(side = 3, "Intact\n", line = -2, cex = 0.8)
+box(lwd = 1.5, bty = "l")
+plot(log10(site2.t[rev(order(site2.t))]), col = "gray40",ylim = c(0, 3.5),
+     main = "", axes = F,
+     xlab = "", ylab = "",
+     las = 1, type = "p", pch = 21, cex = 0.5)
+axis(side = 1, labels = F, tick = F)
+axis(side = 2, labels = T, las = 1)
+mtext(side = 1, "Species Index (OTU)", line = 1.5)
+mtext(side = 3, "Species Abundance Distributions", line = 1.5)
+mtext(side = 3, "Larger S\nRelic", line = -2, cex = 0.8)
+box(lwd = 1.5, bty = "l")
+plot(log10(site3.t[rev(order(site3.t))]), col = "gray60", ylim = c(0, 3.5),
+     main = "", axes = F,
+     xlab = "", ylab = "",
+     las = 1, type = "p", pch = 21, cex = 0.5)
+axis(side = 1, labels = F, tick = F)
+axis(side = 2, labels = T, las = 1)
+mtext(side = 3, "Smaller S\nRelic", line = -2, cex = 0.8)
+
+box(lwd = 1.5, bty = "l")
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/Sim.S.SAD.png")
+grid.raster(img)
+```
+
+### Richness Ratio
+```{r}
+png(filename="../figures/Sim.S.Rich.png",
+    width = 800, height = 800, res = 96*2)
 
 par(mar = c(4, 4, 1, 1) + 0.5)
 plot(ratio.tab[4, ], ratio.tab[1, ], type = 'n',
      xlab = "Proportion of Relic DNA",
      ylab = "Richness Ratio",
-     ylim = c(0.9,1.1), las = 1)
+     ylim = c(0.8,1.25), las = 1)
 points(ratio.tab[4, ], ratio.tab[2, ], pch = 22,bg = "gray40")
 points(ratio.tab[4, ], ratio.tab[3, ], pch = 21, bg = "gray60")
 abline(h=1, lty = 3, lwd = 1.5)
-legend("topleft", c("Relic Less Even", "Relic More Even"), 
+legend("topleft", c("Relic has Larger S", "Relic has Smaller S"), 
        pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
        cex = 0.8)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/Sim.S.Rich.png")
+grid.raster(img)
 ```
 
 
