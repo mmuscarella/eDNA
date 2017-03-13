@@ -1,0 +1,43 @@
+---
+title: "Relic DNA: reconciling ratios and beta diversity"
+author: "Jay T. Lennon"
+date: "March 13, 2017"
+header-includes:
+   - \usepackage{array}
+output: pdf_document
+geometry: margin=2.54cm
+---
+
+```{r}
+
+# Richness of total sample (intact + relic DNA)
+Stot <- 1000
+
+# Number of reads or individuals in total sample
+Ntot <- 10000
+
+# Richness ratio (number of taxa in total DNA / number of taxa in relic DNA)
+rr <- 2.2
+
+# Richness of intact DNA pool 
+Sint <- round(Stot/rr, 0)
+
+# "Percent decrease in richnes" sensus Carini et al. 2017
+richness.decrease <- 1 - (Sint/Stot)
+
+# Vector of equal relative abundances for total sample
+SampTot <- rep(Stot/Ntot, Stot)
+
+# Vector of equal relative abundances for intact sample (minus taxa from relic)
+SampInt <- c(rep(0,Sint), SampTot[(Sint+1):length(SampTot)])
+
+# Create site-by-species matrix
+relic <- cbind(SampTot, SampInt)
+relic.sqrt <- sqrt(relic)
+
+# Caluclate Bray-Curtis distance
+require(vegan)
+relic.bc <- vegdist(t(relic), method = "bray")
+relic.bc.sqrt <- vegdist(t(relic.sqrt), method = "bray")
+```
+
