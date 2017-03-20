@@ -19,25 +19,28 @@ Ntot <- 10000
 # Richness ratio (number of taxa in total DNA / number of taxa in relic DNA)
 rr <- 2.2
 
-# Richness of intact DNA pool 
+# Richness of intact and relic DNA pool 
 Sint <- round(Stot/rr, 0)
+Srel <- Stot - Sint
 
 # "Percent decrease in richnes" sensus Carini et al. 2017
 richness.decrease <- 1 - (Sint/Stot)
 
 # Vector of equal relative abundances for total sample
-SampTot <- rep(Stot/Ntot, Stot)
+SampTot <- rep(Ntot/Stot, Stot)
 
 # Vector of equal relative abundances for intact sample (minus taxa from relic)
-SampInt <- c(rep(0,Sint), SampTot[(Sint+1):length(SampTot)])
+SampInt <- c(rep(0, Srel), SampTot[(Srel+1):length(SampTot)])
 
 # Create site-by-species matrix
-relic <- cbind(SampTot, SampInt)
-relic.sqrt <- sqrt(relic)
+paired <- cbind(SampTot, SampInt)
+paired.sqrt <- sqrt(relic)
 
 # Caluclate Bray-Curtis distance
 require(vegan)
-relic.bc <- vegdist(t(relic), method = "bray")
-relic.bc.sqrt <- vegdist(t(relic.sqrt), method = "bray")
+paired.bc <- vegdist(t(paired), method = "bray")
+paired.bc.sqrt <- vegdist(t(paired.sqrt), method = "bray")
+paired.bc
 ```
 
+Conclusion: Minimum dissimiliarity when 55% of species are only found in relic pool (i.e., richess ratio of 2.2) is 0.37. Carini et al. (2017) found that dissimilarity in a soil sample (18) with richness ratio of 2.2 was ~0.69. Therefore, their richness ratios and Bray-Curtis values are mathematically consistent. 
