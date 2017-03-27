@@ -46,7 +46,7 @@ ttest <- function(reg, coefnum, val){
 opar <- par(no.readonly = TRUE)  # Saves plot defauxlts
 
 # Run All: Select if all section are to be re-run
-run.all <- TRUE
+run.all <- FALSE
 ```
 
 ## Phylogenetic Diversity Notes
@@ -355,7 +355,8 @@ ttest(phylo.reg, 1, 1)
 # answer => no correlation between proportion eDNA and evenness ratio. 
 ```
 
-# Alpha Diversity Multi-Panel Plot
+# Alpha Plots
+## Alpha Ratios
 ```{r}
 png(filename="../figures/Figure3-Alpha.png",
     width = 800, height = 1600, res = 96*2)
@@ -413,13 +414,10 @@ mtext(expression('Evenness Ratio'), side = 2,
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
     labels = T, at = c(0.5, 1, 1.5))
- 
 axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
    labels = F, at = c(0.5, 1, 1.5))
-
 axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 0.9, las = 1,
     labels = F, at = c(1, 2, 3, 4))
-
 axis(side = 3, lwd.ticks = 2, tck = -0.02, cex.axis = 1.5, las = 1,
     at = c(1, 2, 3, 4), labels = F)
 
@@ -447,13 +445,10 @@ mtext(expression('Faiths D Ratio'), side = 2,
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
     labels = T, at = c(0.5, 1, 1.5))
- 
 axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
    labels = F, at = c(0.5, 1, 1.5))
-
 axis(side = 1, lwd.ticks = 2, cex.axis = 1.5, las = 1,
     labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
-
 axis(side = 3, lwd.ticks = 2, tck = -0.02, cex.axis = 1.5, las = 1,
     at = c(1, 2, 3, 4), labels = F)
 
@@ -469,6 +464,126 @@ graphics.off()
 
 # Show Plot
 img <- readPNG("../figures/Figure3-Alpha.png")
+grid.raster(img)
+```
+
+## Linear Models
+```{r}
+png(filename="../figures/FigureS3-AlphaLM.png",
+    width = 800, height = 1600, res = 96*2)
+
+layout(matrix(c(1:3), byrow = T))
+par(mar = c(1, 4.5, 0.5, 1), oma = c(6, 2, 1.5, 1))
+
+# rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$prop)
+
+plot(eDNA.prop.sub2$prop, rich.2[order(rich.2$qPCR.match), ]$rich.ratio,
+     xlim = c(0, 1), ylim = c(0.5, 2),
+     pch = 22, bg = "gray", lwd = 2, 
+     cex = 2, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+     las = 1, ylab = "", xlab = "")
+box(lwd = 2) 
+
+clip(x1 = 0, x2 = 0.85, y1 = -5, y2 = 2)
+abline(rich.reg, lty = 2, lwd = 3, col = "gray")
+
+legend("topleft", cex = 1.2,
+       c(paste("Slope: P =", round(ttest(rich.reg, 2, 0)[3], 2)),
+       paste("Intercept: P =", round(ttest(rich.reg, 1, 1)[3], 2))), 
+       lty = 2, bty = "n", col = "gray")
+
+mtext(side = 2, "Richness Ratio", line = 3.5, cex = 1.5)
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, tck = -0.02, cex.axis = 1.75, las = 1,
+    labels = T, at = c(0.5, 1, 1.5, 2))
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5, 2))
+axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 0.9, las = 1,
+    labels = F) 
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.75, las = 1,
+    labels = F) 
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5, 2))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5, 2))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
+
+
+# even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop)
+plot(eDNA.prop.sub2$prop, even.2[order(even.2$qPCR.match), ]$even.ratio,
+     xlim = c(0, 1), ylim = c(0.5, 1.5),
+     pch = 22, bg = "gray", lwd = 2, 
+     cex = 2, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+     las = 1, ylab = "", xlab = "")
+box(lwd = 2)
+
+clip(x1 = 0, x2 = 0.85, y1 = -5, y2 = 2)
+abline(even.reg, lty = 2, lwd = 3, col = "gray")
+legend("topleft", cex = 1.2,
+       c(paste("Slope: P =", sprintf("%.2f", 
+                                     round(ttest(even.reg, 2, 0)[3], 2))),
+       paste("Intercept: P =", round(ttest(even.reg, 1, 1)[3], 2))), 
+       lty = 2, bty = "n", col = "gray")
+mtext(side = 2, "Evenness Ratio", line = 3.5, cex = 1.5)
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1.75, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 0.9, las = 1,
+    labels = F)
+axis(side = 3, lwd.ticks = 2, tck = -0.02, cex.axis = 1.5, las = 1,
+    labels = F)
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
+
+# phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop)
+
+plot(eDNA.prop.sub2$prop, phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio,
+     xlim = c(0, 1), ylim = c(0.5, 1.5),
+     pch = 22, bg = "gray", lwd = 2, 
+     cex = 2, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+     las = 1, ylab = "", xlab = "")
+box(lwd = 2) 
+
+clip(x1 = 0, x2 = 0.85, y1 = -5, y2 = 2)
+abline(phylo.reg, lty = 2, lwd = 3, col = "gray")
+legend("topleft", cex = 1.2,
+       c(paste("Slope: P =", round(ttest(phylo.reg, 2, 0)[3], 2)),
+       paste("Intercept: P =", round(ttest(phylo.reg, 1, 1)[3], 2))), 
+       lty = 2, bty = "n", col = "gray")
+mtext(side = 1, "Proportion eDNA", line = 3.5, cex = 1.5)
+mtext(side = 2, "Faiths D Ratio", line = 3.5, cex = 1.5)
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1.75, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 1.75, las = 1,
+    labels = T) 
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    labels = F) 
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/FigureS3-AlphaLM.png")
 grid.raster(img)
 ```
 
@@ -1124,12 +1239,11 @@ for (i in 1:length(centroid.div$prop)){
 }
 
 # Take averages of technial reps
-centroid.div.2 <- ddply(centroid.div, .(env, qPCR.match, prop), 
+centroid.div.t <- ddply(centroid.div, .(env, qPCR.match, prop), 
                       summarize, cent.dist = mean(cent.dist))
 
-
-t.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div.2)
-t.cent.reg <- lm(cent.dist ~ prop, data = centroid.div.2)
+t.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div.t)
+t.cent.reg <- lm(cent.dist ~ prop, data = centroid.div.t)
 
 summary(t.cent.reg) 
 ttest(t.cent.reg, 1, 1)
@@ -1346,11 +1460,11 @@ for (i in 1:length(centroid.div$prop)){
 }
 
 # Take averages of technial reps
-centroid.div.2 <- ddply(centroid.div, .(env, qPCR.match, prop), 
+centroid.div.p <- ddply(centroid.div, .(env, qPCR.match, prop), 
                       summarize, cent.dist = mean(cent.dist))
 
-p.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div)
-p.cent.reg <- lm(cent.dist ~ prop, data = centroid.div)
+p.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div.p)
+p.cent.reg <- lm(cent.dist ~ prop, data = centroid.div.p)
 summary(p.cent.reg) 
 ttest(p.cent.reg, 1, 1)
 
@@ -1359,8 +1473,8 @@ ttest(p.cent.reg, 1, 1)
 
 ```
 
-
-# Centroid Distance Plots
+# Beta Plots
+## Centroid Distance
 ```{r}
 png(filename="../figures/Figure4-Centroid.png",
     width = 800, height = 1200, res = 96*2)
@@ -1449,4 +1563,101 @@ graphics.off()
 img <- readPNG("../figures/Figure4-Centroid.png")
 grid.raster(img)
 ```
+
+## Linear Models
+```{r}
+png(filename="../figures/FigureS4-CentroidLM.png",
+    width = 800, height = 1200, res = 96*2)
+
+layout(matrix(c(1:2), byrow = T))
+par(mar = c(0.5, 4.5, 0.5, 1), oma = c(4.5, 2, 1.5, 1))
+
+# t.cent.reg <- lm(cent.dist ~ prop, data = centroid.div.t)
+# ttest(t.cent.reg, 1, 1)
+
+plot(centroid.div.t$prop, centroid.div.t$cent.dist,
+     xlim = c(0, 1), ylim = c(0.5, 2),
+     pch = 22, bg = "gray", lwd = 2, 
+     cex = 1.5, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+     las = 1, ylab = "", xlab = "")
+box(lwd = 2) 
+
+legend("topright", cex = 0.8, 
+       c(paste("Slope: P =", round(ttest(t.cent.reg, 2, 0)[3], 2)),
+       paste("Intercept: P =", round(ttest(t.cent.reg, 1, 1)[3], 2))), 
+       lty = 2, bty = "n", col = "gray")
+
+clip(x1 = 0, x2 = 0.85, y1 = -5, y2 = 2)
+abline(t.cent.reg, lty = 2, lwd = 3, col = "gray")
+
+mtext('Centroid Distance Ratio\n(Bray Curtis Distance)', side = 2, 
+        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, tck = -0.02, cex.axis = 1, las = 1,
+    labels = T, at = c(0.5, 1, 1.5, 2))
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5, 2))
+axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 0.9, las = 1,
+    labels = F) 
+axis(side = 3, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = F) 
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5, 2))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5, 2))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
+
+
+
+# p.cent.reg <- lm(cent.dist ~ prop, data = centroid.div.p)
+# ttest(p.cent.reg, 1, 1)
+
+plot(centroid.div.p$prop, centroid.div.p$cent.dist,
+     xlim = c(0, 1), ylim = c(0.5, 1.5),
+     pch = 22, bg = "gray", lwd = 2, 
+     cex = 1.5, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+     las = 1, ylab = "", xlab = "")
+box(lwd = 2) 
+
+legend("topright", cex = 0.8, 
+       c(paste("Slope: P =", round(ttest(p.cent.reg, 2, 0)[3], 2)),
+       paste("Intercept: P =", round(ttest(p.cent.reg, 1, 1)[3], 2))), 
+       lty = 2, bty = "n", col = "gray")
+
+clip(x1 = 0, x2 = 0.85, y1 = -5, y2 = 2)
+abline(p.cent.reg, lty = 2, lwd = 3, col = "gray")
+mtext(side = 1, "Proportion eDNA", line = 3)
+mtext('Centroid Distance Ratio\n(UniFrac Distance)', side = 2, 
+        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 1, las = 1,
+    labels = T) 
+axis(side = 3, lwd.ticks = 2, tck = -0.02, cex.axis = 1.5, las = 1,
+    labels = F) 
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
+
+
+
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/FigureS4-CentroidLM.png")
+grid.raster(img)
+```
+
 
