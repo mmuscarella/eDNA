@@ -13,11 +13,12 @@ A model approach to relic DNA.
 
 # Initial Setup
 ```{r}
-
+rm(list=ls())
+setwd("~/GitHub/eDNA/code")
 library("vegan")
 library("png")
 library("grid")
-
+set.seed(22)
 ```
 
 
@@ -219,23 +220,33 @@ grid.raster(img)
 ### Bray Curtis
 ```{r}
 png(filename="../figures/Sim.Even.BC.png",
-    width = 800, height = 800, res = 96*2)
+    width = 1000, height = 800, res = 96*2)
 
 bc.tab <- bc.tab.even
 
 layout(1)
-par(mar = c(4, 4, 1, 1) + 0.5, oma = c(0, 0, 0, 0))
-plot(bc.tab[3, ], bc.tab[1, ], type = 'n',
+par(mar = c(4, 4, 1, 5) + 0.5, oma = c(0, 0, 0, 0))
+plot(bc.tab[4, ], bc.tab[1, ], type = 'n',
      xlab = "Proportion of Relic DNA",
      ylab = "Bray Curtis Dissimilarity",
-     xlim = c(0, 1), ylim = c(0.4, 0.55), las = 1)
-points(bc.tab[3, ], bc.tab[1, ], pch = 22,bg = "gray40")
-points(bc.tab[3, ], bc.tab[2, ], pch = 21, bg = "gray60")
+     xlim = c(0, 1), ylim = c(0.42, 0.51), las = 1)
+points(bc.tab[4, ], bc.tab[1, ], pch = 22,bg = "gray40")
+points(bc.tab[4, ], bc.tab[2, ], pch = 21, bg = "gray60")
+points(bc.tab[4, ], bc.tab[3, ], pch = 23, bg = "white")
 abline(h=1, lty = 3, lwd = 1.5)
-legend("topleft", c("Relic has Less Even SAD", 
-                    "Relic has More Even SAD"), 
-       pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
-       cex = 0.8)
+
+#legend("topleft", c("Relic has Less Even SAD", 
+#                    "Relic has More Even SAD"), 
+#       pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
+#       cex = 0.8)
+
+text(x = 1.05, y = 0.475, expression(paste("E"["relic"], "< E"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.05, y = 0.445, expression(paste("E"["relic"], "= E"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.05, y = 0.5, expression(paste("E"["relic"], "> E"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+
 # Close Plot Device
 dev.off()
 graphics.off()
@@ -449,22 +460,33 @@ grid.raster(img)
 ### Bray Curtis
 ```{r}
 png(filename="../figures/Sim.S.BC.png",
-    width = 800, height = 800, res = 96*2)
+    width = 1000, height = 800, res = 96*2)
 
 bc.tab <- bc.tab.s
 
 layout(1)
-par(mar = c(4, 4, 1, 1) + 0.5, oma = c(0, 0, 0, 0))
-plot(bc.tab[3, ], bc.tab[1, ], type = 'n',
+par(mar = c(4, 4, 1, 5) + 0.5, oma = c(0, 0, 0, 0))
+plot(bc.tab[4, ], bc.tab[1, ], type = 'n',
      xlab = "Proportion of Relic DNA",
      ylab = "Bray Curtis Dissimilarity",
-     xlim = c(0, 1), ylim = c(0.3, 0.45), las = 1)
-points(bc.tab[3, ], bc.tab[1, ], pch = 22,bg = "gray40")
-points(bc.tab[3, ], bc.tab[2, ], pch = 21, bg = "gray60")
+     xlim = c(0, 1), ylim = c(0.4, 0.58), las = 1)
+
+points(bc.tab[4, ], bc.tab[1, ], pch = 22,bg = "gray40")
+points(bc.tab[4, ], bc.tab[2, ], pch = 21, bg = "gray60")
+points(bc.tab[4, ], bc.tab[3, ], pch = 23, bg = "white")
+
 abline(h=1, lty = 3, lwd = 1.5)
-legend("topleft", c("Relic has Larger S", "Relic has Smaller S"), 
-       pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
-       cex = 0.8)
+#legend("topleft", c("Relic has Larger S", "Relic has Smaller S"), 
+#       pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
+#       cex = 0.8)
+
+text(x = 1.05, y = 0.55, expression(paste("S"["relic"], "> S"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.05, y = 0.45, expression(paste("S"["relic"], "= S"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.05, y = 0.435, expression(paste("S"["relic"], "< S"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+
 # Close Plot Device
 dev.off()
 graphics.off()
@@ -473,6 +495,148 @@ graphics.off()
 img <- readPNG("../figures/Sim.S.BC.png")
 grid.raster(img)
 ```
+
+# Manuscript Figures
+## Figure 1
+```{r}
+png(filename="../figures/Figure1_Model.png",
+    width = 1600, height = 600, res = 96*2)
+
+
+layout(matrix(c(1,2), 1, 2, byrow=T))
+par(mar = c(4, 4, 1, 5) + 0.5, oma = c(0, 0, 0, 0))
+
+# Evenness
+ratio.tab <- ratio.tab.even
+plot(ratio.tab[5, ], ratio.tab[1, ], #type = 'n',
+     pch = 23, col = "black", bg = "white", axes = F,
+     xlab = "",
+     ylab = "",
+     xlim = c(0, 1), ylim = c(0.78,1.22), las = 1)
+
+# abline(h=1, lty = 3, lwd = 1.5)
+
+points(ratio.tab[5, ], ratio.tab[2, ], pch = 22,bg = "gray40")
+points(ratio.tab[5, ], ratio.tab[3, ], pch = 21, bg = "gray60")
+points(ratio.tab[5, ], ratio.tab[4, ], pch = 23,bg = "white")
+
+axis(2, las = 1)
+axis(1, at = c(seq(0, 1, 0.2)))
+box(lwd = 1.25)
+
+mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1.25)
+mtext(side = 2, "Richness Ratio", line = 2.5, cex = 1.25)
+
+text(x = 1.05, y = 1.18, expression(paste("E"["relic"], "< E"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.05, y = 1, expression(paste("E"["relic"], "= E"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.05, y = 0.81, expression(paste("E"["relic"], "> E"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+
+# Richness
+ratio.tab <- ratio.tab.s
+plot(ratio.tab[5, ], ratio.tab[1, ], #type = 'n',
+     pch = 23, col = "black", bg = "white", axes = F,
+     xlab = "",
+     ylab = "",
+     xlim = c(0, 1), ylim = c(0.8,1.4), las = 1)
+
+# abline(h=1, lty = 3, lwd = 1.5)
+
+points(ratio.tab[5, ], ratio.tab[2, ], pch = 22,bg = "gray40")
+points(ratio.tab[5, ], ratio.tab[3, ], pch = 21, bg = "gray60")
+points(ratio.tab[5, ], ratio.tab[4, ], pch = 23,bg = "white")
+
+axis(2, las = 1)
+axis(1, at = c(seq(0, 1, 0.2)))
+box(lwd = 1.25)
+
+mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1.25)
+mtext(side = 2, "Richness Ratio", line = 2.5, cex = 1.25)
+
+text(x = 1.05, y = 1.35, expression(paste("S"["relic"], "> S"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.05, y = 1, expression(paste("S"["relic"], "= S"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.05, y = 0.85, expression(paste("S"["relic"], "< S"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+
+#legend("topleft", c("Relic has Larger S", "Relic has Smaller S"), 
+#       pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
+#       cex = 0.8)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/Figure1_Model.png")
+grid.raster(img)
+
+```
+
+
+## Supplemenatal Figure (SI)
+```{r}
+png(filename="../figures/FigureS1-SimulationBC.png",
+    width = 1600, height = 600, res = 96*2)
+
+layout(matrix(c(1,2), 1, 2, byrow=T))
+par(mar = c(4, 4, 1, 5) + 0.5, oma = c(0, 1, 0, 0))
+
+# Evenness
+bc.tab <- bc.tab.even
+plot(bc.tab[4, ], bc.tab[1, ], type = 'n',
+     xlab = "",
+     ylab = "Bray Curtis Dissimilarity",
+     xlim = c(0, 1), ylim = c(0.42, 0.51), las = 1)
+points(bc.tab[4, ], bc.tab[1, ], pch = 22,bg = "gray40")
+points(bc.tab[4, ], bc.tab[2, ], pch = 21, bg = "gray60")
+points(bc.tab[4, ], bc.tab[3, ], pch = 23, bg = "white")
+abline(h=1, lty = 3, lwd = 1.5)
+
+mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1)
+
+text(x = 1.05, y = 0.475, expression(paste("E"["relic"], "< E"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.05, y = 0.445, expression(paste("E"["relic"], "= E"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.05, y = 0.5, expression(paste("E"["relic"], "> E"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+
+# Richness
+bc.tab <- bc.tab.s
+plot(bc.tab[4, ], bc.tab[1, ], type = 'n',
+     xlab = "",
+     ylab = "Bray Curtis Dissimilarity",
+     xlim = c(0, 1), ylim = c(0.4, 0.58), las = 1)
+
+points(bc.tab[4, ], bc.tab[1, ], pch = 22,bg = "gray40")
+points(bc.tab[4, ], bc.tab[2, ], pch = 21, bg = "gray60")
+points(bc.tab[4, ], bc.tab[3, ], pch = 23, bg = "white")
+
+abline(h=1, lty = 3, lwd = 1.5)
+
+text(x = 1.05, y = 0.55, expression(paste("S"["relic"], "> S"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.05, y = 0.45, expression(paste("S"["relic"], "= S"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.05, y = 0.435, expression(paste("S"["relic"], "< S"["intact"])), 
+     pos = 4, cex = 0.8, xpd = T)
+
+mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1)
+
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/FigureS1-SimulationBC.png")
+grid.raster(img)
+```
+
 
 
 ## Different Rank Orders

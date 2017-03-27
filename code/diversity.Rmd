@@ -196,7 +196,7 @@ rich.2.ag.mean.treatment <- aggregate(rich.E ~ env, rich.2, mean)
 rich.2.ag.sem.treatment <- aggregate(rich.E ~ env, rich.2, sem)
 
 # Calculate ratios
-rich.2$rich.ratio <- rich.2$rich.E / rich.2$rich.C
+rich.2$rich.ratio <- rich.2$rich.C / rich.2$rich.E
 
 # Richness table
 rich.2.ag.mean <- aggregate(rich.ratio ~ env, rich.2, mean)
@@ -253,7 +253,7 @@ even.2.ag.mean.treatment <- aggregate(even.E ~ env, even.2, mean)
 even.2.ag.sem.treatment <- aggregate(even.E ~ env, even.2, sem)
 
 # Calculate ratios
-even.2$even.ratio <- even.2$even.E / even.2$even.C
+even.2$even.ratio <- even.2$even.C / even.2$even.E
 
 # Evennes table
 even.2.ag.mean <- aggregate(even.ratio ~ env, even.2, mean)
@@ -331,7 +331,7 @@ TukeyHSD(faith.anova)
 ## Phylogenetic Diversity: does eDNA "inflate" diversity?
 ```{r}
 # Calculate ratios
-phylo.2$phylo.ratio <- phylo.2$phylo.E / phylo.2$phylo.C
+phylo.2$phylo.ratio <- phylo.2$phylo.C / phylo.2$phylo.E
 
 # Richness table
 phylo.2.ag.mean <- aggregate(phylo.ratio ~ env, phylo.2, mean)
@@ -503,11 +503,11 @@ grid.raster(img)
 
 ## Alpha Diversity Multi-Panel Plot
 ```{r}
-png(filename="../figures/alpha.ratios.png",
+png(filename="../figures/Figure3-Alpha.png",
     width = 800, height = 1600, res = 96*2)
 
 layout(matrix(c(1:3), byrow = T))
-par(mar = c(0.5, 4, 0.5, 1), oma = c(3, 1, 1, 1))
+par(mar = c(0.5, 4, 0.5, 1), oma = c(3, 2, 1, 1))
 
 # Richness Panel
 rich.plot <- plot(rich.table$mean, ylim = c(0.5, 1.5), 
@@ -614,7 +614,7 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/alpha.ratios.png")
+img <- readPNG("../figures/Figure3-Alpha.png")
 grid.raster(img)
 ```
 
@@ -726,13 +726,12 @@ mean(reps.dis)
 t.test(pair.dis, reps.dis)
 ```
 
-# PCoA Plots
-## Taxonomic PcoA Plot (Supplemental)
+## PCoA Plots
 ```{r, results = "hide"}
-png(filename="../figures/ordination.png",
-    width = 1200, height = 800, res = 96*2)
-layout(matrix(1:2, 1, 2), widths = c(9, 3))
-par(mar = c(4, 5, 1, 0) + 0.5)
+png(filename="../figures/FigureS2-Ordinations.png",
+    width = 1800, height = 800, res = 96*2)
+layout(matrix(1:3, 1, 3), widths = c(9, 9, 2.5))
+par(mar = c(4, 5, 4, 0) + 0.5)
 
 plot(eDNA.PCoA$points[ ,1], eDNA.PCoA$points[ ,2], 
      ylim = c(-0.4, 0.4), xlim = c(-0.5, 0.4), 
@@ -753,6 +752,8 @@ axis(side = 3, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
 axis(side = 4, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
 abline(h = 0, v = 0, lty = 3)
 box(lwd = 2)
+
+mtext(side = 3, "Taxonomic PCoA", line = 1.5, cex = 1)
 
 # Subset data
 eDNA.div.sort <- eDNA.div[order(eDNA.div[,1]) ,]
@@ -806,33 +807,7 @@ points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23,
 points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, 
        cex = 2, col = "blue", bg = "blue", lwd = 2) 
 
-# Add Legend Outside
-par(mar = c(4, 0, 1, 1) + 0.5)
-plot.new()
-legend(0, 1, c("Gut", "Sediment", "Soil", "Water"), 
-       pch = c(21, 22, 24, 23), 
-       pt.bg = c("red", "darkgreen", "brown", "blue"), 
-       bty = "n", y.intersp = 1.5)
-legend(0, 0.25, c("Control", "DNase"), pch = 22, 
-       pt.bg = c("white", "black"),
-       bty = "n", y.intersp = 1.5)
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/ordination.png")
-grid.raster(img)
-```
-
-## Phylogenetic PcoA Plot (Supplemental)
-```{r, results = "hide"}
-png(filename="../figures/phylo.ordination.png",
-    width = 1200, height = 800, res = 96*2)
-layout(matrix(1:2, 1, 2), widths = c(9, 3))
-par(mar = c(4, 5, 1, 0) + 0.5)
-
+# Phylogenetic Plot
 plot(eDNA.phylo.PCoA$points[ ,1], eDNA.phylo.PCoA$points[ ,2], 
      ylim = c(-0.3, 0.5), xlim = c(-0.3, 0.6), 
      xlab = paste("PCoA 1 (", explainvar1, "%)", sep = ""),
@@ -852,6 +827,9 @@ axis(side = 3, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
 axis(side = 4, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
 abline(h = 0, v = 0, lty = 3)
 box(lwd = 2)
+
+mtext(side = 3, "Phylogenetic PCoA", line = 1.5, cex = 1)
+
 
 # Subset data
 eDNA.div.sort <- eDNA.div[order(eDNA.div[,1]) ,]
@@ -910,7 +888,7 @@ points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23,
 # text(eDNA.gut.E[ ,1], eDNA.gut.E[ ,2], labels = eDNA.gut.E$label)
 
 # Add Legend Outside
-par(mar = c(4, 0, 1, 1) + 0.5)
+par(mar = c(4, 0, 5, 1) + 0.5)
 plot.new()
 legend(0, 1, c("Gut", "Sediment", "Soil", "Water"), 
        pch = c(21, 22, 24, 23), 
@@ -925,7 +903,7 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/phylo.ordination.png")
+img <- readPNG("../figures/FigureS2-Ordinations.png")
 grid.raster(img)
 ```
 
@@ -1633,7 +1611,7 @@ grid.raster(img)
 
 ## Multipanel Centoid Distance Ratio Plot
 ```{r}
-png(filename="../figures/panel.ratio.centroid.png",
+png(filename="../figures/Figure4-Centroid.png",
     width = 800, height = 1200, res = 96*2)
 
 layout(matrix(1:2, 2, 1))
@@ -1717,7 +1695,7 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/panel.ratio.centroid.png")
+img <- readPNG("../figures/Figure4-Centroid.png")
 grid.raster(img)
 ```
 
