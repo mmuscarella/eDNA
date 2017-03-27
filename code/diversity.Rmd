@@ -46,7 +46,7 @@ ttest <- function(reg, coefnum, val){
 opar <- par(no.readonly = TRUE)  # Saves plot defauxlts
 
 # Run All: Select if all section are to be re-run
-run.all <- FALSE
+run.all <- TRUE
 ```
 
 ## Phylogenetic Diversity Notes
