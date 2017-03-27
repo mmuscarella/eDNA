@@ -123,7 +123,7 @@ grid.raster(img)
 
 # Make x-y plot with error bars by environment
 ```{r}
-png(filename="../figures/Prop_eDNA.png",
+png(filename="../figures/Figure2-Prop_eDNA.png",
     width = 800, height = 800, res = 96*2)
 
 par(mar = c(3, 5, 1, 1))
@@ -170,7 +170,7 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/Prop_eDNA.png")
+img <- readPNG("../figures/Figure2-Prop_eDNA.png")
 grid.raster(img)
 ```
 

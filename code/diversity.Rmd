@@ -196,7 +196,7 @@ rich.2.ag.mean.treatment <- aggregate(rich.E ~ env, rich.2, mean)
 rich.2.ag.sem.treatment <- aggregate(rich.E ~ env, rich.2, sem)
 
 # Calculate ratios
-rich.2$rich.ratio <- rich.2$rich.E / rich.2$rich.C
+rich.2$rich.ratio <- rich.2$rich.C / rich.2$rich.E
 
 # Richness table
 rich.2.ag.mean <- aggregate(rich.ratio ~ env, rich.2, mean)
@@ -253,7 +253,7 @@ even.2.ag.mean.treatment <- aggregate(even.E ~ env, even.2, mean)
 even.2.ag.sem.treatment <- aggregate(even.E ~ env, even.2, sem)
 
 # Calculate ratios
-even.2$even.ratio <- even.2$even.E / even.2$even.C
+even.2$even.ratio <- even.2$even.C / even.2$even.E
 
 # Evennes table
 even.2.ag.mean <- aggregate(even.ratio ~ env, even.2, mean)
@@ -331,7 +331,7 @@ TukeyHSD(faith.anova)
 ## Phylogenetic Diversity: does eDNA "inflate" diversity?
 ```{r}
 # Calculate ratios
-phylo.2$phylo.ratio <- phylo.2$phylo.E / phylo.2$phylo.C
+phylo.2$phylo.ratio <- phylo.2$phylo.C / phylo.2$phylo.E
 
 # Richness table
 phylo.2.ag.mean <- aggregate(phylo.ratio ~ env, phylo.2, mean)
@@ -355,159 +355,14 @@ ttest(phylo.reg, 1, 1)
 # answer => no correlation between proportion eDNA and evenness ratio. 
 ```
 
-# Alpha Diversity Plots
-## Richness plot
+# Alpha Plots
+## Alpha Ratios
 ```{r}
-png(filename="../figures/ratio.richness.png",
-    width = 800, height = 600, res = 96*2)
-
-par(mar=c(3, 4, 1, 1) + 0.1)
-
-rich.plot <- plot(rich.table$mean, ylim = c(0.5, 1.5), 
-      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
-      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
-      las = 1, ylab = "", xlab = "")
-      box(lwd = 2) 
-abline(h = 1, lty = 3, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$LCI, angle = 90,
-       length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$UCI, angle = 90,
-       length=0.1, lwd = 2)
-points(c(1:4), rich.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
-
-mtext(expression('Richness Ratio'), side = 2, 
-      outer = F, cex = 1.5, line = 2.5, adj = 0.5)  
-
-# Major Axes
-axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
-    labels = T, at = c(0.5, 1, 1.5))
-axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
-   labels = F, at = c(0.5, 1, 1.5))
-axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4)) 
-axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at = c(1, 2, 3, 4), labels = F) 
-
-# Minor ticks
-axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/ratio.richness.png")
-grid.raster(img)
-```
-
-## Evenness plot
-```{r}
-png(filename="../figures/ratio.evenness.png",
-    width = 800, height = 600, res = 96*2)
-
-par(mar=c(3, 4, 1, 1) + 0.1)
-
-even.plot <- plot(even.table$mean, ylim = c(0.5, 1.5), 
-      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
-      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
-      las = 1, ylab = "", xlab = "")
-      box(lwd = 2)
-abline(h = 1, lty = 3, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$LCI, angle = 90,
-       length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$UCI, angle = 90,
-       length=0.1, lwd = 2)
-points(c(1:4), even.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
-
-mtext(expression('Evenness Ratio'), side = 2, 
-        outer = F, cex = 1.5, line = 2.5, adj = 0.5)
-# Major Axes
-axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
-    labels = T, at = c(0.5, 1, 1.5))
- 
-axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
-   labels = F, at = c(0.5, 1, 1.5))
-
-axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
-
-axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at = c(1, 2, 3, 4), labels = F)
-
-# Minor ticks
-axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/ratio.evenness.png")
-grid.raster(img)
-```
-
-## Faith's D plot
-```{r}
-png(filename="../figures/ratio.phylo.png",
-    width = 800, height = 600, res = 96*2)
-
-par(mar=c(3, 4, 1, 1) + 0.1)
-
-phylo.plot <- plot(phylo.table$mean, ylim = c(0.5, 1.5), 
-      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
-      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
-      las = 1, ylab = "", xlab = "")
-      box(lwd = 2)
-abline(h = 1, lty = 3, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = phylo.table$mean, y1 = phylo.table$LCI, angle = 90,
-       length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = phylo.table$mean, y1 = phylo.table$UCI, angle = 90,
-       length=0.1, lwd = 2)
-points(c(1:4), phylo.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
-
-mtext(expression('Faiths D Ratio'), side = 2, 
-        outer = F, cex = 1.5, line = 2.5, adj = 0.5)
-# Major Axes
-axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
-    labels = T, at = c(0.5, 1, 1.5))
- 
-axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
-   labels = F, at = c(0.5, 1, 1.5))
-
-axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
-
-axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at = c(1, 2, 3, 4), labels = F)
-
-# Minor ticks
-axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/ratio.phylo.png")
-grid.raster(img)
-```
-
-## Alpha Diversity Multi-Panel Plot
-```{r}
-png(filename="../figures/alpha.ratios.png",
+png(filename="../figures/Figure3-Alpha.png",
     width = 800, height = 1600, res = 96*2)
 
 layout(matrix(c(1:3), byrow = T))
-par(mar = c(0.5, 4, 0.5, 1), oma = c(3, 1, 1, 1))
+par(mar = c(0.5, 4, 0.5, 1), oma = c(3, 2, 1, 1))
 
 # Richness Panel
 rich.plot <- plot(rich.table$mean, ylim = c(0.5, 1.5), 
@@ -559,13 +414,10 @@ mtext(expression('Evenness Ratio'), side = 2,
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
     labels = T, at = c(0.5, 1, 1.5))
- 
 axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
    labels = F, at = c(0.5, 1, 1.5))
-
 axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 0.9, las = 1,
     labels = F, at = c(1, 2, 3, 4))
-
 axis(side = 3, lwd.ticks = 2, tck = -0.02, cex.axis = 1.5, las = 1,
     at = c(1, 2, 3, 4), labels = F)
 
@@ -593,13 +445,10 @@ mtext(expression('Faiths D Ratio'), side = 2,
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
     labels = T, at = c(0.5, 1, 1.5))
- 
 axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
    labels = F, at = c(0.5, 1, 1.5))
-
 axis(side = 1, lwd.ticks = 2, cex.axis = 1.5, las = 1,
     labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
-
 axis(side = 3, lwd.ticks = 2, tck = -0.02, cex.axis = 1.5, las = 1,
     at = c(1, 2, 3, 4), labels = F)
 
@@ -614,7 +463,127 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/alpha.ratios.png")
+img <- readPNG("../figures/Figure3-Alpha.png")
+grid.raster(img)
+```
+
+## Linear Models
+```{r}
+png(filename="../figures/FigureS3-AlphaLM.png",
+    width = 800, height = 1600, res = 96*2)
+
+layout(matrix(c(1:3), byrow = T))
+par(mar = c(1, 4.5, 0.5, 1), oma = c(6, 2, 1.5, 1))
+
+# rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$prop)
+
+plot(eDNA.prop.sub2$prop, rich.2[order(rich.2$qPCR.match), ]$rich.ratio,
+     xlim = c(0, 1), ylim = c(0.5, 2),
+     pch = 22, bg = "gray", lwd = 2, 
+     cex = 2, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+     las = 1, ylab = "", xlab = "")
+box(lwd = 2) 
+
+clip(x1 = 0, x2 = 0.85, y1 = -5, y2 = 2)
+abline(rich.reg, lty = 2, lwd = 3, col = "gray")
+
+legend("topleft", cex = 1.2,
+       c(paste("Slope: P =", round(ttest(rich.reg, 2, 0)[3], 2)),
+       paste("Intercept: P =", round(ttest(rich.reg, 1, 1)[3], 2))), 
+       lty = 2, bty = "n", col = "gray")
+
+mtext(side = 2, "Richness Ratio", line = 3.5, cex = 1.5)
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, tck = -0.02, cex.axis = 1.75, las = 1,
+    labels = T, at = c(0.5, 1, 1.5, 2))
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5, 2))
+axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 0.9, las = 1,
+    labels = F) 
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.75, las = 1,
+    labels = F) 
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5, 2))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5, 2))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
+
+
+# even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop)
+plot(eDNA.prop.sub2$prop, even.2[order(even.2$qPCR.match), ]$even.ratio,
+     xlim = c(0, 1), ylim = c(0.5, 1.5),
+     pch = 22, bg = "gray", lwd = 2, 
+     cex = 2, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+     las = 1, ylab = "", xlab = "")
+box(lwd = 2)
+
+clip(x1 = 0, x2 = 0.85, y1 = -5, y2 = 2)
+abline(even.reg, lty = 2, lwd = 3, col = "gray")
+legend("topleft", cex = 1.2,
+       c(paste("Slope: P =", sprintf("%.2f", 
+                                     round(ttest(even.reg, 2, 0)[3], 2))),
+       paste("Intercept: P =", round(ttest(even.reg, 1, 1)[3], 2))), 
+       lty = 2, bty = "n", col = "gray")
+mtext(side = 2, "Evenness Ratio", line = 3.5, cex = 1.5)
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1.75, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 0.9, las = 1,
+    labels = F)
+axis(side = 3, lwd.ticks = 2, tck = -0.02, cex.axis = 1.5, las = 1,
+    labels = F)
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
+
+# phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop)
+
+plot(eDNA.prop.sub2$prop, phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio,
+     xlim = c(0, 1), ylim = c(0.5, 1.5),
+     pch = 22, bg = "gray", lwd = 2, 
+     cex = 2, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+     las = 1, ylab = "", xlab = "")
+box(lwd = 2) 
+
+clip(x1 = 0, x2 = 0.85, y1 = -5, y2 = 2)
+abline(phylo.reg, lty = 2, lwd = 3, col = "gray")
+legend("topleft", cex = 1.2,
+       c(paste("Slope: P =", round(ttest(phylo.reg, 2, 0)[3], 2)),
+       paste("Intercept: P =", round(ttest(phylo.reg, 1, 1)[3], 2))), 
+       lty = 2, bty = "n", col = "gray")
+mtext(side = 1, "Proportion eDNA", line = 3.5, cex = 1.5)
+mtext(side = 2, "Faiths D Ratio", line = 3.5, cex = 1.5)
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, cex.axis = 1.75, las = 1,
+    labels = T, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 1.75, las = 1,
+    labels = T) 
+axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+    labels = F) 
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/FigureS3-AlphaLM.png")
 grid.raster(img)
 ```
 
@@ -726,13 +695,12 @@ mean(reps.dis)
 t.test(pair.dis, reps.dis)
 ```
 
-# PCoA Plots
-## Taxonomic PcoA Plot (Supplemental)
+## PCoA Plots
 ```{r, results = "hide"}
-png(filename="../figures/ordination.png",
-    width = 1200, height = 800, res = 96*2)
-layout(matrix(1:2, 1, 2), widths = c(9, 3))
-par(mar = c(4, 5, 1, 0) + 0.5)
+png(filename="../figures/FigureS2-Ordinations.png",
+    width = 1800, height = 800, res = 96*2)
+layout(matrix(1:3, 1, 3), widths = c(9, 9, 2.5))
+par(mar = c(4, 5, 4, 0) + 0.5)
 
 plot(eDNA.PCoA$points[ ,1], eDNA.PCoA$points[ ,2], 
      ylim = c(-0.4, 0.4), xlim = c(-0.5, 0.4), 
@@ -753,6 +721,8 @@ axis(side = 3, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
 axis(side = 4, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
 abline(h = 0, v = 0, lty = 3)
 box(lwd = 2)
+
+mtext(side = 3, "Taxonomic PCoA", line = 1.5, cex = 1)
 
 # Subset data
 eDNA.div.sort <- eDNA.div[order(eDNA.div[,1]) ,]
@@ -806,33 +776,7 @@ points(eDNA.water.C[ ,1], eDNA.water.C[ ,2], pch = 23,
 points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23, 
        cex = 2, col = "blue", bg = "blue", lwd = 2) 
 
-# Add Legend Outside
-par(mar = c(4, 0, 1, 1) + 0.5)
-plot.new()
-legend(0, 1, c("Gut", "Sediment", "Soil", "Water"), 
-       pch = c(21, 22, 24, 23), 
-       pt.bg = c("red", "darkgreen", "brown", "blue"), 
-       bty = "n", y.intersp = 1.5)
-legend(0, 0.25, c("Control", "DNase"), pch = 22, 
-       pt.bg = c("white", "black"),
-       bty = "n", y.intersp = 1.5)
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/ordination.png")
-grid.raster(img)
-```
-
-## Phylogenetic PcoA Plot (Supplemental)
-```{r, results = "hide"}
-png(filename="../figures/phylo.ordination.png",
-    width = 1200, height = 800, res = 96*2)
-layout(matrix(1:2, 1, 2), widths = c(9, 3))
-par(mar = c(4, 5, 1, 0) + 0.5)
-
+# Phylogenetic Plot
 plot(eDNA.phylo.PCoA$points[ ,1], eDNA.phylo.PCoA$points[ ,2], 
      ylim = c(-0.3, 0.5), xlim = c(-0.3, 0.6), 
      xlab = paste("PCoA 1 (", explainvar1, "%)", sep = ""),
@@ -852,6 +796,9 @@ axis(side = 3, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
 axis(side = 4, labels = F, lwd.ticks = 2, cex.axis = 1, las = 1, tck=0.01)
 abline(h = 0, v = 0, lty = 3)
 box(lwd = 2)
+
+mtext(side = 3, "Phylogenetic PCoA", line = 1.5, cex = 1)
+
 
 # Subset data
 eDNA.div.sort <- eDNA.div[order(eDNA.div[,1]) ,]
@@ -910,7 +857,7 @@ points(eDNA.water.E[ ,1], eDNA.water.E[ ,2], pch = 23,
 # text(eDNA.gut.E[ ,1], eDNA.gut.E[ ,2], labels = eDNA.gut.E$label)
 
 # Add Legend Outside
-par(mar = c(4, 0, 1, 1) + 0.5)
+par(mar = c(4, 0, 5, 1) + 0.5)
 plot.new()
 legend(0, 1, c("Gut", "Sediment", "Soil", "Water"), 
        pch = c(21, 22, 24, 23), 
@@ -925,7 +872,7 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/phylo.ordination.png")
+img <- readPNG("../figures/FigureS2-Ordinations.png")
 grid.raster(img)
 ```
 
@@ -1292,12 +1239,11 @@ for (i in 1:length(centroid.div$prop)){
 }
 
 # Take averages of technial reps
-centroid.div.2 <- ddply(centroid.div, .(env, qPCR.match, prop), 
+centroid.div.t <- ddply(centroid.div, .(env, qPCR.match, prop), 
                       summarize, cent.dist = mean(cent.dist))
 
-
-t.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div.2)
-t.cent.reg <- lm(cent.dist ~ prop, data = centroid.div.2)
+t.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div.t)
+t.cent.reg <- lm(cent.dist ~ prop, data = centroid.div.t)
 
 summary(t.cent.reg) 
 ttest(t.cent.reg, 1, 1)
@@ -1514,11 +1460,11 @@ for (i in 1:length(centroid.div$prop)){
 }
 
 # Take averages of technial reps
-centroid.div.2 <- ddply(centroid.div, .(env, qPCR.match, prop), 
+centroid.div.p <- ddply(centroid.div, .(env, qPCR.match, prop), 
                       summarize, cent.dist = mean(cent.dist))
 
-p.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div)
-p.cent.reg <- lm(cent.dist ~ prop, data = centroid.div)
+p.cent.reg <- lm(cent.dist ~ prop * env, data = centroid.div.p)
+p.cent.reg <- lm(cent.dist ~ prop, data = centroid.div.p)
 summary(p.cent.reg) 
 ttest(p.cent.reg, 1, 1)
 
@@ -1527,113 +1473,10 @@ ttest(p.cent.reg, 1, 1)
 
 ```
 
-
-# Centroid Distance Plots
-## Taxonomic Centoid Distance Ratio Plot
+# Beta Plots
+## Centroid Distance
 ```{r}
-png(filename="../figures/ratio.centroid.png",
-    width = 800, height = 600, res = 96*2)
-
-par(mar=c(3, 4, 1, 1) + 0.1)
-
-cent.dist.table <- t.cent.dist.table
-
-centroid.plot <- plot(cent.dist.table$mean, ylim = c(0.5, 1.7), 
-      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
-      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
-      las = 1, ylab = "", xlab = "")
-      box(lwd = 2)
-abline(h = 1, lty = 3, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$LCI, angle = 90,
-       length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$UCI, angle = 90,
-       length=0.1, lwd = 2)
-points(c(1:4), cent.dist.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
-
-mtext(expression('Centroid Distance Ratio'), side = 2, 
-        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
-# Major Axes
-axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
-    labels = T, at = c(0.5, 1, 1.5))
- 
-axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
-   labels = F, at = c(0.5, 1, 1.5))
-
-axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
-
-axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at = c(1, 2, 3, 4), labels = F)
-
-# Minor ticks
-axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/ratio.centroid.png")
-grid.raster(img)
-```
-
-## Phylogenetic Centoid Distance Ratio Plot
-```{r}
-png(filename="../figures/ratio.phylo.centroid.png",
-    width = 800, height = 600, res = 96*2)
-
-par(mar=c(3, 4, 1, 1) + 0.1)
-
-cent.dist.table <- p.cent.dist.table
-
-centroid.plot <- plot(cent.dist.table$mean, ylim = c(0.5, 1.5), 
-      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
-      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
-      las = 1, ylab = "", xlab = "")
-      box(lwd = 2)
-abline(h = 1, lty = 3, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$LCI, angle = 90,
-       length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = cent.dist.table$mean, y1 = cent.dist.table$UCI, angle = 90,
-       length=0.1, lwd = 2)
-points(c(1:4), cent.dist.table$mean,pch = 22, cex = 3, bg = "gray90", lwd = 2)
-
-mtext(expression('Centroid Distance Ratio'), side = 2, 
-        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
-# Major Axes
-axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
-    labels = T, at = c(0.5, 1, 1.5))
- 
-axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
-   labels = F, at = c(0.5, 1, 1.5))
-
-axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
-
-axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at = c(1, 2, 3, 4), labels = F)
-
-# Minor ticks
-axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/ratio.phylo.centroid.png")
-grid.raster(img)
-```
-
-## Multipanel Centoid Distance Ratio Plot
-```{r}
-png(filename="../figures/panel.ratio.centroid.png",
+png(filename="../figures/Figure4-Centroid.png",
     width = 800, height = 1200, res = 96*2)
 
 layout(matrix(1:2, 2, 1))
@@ -1717,351 +1560,95 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/panel.ratio.centroid.png")
+img <- readPNG("../figures/Figure4-Centroid.png")
 grid.raster(img)
 ```
 
+## Linear Models
+```{r}
+png(filename="../figures/FigureS4-CentroidLM.png",
+    width = 800, height = 1200, res = 96*2)
+
+layout(matrix(c(1:2), byrow = T))
+par(mar = c(0.5, 4.5, 0.5, 1), oma = c(4.5, 2, 1.5, 1))
+
+# t.cent.reg <- lm(cent.dist ~ prop, data = centroid.div.t)
+# ttest(t.cent.reg, 1, 1)
+
+plot(centroid.div.t$prop, centroid.div.t$cent.dist,
+     xlim = c(0, 1), ylim = c(0.5, 2),
+     pch = 22, bg = "gray", lwd = 2, 
+     cex = 1.5, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+     las = 1, ylab = "", xlab = "")
+box(lwd = 2) 
+
+legend("topright", cex = 0.8, 
+       c(paste("Slope: P =", round(ttest(t.cent.reg, 2, 0)[3], 2)),
+       paste("Intercept: P =", round(ttest(t.cent.reg, 1, 1)[3], 2))), 
+       lty = 2, bty = "n", col = "gray")
+
+clip(x1 = 0, x2 = 0.85, y1 = -5, y2 = 2)
+abline(t.cent.reg, lty = 2, lwd = 3, col = "gray")
+
+mtext('Centroid Distance Ratio\n(Bray Curtis Distance)', side = 2, 
+        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
+
+# Major Axes
+axis(side = 2, lwd.ticks = 2, tck = -0.02, cex.axis = 1, las = 1,
+    labels = T, at = c(0.5, 1, 1.5, 2))
+axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
+   labels = F, at = c(0.5, 1, 1.5, 2))
+axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 0.9, las = 1,
+    labels = F) 
+axis(side = 3, lwd.ticks = 2, cex.axis = 1, las = 1,
+    labels = F) 
+
+# Minor ticks
+axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5, 2))
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5, 2))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
 
 
-################################################################################
-# Old Code
-```{r, eval = F}
-# Delta Distance as Funciton of Proportion eDNA
-eDNA.pairs
-eDNA.prop
 
-eDNA.pairs$prop <- eDNA.prop.sub2$prop[match(eDNA.prop.sub2$sample.number, eDNA.pairs$qPCR)]
+# p.cent.reg <- lm(cent.dist ~ prop, data = centroid.div.p)
+# ttest(p.cent.reg, 1, 1)
 
-# Reshape data
-eDNA.pairs.2 <- reshape(eDNA.pairs[,1:4], timevar = "treat", 
-                   idvar = c("qPCR.match", "env"), direction = "wide")
+plot(centroid.div.p$prop, centroid.div.p$cent.dist,
+     xlim = c(0, 1), ylim = c(0.5, 1.5),
+     pch = 22, bg = "gray", lwd = 2, 
+     cex = 1.5, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
+     las = 1, ylab = "", xlab = "")
+box(lwd = 2) 
 
-# Regression: PD ratio vs. proportion eDNA
-phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop * eDNA.prop.sub2$env )
-summary(phylo.reg) 
+legend("topright", cex = 0.8, 
+       c(paste("Slope: P =", round(ttest(p.cent.reg, 2, 0)[3], 2)),
+       paste("Intercept: P =", round(ttest(p.cent.reg, 1, 1)[3], 2))), 
+       lty = 2, bty = "n", col = "gray")
 
-# Separate by Treatments
-eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
-eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
-OTU.REL.log.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
-OTU.REL.log.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
-
-# Order Each by Pairings
-eDNA.div.c <- eDNA.div.c[order(eDNA.div.c$pair), ]
-eDNA.div.e <- eDNA.div.e[order(eDNA.div.e$pair), ]
-OTU.REL.log.c <- OTU.REL.log.c[order(eDNA.div.c$pair), ]
-OTU.REL.log.e <- OTU.REL.log.e[order(eDNA.div.e$pair), ]
-all.equal(eDNA.div.e$env, eDNA.div.c$env)
-
-# Create Distance Matrix for Treatments
-dist.c <- vegdist(OTU.REL.log.c, method = "bray", upper = T, diag = T)
-dist.e <- vegdist(OTU.REL.log.e, method = "bray", upper = T, diag = T)
-
-pcoa.c <- cmdscale(dist.c, k = 3)
-pcoa.e <- cmdscale(dist.e, k = 3)
-
-# Procrustes Analysis
-eDNA.ProC <- protest(pcoa.c, pcoa.e, scores = "sites", permutations = how(nperm = 999))
-eDNA.ProC
-summary(eDNA.ProC)
-
-# Delta Distances
-## Taxonomic Distances Between Pairs
-# Data Check
-all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
-
-# Create Raw Distance Matrix
-dist.raw <- as.matrix(vegdist(OTU.REL.log, method = "bray", upper = T, diag = T))
-
-# Calculate Average Distance For Each Environment
-mean.dist.env <- matrix(NA, length(unique(eDNA.div$env)), 3)
-rownames(mean.dist.env) <- unique(eDNA.div$env)
-colnames(mean.dist.env) <- c("Total", "C", "E")
-for (i in 1:dim(mean.dist.env)[1]){
-  mean.dist.env[i, 1] <- mean(dist.raw[eDNA.div$env == rownames(mean.dist.env)[i], 
-                                    eDNA.div$env == rownames(mean.dist.env)[i]])
-  mean.dist.env[i, 2] <- mean(dist.raw[eDNA.div$env == rownames(mean.dist.env)[i] &
-                                        eDNA.div$treat == "C", 
-                                    eDNA.div$env == rownames(mean.dist.env)[i] &
-                                        eDNA.div$treat == "C"])
-  mean.dist.env[i, 3] <- mean(dist.raw[eDNA.div$env == rownames(mean.dist.env)[i] &
-                                        eDNA.div$treat == "E", 
-                                    eDNA.div$env == rownames(mean.dist.env)[i] &
-                                        eDNA.div$treat == "E"])
-}
-
-# Create Pairing Matrix
-pair.names <- levels(as.factor(eDNA.div$pair))
-eDNA.pairs <- as.data.frame(matrix(NA, length(pair.names), 4))
-colnames(eDNA.pairs) <- c("pair", "env", "dis", "qPCR")
-eDNA.pairs$pair <- pair.names
-
-# Calculate Distance for Pairs
-for (i in 1:length(pair.names)){
-  pair.temp <- eDNA.pairs$pair[i]
-  samp.temp <- rownames(eDNA.div)[which(eDNA.div$pair == pair.temp)]
-  if (length(samp.temp) != 2){
-    stop("more than two samples in pair")
-  }
-  dist.temp <- dist.raw[which(colnames(dist.raw) == samp.temp[1]),
-                        which(colnames(dist.raw) == samp.temp[2])]
-  eDNA.pairs$env[i] <- eDNA.div$env[which(row.names(eDNA.div) == samp.temp[1])]
-  eDNA.pairs$dis[i] <- dist.temp
-  eDNA.pairs$qPCR[i] <- eDNA.div$qPCR.match[which(row.names(eDNA.div) == samp.temp[1])]
-}
-
-# Organize Data
-pair.dis.mean <- aggregate(dis ~ env, eDNA.pairs, mean)
-pair.dis.sem <- aggregate(dis ~ env, eDNA.pairs, sem)
-pair.dis.95 <- aggregate(dis ~ env, eDNA.pairs, 
-                  FUN = function(x) t.test(x)$conf.int[1:2])
-t.pair.dis.table <- data.frame(env = pair.dis.mean$env, mean = pair.dis.mean$dis,
-                         sem = pair.dis.sem$dis, ci = pair.dis.95$dis)
-colnames(t.pair.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
-
-# Organize Data as Ratio
-env.means <- 
-
-
-## Phylogenetic Distances between Pairs
-
-# Data Check
-all.equal(row.names(eDNA.div), row.names(as.matrix(phylo.dist.m)))
-
-# Create Raw Distance Matrix
-dist.raw <- phylo.dist.m
-colnames(dist.raw) <- rownames(dist.raw)
-
-# Create Pairing Matrix
-pair.names <- levels(as.factor(eDNA.div$pair))
-eDNA.pairs <- as.data.frame(matrix(NA, length(pair.names), 4))
-colnames(eDNA.pairs) <- c("pair", "env", "dis", "qPCR")
-eDNA.pairs$pair <- pair.names
-
-# Calculate Distance for Pairs
-for (i in 1:length(pair.names)){
-  pair.temp <- eDNA.pairs$pair[i]
-  samp.temp <- rownames(eDNA.div)[which(eDNA.div$pair == pair.temp)]
-  if (length(samp.temp) != 2){
-    stop("more than two samples in pair")
-  }
-  dist.temp <- dist.raw[which(colnames(dist.raw) == samp.temp[1]),
-                        which(colnames(dist.raw) == samp.temp[2])]
-  eDNA.pairs$env[i] <- eDNA.div$env[which(row.names(eDNA.div) == samp.temp[1])]
-  eDNA.pairs$dis[i] <- dist.temp
-  eDNA.pairs$qPCR[i] <- eDNA.div$qPCR.match[which(row.names(eDNA.div) == samp.temp[1])]
-}
-
-pair.dis.mean <- aggregate(dis ~ env, eDNA.pairs, mean)
-pair.dis.sem <- aggregate(dis ~ env, eDNA.pairs, sem)
-pair.dis.95 <- aggregate(dis ~ env, eDNA.pairs, 
-                  FUN = function(x) t.test(x)$conf.int[1:2])
-p.pair.dis.table <- data.frame(env = pair.dis.mean$env, mean = pair.dis.mean$dis,
-                         sem = pair.dis.sem$dis, ci = pair.dis.95$dis)
-colnames(p.pair.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
-
-
-# Delta Distance Plots
-## Taxonomic Plot
-
-png(filename="../figures/delta.dist.png",
-    width = 800, height = 600, res = 96*2)
-
-par(mar=c(3, 4, 1, 1) + 0.1)
-
-distance.plot <- plot(t.pair.dis.table$mean, ylim = c(-0.1, 0.6), 
-      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
-      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
-      las = 1, ylab = "", xlab = "")
-      box(lwd = 2) 
-abline(h = 0, lty = 3, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = delta.dis.table$mean, y1 = delta.dis.table$LCI, 
-       angle = 90, length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = delta.dis.table$mean, y1 = delta.dis.table$UCI, 
-       angle = 90, length=0.1, lwd = 2)
-points(c(1:4), delta.dis.table$mean, pch = 22, cex = 3, bg = "gray90", lwd = 2)
-
-mtext(expression('Distance'), side = 2, 
-      outer = F, cex = 1.5, line = 3, adj = 0.5)  
+clip(x1 = 0, x2 = 0.85, y1 = -5, y2 = 2)
+abline(p.cent.reg, lty = 2, lwd = 3, col = "gray")
+mtext(side = 1, "Proportion eDNA", line = 3)
+mtext('Centroid Distance Ratio\n(UniFrac Distance)', side = 2, 
+        outer = F, cex = 1.25, line = 2.5, adj = 0.5)
 
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
-    labels = T, at = c(seq(-0.1, 0.3, 0.1))) 
+    labels = T, at = c(0.5, 1, 1.5))
 axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
-   labels = F, at = c(-0.1, 0.3, 0.1))
-axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4)) 
-axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at = c(1, 2, 3, 4), labels = F) 
+   labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = -0.02, cex.axis = 1, las = 1,
+    labels = T) 
+axis(side = 3, lwd.ticks = 2, tck = -0.02, cex.axis = 1.5, las = 1,
+    labels = F) 
 
 # Minor ticks
 axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(-0.1, 0.3, 0.1))
-axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(-0.1, 0.3, 0.1))
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/delta.dist.png")
-grid.raster(img)
+axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
+axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
+axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
 
 
-## Phylogenetic Plot
-
-png(filename="../figures/phylo.delta.dist.png",
-    width = 800, height = 600, res = 96*2)
-
-par(mar=c(3, 4, 1, 1) + 0.1)
-
-distance.plot <- plot(delta.dis.table$mean, ylim = c(-0.1, 0.3), 
-      xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
-      cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
-      las = 1, ylab = "", xlab = "")
-      box(lwd = 2) 
-abline(h = 0, lty = 3, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = delta.dis.table$mean, y1 = delta.dis.table$LCI, 
-       angle = 90, length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = delta.dis.table$mean, y1 = delta.dis.table$UCI, 
-       angle = 90, length=0.1, lwd = 2)
-points(c(1:4), delta.dis.table$mean, pch = 22, cex = 3, bg = "gray90", lwd = 2)
-
-mtext(expression('Distance'), side = 2, 
-      outer = F, cex = 1.5, line = 3, adj = 0.5)  
-
-# Major Axes
-axis(side = 2, lwd.ticks = 2, cex.axis = 1, las = 1,
-    labels = T, at = c(seq(-0.1, 0.3, 0.1))) 
-axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
-   labels = F, at = c(-0.1, 0.3, 0.1))
-axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4)) 
-axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    at = c(1, 2, 3, 4), labels = F) 
-
-# Minor ticks
-axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
-axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(-0.1, 0.3, 0.1))
-axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
-axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(-0.1, 0.3, 0.1))
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/phylo.delta.dist.png")
-grid.raster(img)
-
-
-## Delta-Abundances
-
-
-
-
-
-
-
-
-# What is this stuff for????? Check all calculations
-# Variation Parititioning
-
-# Turn Distance Matrices into Matrices
-dist.raw <- as.matrix(dist.raw)
-dist.e <- as.matrix(dist.e)
-dist.c <- as.matrix(dist.c)
-
-# Seperate by Habitat
-eDNA.div.gut <- eDNA.div[which(eDNA.div$env == "feces"), ]
-eDNA.div.sed <- eDNA.div[which(eDNA.div$env == "sed"), ]
-eDNA.div.sol <- eDNA.div[which(eDNA.div$env == "soil"), ]
-eDNA.div.wat <- eDNA.div[which(eDNA.div$env == "water"), ]
-
-OTU.REL.log.gut <- OTU.REL.log[which(eDNA.div$env == "feces"), ]
-OTU.REL.log.sed <- OTU.REL.log[which(eDNA.div$env == "sed"), ]
-OTU.REL.log.sol <- OTU.REL.log[which(eDNA.div$env == "soil"), ]
-OTU.REL.log.wat <- OTU.REL.log[which(eDNA.div$env == "water"), ]
-
-# Order Each by Pairings
-eDNA.div.gut <- eDNA.div.gut[order(eDNA.div.gut$pair), ]
-eDNA.div.sed <- eDNA.div.sed[order(eDNA.div.sed$pair), ]
-eDNA.div.sol <- eDNA.div.sol[order(eDNA.div.sol$pair), ]
-eDNA.div.wat <- eDNA.div.wat[order(eDNA.div.wat$pair), ]
-OTU.REL.log.gut <- OTU.REL.log.gut[order(eDNA.div.gut$pair), ]
-OTU.REL.log.sed <- OTU.REL.log.sed[order(eDNA.div.sed$pair), ]
-OTU.REL.log.sol <- OTU.REL.log.sol[order(eDNA.div.sol$pair), ]
-OTU.REL.log.wat <- OTU.REL.log.wat[order(eDNA.div.wat$pair), ]
-
-# Create Distance Matrix for Treatments
-dist.gut <- vegdist(OTU.REL.log.gut, method = "bray", upper = F, diag = F)
-dist.sed <- vegdist(OTU.REL.log.sed, method = "bray", upper = F, diag = F)
-dist.sol <- vegdist(OTU.REL.log.sol, method = "bray", upper = F, diag = F)
-dist.wat <- vegdist(OTU.REL.log.wat, method = "bray", upper = F, diag = F)
-
-# Turn Distance Matrices into Matrices
-dist.gut2 <- as.matrix(dist.gut)
-dist.sed2 <- as.matrix(dist.sed)
-dist.sol2 <- as.matrix(dist.sol)
-dist.wat2 <- as.matrix(dist.wat)
-
-# what are the factors I have to work with
-head(eDNA.div.gut)
-levels(eDNA.div.gut$treat)
-levels(as.factor(eDNA.div.gut$qPCR.match))
-
-# Variance Partitioning
-var.gut <- varpart(Y = dist.gut, as.numeric(eDNA.div.gut$treat), (eDNA.div.gut$qPCR.match))
-plot(var.gut)
-
-gut.RDA <- capscale(dist.gut ~ eDNA.div.gut$treat + as.factor(eDNA.div.gut$qPCR.match))
-anova(gut.RDA, by = "term")
-RsquareAdj(gut.RDA)
-
-# Adjusted RSquare by Terms
-rda.aov <- (anova(gut.RDA, by = "term"))
-r2 <- (rda.aov$SumOfSqs[1:2] / sum(rda.aov$SumOfSqs[1:3]))
-m <- c(length(levels(eDNA.div.gut$treat)) - 1, 
-       length(levels(as.factor(eDNA.div.gut$qPCR.match))) - 1)
-n <- nrow(gut.RDA$CCA$u)
-adjr2 <- 1 - (1 - r2) * (n - 1)/(n - m - 1)
-r2; adjr2; sum(r2); sum(adjr2)
-
-
-var.r2 <- as.data.frame(matrix(NA, 4, 3))
-colnames(var.r2) <- c("eDNA", "replicates", "unexplained")
-row.names(var.r2) <- c("gut", "sed", "sol", "wat")
-for (i  in 1:dim(var.r2)[1]){
-  env.temp <- rownames(var.r2)[i]
-  dis.temp <- get(paste("dist", env.temp, sep = "."))
-  dat.temp <- get(paste("eDNA.div", env.temp, sep = "."))
-  rda.temp <- capscale(dis.temp ~ dat.temp$treat +
-                         as.factor(dat.temp$qPCR.match))
-  aov.temp <- anova(rda.temp, by = "term")
-  r2 <- (aov.temp$SumOfSqs[1:2] / sum(aov.temp$SumOfSqs[1:3]))  
-  var.r2[i, 1] <- r2[1]
-  var.r2[i, 2] <- r2[2]
-  var.r2[i, 3] <- (1 - sum(r2))
-}
-
-png(filename="../figures/variation.png",
-    width = 1200, height = 800, res = 96*2)
-layout(matrix(1:2, 2, 1) , heights = c(8, 2))
-par(mar = c(2, 5, 1, 0) + 0.5, oma = c(0.5, 0.5, 0.5, 0.5))
-
-barplot(t(as.matrix(var.r2)),
-        names.arg = c("Gut", "Sediment", "Soil", "Water"),
-        las = 1, ylab = "")
-
-mtext("Proportion of Variation", side = 2, cex = 1.25, line = 3)
-
-# Add Legend Outside
-par(mar = c(1, 5, 0, 1) + 0.5)
-plot.new()
-legend("top", c("DNase", "Replicates", "Unexplained"), 
-       pch = 22, pt.bg = c("gray40", "gray60", "gray90"),
-      bty = "n", y.intersp = 1.5, horiz = T)
 
 
 # Close Plot Device
@@ -2069,157 +1656,8 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/variation.png")
+img <- readPNG("../figures/FigureS4-CentroidLM.png")
 grid.raster(img)
-
-
-# Variation based on Bray Curtis Distance
-
-bc.var <- as.data.frame(matrix(NA, 4, 3))
-colnames(bc.var) <- c("reps", "treat", "env")
-row.names(bc.var) <- c("gut", "sed", "sol", "wat")
-for (i  in 1:dim(bc.var)[1]){
-  env.temp <- rownames(bc.var)[i]
-  dis.temp <- get(paste("dist", env.temp, sep = "."))
-  dat.temp <- get(paste("eDNA.div", env.temp, sep = "."))
-  dat.temp <- dat.temp[order(dat.temp$samp.num), ]
-  if (all(attributes(dis.temp)$Labels != rownames(dat.temp))){
-    stop("distance matix and data are not arranged properly")
-  }
-  dis.temp.C <- as.matrix(dis.temp)[which(dat.temp$treat == "C"), 
-                                    which(dat.temp$treat == "C")]
-  dis.temp.C <- as.dist(dis.temp.C)
-  bc.var[i,3] <- mean(dis.temp.C)
-  dis.pair <- as.data.frame(matrix(NA, length(unique(dat.temp$pair)), 3))
-  colnames(dis.pair) <- c("C", "E", "dis")
-  dis.pair[,1] <- rownames(dat.temp)[dat.temp$treat == "C"]
-  for (j in 1:length(dis.pair$C)){
-    pair <- dat.temp$pair[which(rownames(dat.temp) == dis.pair$C[j])]
-    dis.pair[j, 2] <- rownames(dat.temp)[which(dat.temp$treat == "E" & 
-                                         dat.temp$pair == pair)]
-    dis.pair[j, 3] <- as.matrix(dis.temp)[which(rownames(dat.temp) == dis.pair[j, 1]), 
-                                    which(rownames(dat.temp) == dis.pair[j, 2])]
-  }
-  bc.var[i,2] <- mean(dis.pair[,3])
-  reps <- names(which(table(dat.temp$qPCR.match) > 2))
-  dis.rep <- as.data.frame(matrix(NA, length(reps), 3))
-  colnames(dis.rep) <- c("rep1", "rep2", "dis")
-  for (k in 1:length(reps)){
-    dis.rep[k, 1:2] <- rownames(dat.temp)[which(dat.temp$treat == "C" &
-                                          dat.temp$qPCR.match == reps[k])]
-    dis.rep[k, 3] <- as.matrix(dis.temp)[which(rownames(dat.temp) == dis.rep[k, 1]), 
-                                    which(rownames(dat.temp) == dis.rep[k, 2])]
-  }
-  bc.var[i, 1] <- mean(dis.rep[, 3])
-}
-
-bc.var
-
-# bc.var <- bc.var/rowSums(bc.var)
-
-# Standardized BC distances
-bc.var.std <- bc.var/rowSums(bc.var)  
-
-
-## Distance Partitioning Plot
-
-png(filename="../figures/BC_dist.png",
-    width = 1200, height = 800, res = 96*2)
-layout(matrix(1:2, 2, 1) , heights = c(8, 2))
-par(mar = c(2, 5, 1, 0) + 0.5, oma = c(0.5, 0.5, 0.5, 0.5))
-
-barplot(t(as.matrix(bc.var)),
-        names.arg = c("Gut", "Sediment", "Soil", "Water"),
-        las = 1, ylab = "", ylim = c(0, 1))
-
-mtext("Bray Curtis Distance", side = 2, cex = 1.25, line = 3)
-
-# Add Legend Outside
-par(mar = c(1, 5, 0, 1) + 0.5)
-plot.new()
-legend("top", c("Replicates", "Treatments", "Environments"), 
-       pch = 22, pt.bg = c("gray40", "gray60", "gray90"),
-      bty = "n", y.intersp = 1.5, horiz = T)
-
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/BC_dist.png")
-grid.raster(img)
-
-# PERMANOVA on Delta-Distances
-
-# Check order of design
-all.equal(row.names(eDNA.div), row.names(as.matrix(phylo.dist)))
-
-OTU.REL.c <- OTU.REL.log[which(eDNA.div$treat == "C"), ]
-OTU.REL.e <- OTU.REL.log[which(eDNA.div$treat == "E"), ]
-
-eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
-eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
-
-all.equal(sort(eDNA.div.c$samp.code), sort(eDNA.div.e$samp.code))
-
-eDNA.div.c <- eDNA.div.c[order(eDNA.div.c$samp.code), ]
-eDNA.div.e <- eDNA.div.e[order(eDNA.div.e$samp.code), ]
-
-OTU.REL.c2 <- OTU.REL.c[order(eDNA.div.c$samp.code), ]
-OTU.REL.e2 <- OTU.REL.e[order(eDNA.div.e$samp.code), ]
-
-dim(OTU.REL.c2); dim(OTU.REL.e2)
-all.equal(eDNA.div.e$samp.code, eDNA.div.c$samp.code)
-
-delta.abund <- OTU.REL.c2 - OTU.REL.e2
-
-eDNA.permanova <- adonis(delta.abund ~ eDNA.div.c$env,
-                         method = "euclidean", binary = FALSE)
-eDNA.permanova
-
-rowSums(delta.abund)
-
-# Effect Size from lda
-require(MASS)
-eDNA.lda <- lda(delta.abund ~ eDNA.div.c$env, method = "euclidean")
-anova(eDNA.dbRDA)
-anova(eDNA.dbRDA, by = "terms")
-
-# Distance Moved in PCoA Space
-eDNA.points.c <- eDNA.points[which(eDNA.points$treat == "C"), ]
-eDNA.points.e <- eDNA.points[which(eDNA.points$treat == "E"), ]
-
-eDNA.points.env <- eDNA.points.c$env
-
-eDNA.points.c <- eDNA.points.c[order(eDNA.points.c$samp.code), c(1:3)]
-eDNA.points.e <- eDNA.points.e[order(eDNA.points.e$samp.code), c(1:3)]
-
-delta.dis <- matrix(NA, dim(eDNA.points.c)[1], 2)
-rownames(delta.dis) <- eDNA.points.c$samp.code
-colnames(delta.dis) <- c("Abs", "Non_Abs")
-
-for (i in 1:dim(eDNA.points.c)[1]){
-  dis.temp <- matrix(NA, 3, 2)
-  for (j in 1:3){
-    dis.temp[j, 1] <- abs(eDNA.points.c[i,j] - eDNA.points.e[i,j])
-    dis.temp[j, 2] <- (eDNA.points.c[i,j] - eDNA.points.e[i,j])
-  }
-  delta.dis[i, 1] <- sum(abs(dis.temp[,1]))
-  delta.dis[i, 2] <- sum(abs(dis.temp[,2]))
-}
-
-delta.dis <- as.data.frame(delta.dis)
-
-delta.dis$env <- eDNA.points.env
-
-delta.dis.mean <- aggregate(Non_Abs ~ env, delta.dis, mean)
-delta.dis.sem <- aggregate(Non_Abs ~ env, delta.dis, sem)
-delta.dis.95 <- aggregate(Non_Abs ~ env, delta.dis, 
-                  FUN = function(x) t.test(x)$conf.int[1:2])
-delta.dis.table <- data.frame(env = delta.dis.mean$env, mean = delta.dis.mean$Non_Abs,
-                         sem = delta.dis.sem$Non_Abs, ci = delta.dis.95$Non_Abs)
-colnames(delta.dis.table) <- c("env", "mean", "sem", "LCI", "UCI")
 ```
 
 
