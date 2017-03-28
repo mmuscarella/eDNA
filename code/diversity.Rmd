@@ -12,7 +12,7 @@ Analysis of community sequence data to test whether the structure and compositio
 
 # Setup Work Environment 
 ```{r}
-rm(list=ls())
+#rm(list=ls())
 getwd()
 setwd("~/GitHub/eDNA/code")
 
@@ -396,6 +396,9 @@ axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 
+mtext("A", side = 3, outer = F, font = 2, at = -0.5, padj = 1, cex = 1.5)
+
+
 # Evenness Panel
 even.plot <- plot(even.table$mean, ylim = c(0.5, 1.5), 
       xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
@@ -427,6 +430,8 @@ axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 
+mtext("B", side = 3, outer = F, font = 2, at = -0.5, padj = 1, cex = 1.5)
+
 # Phylo Panel
 phylo.plot <- plot(phylo.table$mean, ylim = c(0.5, 1.5), 
       xlim = c(0.5, 4.5), pch = 22, bg = "white", lwd = 2, 
@@ -457,6 +462,9 @@ axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
 axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
+
+mtext("C", side = 3, outer = F, font = 2, at = -0.5, padj = 1, cex = 1.5)
+
 
 # Close Plot Device
 dev.off()
@@ -510,6 +518,7 @@ axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5, 2))
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
 
+mtext("A", side = 3, outer = F, font = 2, at = -0.28, padj = 1, cex = 1.5)
 
 # even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop)
 plot(eDNA.prop.sub2$prop, even.2[order(even.2$qPCR.match), ]$even.ratio,
@@ -544,6 +553,9 @@ axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
 
+mtext("B", side = 3, outer = F, font = 2, at = -0.28, padj = 1, cex = 1.5)
+
+
 # phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop)
 
 plot(eDNA.prop.sub2$prop, phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio,
@@ -577,6 +589,9 @@ axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
 axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
+
+mtext("C", side = 3, outer = F, font = 2, at = -0.28, padj = 1, cex = 1.5)
+
 
 # Close Plot Device
 dev.off()
@@ -723,6 +738,8 @@ abline(h = 0, v = 0, lty = 3)
 box(lwd = 2)
 
 mtext(side = 3, "Taxonomic PCoA", line = 1.5, cex = 1)
+mtext("A", side = 3, outer = T, font = 2, at = 0.05, padj = 2, cex = 1.5)
+
 
 # Subset data
 eDNA.div.sort <- eDNA.div[order(eDNA.div[,1]) ,]
@@ -798,6 +815,7 @@ abline(h = 0, v = 0, lty = 3)
 box(lwd = 2)
 
 mtext(side = 3, "Phylogenetic PCoA", line = 1.5, cex = 1)
+mtext("B", side = 3, outer = T, font = 2, at = 0.49, padj = 2, cex = 1.5)
 
 
 # Subset data
@@ -937,32 +955,6 @@ adonis(OTU.REL.log ~ eDNA.div$env * eDNA.div$treat,
                          method = "bray", strata = eDNA.div$qPCR.match)
 
 ```
-
-```{r}
-
-eDNA.bc.m <- as.matrix(eDNA.bc.dis)
-
-# Check order of design
-all.equal(row.names(eDNA.div), colnames(eDNA.bc.m))
-
-soil.div <- eDNA.div[which(eDNA.div$env == "soil"), 3:5]
-pairs <- unique(soil.div$pair)
-pair.dis <- rep(NA, length(pairs))
-for(i in 1:length(pairs)){
-  temp <- rownames(soil.div[which(soil.div$pair == pairs[i]), ])
-  pair.dis[i] <- eDNA.bc.m[temp[1], temp[2]]
-}
-
-ctrls <- which(soil.div$treat == "C")
-ctrl.m <- as.dist(eDNA.bc.m[ctrls, ctrls])
-ctrl.dis <- as.vector(ctrl.m)
-
-soil.p.e
-pair.dis <- eDNA.bc.m[]
-
-
-```
-
 
 ## Mantel Test: Taxonomic
 ```{r}
@@ -1519,6 +1511,8 @@ axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F,
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 
+mtext("A", side = 2, outer = T, font = 2, at = 1, padj = 1, 
+      cex = 1.25, las = 1)
 
 # Phylogenetic Plot
 cent.dist.table <- p.cent.dist.table
@@ -1555,6 +1549,10 @@ axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.7, 1, 1.3))
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 
+mtext("B", side = 2, outer = T, font = 2, at = 0.5, padj = 1, 
+      cex = 1.25, las = 1)
+
+
 # Close Plot Device
 dev.off()
 graphics.off()
@@ -1581,6 +1579,9 @@ plot(centroid.div.t$prop, centroid.div.t$cent.dist,
      cex = 1.5, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
      las = 1, ylab = "", xlab = "")
 box(lwd = 2) 
+
+mtext("A", side = 2, outer = T, font = 2, at = 1, padj = 1, 
+      cex = 1.25, las = 1)
 
 legend("topright", cex = 0.8, 
        c(paste("Slope: P =", round(ttest(t.cent.reg, 2, 0)[3], 2)),
@@ -1620,6 +1621,10 @@ plot(centroid.div.p$prop, centroid.div.p$cent.dist,
      cex = 1.5, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5, 
      las = 1, ylab = "", xlab = "")
 box(lwd = 2) 
+
+mtext("B", side = 2, outer = T, font = 2, at = 0.5, padj = 1, 
+      cex = 1.25, las = 1)
+
 
 legend("topright", cex = 0.8, 
        c(paste("Slope: P =", round(ttest(p.cent.reg, 2, 0)[3], 2)),
