@@ -308,8 +308,18 @@ box(lwd = 1.5, bty = "l")
 png(filename="../figures/Figure1-Model.png",
     width = 1600, height = 1200, res = 96*2)
 
-layout(matrix(c(3,3,1,2), 2, 2, byrow=T), heights=c(4, 3))
-par(mar = c(4, 4, 1, 5) + 0.5, oma = c(1, 2, 1, 1))
+layout(matrix(c(1,1,2,3), 2, 2, byrow=T), heights=c(5, 3))
+par(oma = c(0.5, 1, 0.5, 1))
+
+# Conceptual Model
+img <- readPNG("../figures/Figure1A.png")
+par(mar = c(0, 0, 0, 2))
+plot(1:10, type = "n", axes = F)
+rasterImage(img, 1, 0.55, 9.5, 10.45)
+text(x = 0.8, y = 10.2, "a", cex = 1.5, font = 2)
+
+
+par(mar = c(4, 4, 1, 5) + 0.5)
 
 # Evenness
 ratio.tab <- ratio.tab.even
@@ -326,9 +336,11 @@ points(ratio.tab[5, ], ratio.tab[3, ], pch = 21, bg = "gray60")
 points(ratio.tab[5, ], ratio.tab[4, ], pch = 23,bg = "white")
 
 axis(side = 1, labels = T, tck = -0.05, lwd = 1.5, las = 1)
-axis(side = 2, labels = T, tck = -0.05, lwd = 1.5, las = 1)
+axis(side = 2, labels = T, tck = -0.05, lwd = 1.5, las = 1,
+     at = c(seq(0.8, 1.4, 0.2)))
 axis(side = 1, labels = F, tck = 0.02, lwd = 1.5)
-axis(side = 2, labels = F, tck = 0.02, lwd = 1.5)
+axis(side = 2, labels = F, tck = 0.02, lwd = 1.5,
+     at = c(seq(0.8, 1.4, 0.2)))
 box(lwd = 1.5)
 
 mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1.25)
@@ -341,13 +353,15 @@ text(x = 1.05, y = 1, expression(paste("E"["relic"], " = E"["intact"])),
 text(x = 1.05, y = 0.81, expression(paste("E"["relic"], " < E"["intact"])), 
      pos = 4, cex = 0.8, xpd = T)
 
+text(x = 0.02, y = 1.2, "b", cex = 1.5, font = 2)
+
 # Richness
 ratio.tab <- ratio.tab.s
 plot(ratio.tab[5, ], ratio.tab[1, ], #type = 'n',
      pch = 23, col = "black", bg = "white", axes = F,
      xlab = "",
      ylab = "",
-     xlim = c(0, 1), ylim = c(0.8,1.4), las = 1)
+     xlim = c(0, 1), ylim = c(0.77,1.43), las = 1)
 
 # abline(h=1, lty = 3, lwd = 1.5)
 
@@ -356,9 +370,11 @@ points(ratio.tab[5, ], ratio.tab[3, ], pch = 21, bg = "gray60")
 points(ratio.tab[5, ], ratio.tab[4, ], pch = 23,bg = "white")
 
 axis(side = 1, labels = T, tck = -0.05, lwd = 1.5, las = 1)
-axis(side = 2, labels = T, tck = -0.05, lwd = 1.5, las = 1)
+axis(side = 2, labels = T, tck = -0.05, lwd = 1.5, las = 1,
+     at = c(seq(0.8, 1.4, 0.2)))
 axis(side = 1, labels = F, tck = 0.02, lwd = 1.5)
-axis(side = 2, labels = F, tck = 0.02, lwd = 1.5)
+axis(side = 2, labels = F, tck = 0.02, lwd = 1.5,
+     at = c(seq(0.8, 1.4, 0.2)))
 box(lwd = 1.5)
 
 mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1.25)
@@ -371,19 +387,11 @@ text(x = 1.05, y = 1, expression(paste("S"["relic"], " = S"["intact"])),
 text(x = 1.05, y = 0.85, expression(paste("S"["relic"], " < S"["intact"])), 
      pos = 4, cex = 0.8, xpd = T)
 
+text(x = 0.02, y = 1.4, "c", cex = 1.5, font = 2)
+
 #legend("topleft", c("Relic has Larger S", "Relic has Smaller S"), 
 #       pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
 #       cex = 0.8)
-
-# Conceptual Model
-img <- readPNG("../figures/Fig1a.png")
-plot.new()
-par(mar = c(0, 0, 0, 0), xpd = T)
-rasterImage(img, xleft = -0.19, xright = 1.15, ybottom = -0.275, 
-            ytop = 1.25,interpolate = F)
-text(x = 1, y = 1.1, "A", cex = 1.5, font = 2)
-text(x = -0.15, y = -0.325, "B", cex = 1.5, font = 2)
-text(x = 0.53, y = -0.325, "C", cex = 1.5, font = 2)
 
 # Close Plot Device
 dev.off()
