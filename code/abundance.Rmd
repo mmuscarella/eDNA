@@ -13,7 +13,7 @@ communities is affected by extracellular DNA
 
 # Setup Work Environment 
 ```{r, results='hide', warning=FALSE, message=FALSE}
-rm(list=ls())
+#rm(list=ls())
 getwd()
 setwd("~/GitHub/eDNA/code")
 require("plyr")
@@ -133,7 +133,7 @@ non.bp <- plot(eDNA.table$mean, ylim = c(0, 0.6),
                las = 1, ylab = "", xlab = "")
 box(lwd = 2)
 
-mtext(expression('Proportion eDNA'), side = 2, 
+mtext(expression('Proportion Relic DNA'), side = 2, 
       outer = FALSE, cex = 1.5, line = 3, adj = 0.5)
 
 # Major Axes
