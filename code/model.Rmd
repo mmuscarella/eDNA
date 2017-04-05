@@ -12,7 +12,7 @@ A model approach to relic DNA.
 
 # Initial Setup
 ```{r}
-rm(list=ls())
+#rm(list=ls())
 setwd("~/GitHub/eDNA/code")
 library("vegan")
 library("png")
@@ -306,16 +306,16 @@ box(lwd = 1.5, bty = "l")
 ## Figure 1
 ```{r}
 png(filename="../figures/Figure1-Model.png",
-    width = 1600, height = 1200, res = 96*2)
+    width = 1600, height = 1300, res = 96*2)
 
-layout(matrix(c(1,1,2,3), 2, 2, byrow=T), heights=c(5, 3))
+layout(matrix(c(1,1,2,3), 2, 2, byrow=T), heights=c(4, 3))
 par(oma = c(0.5, 1, 0.5, 1))
 
 # Conceptual Model
 img <- readPNG("../figures/Figure1A.png")
 par(mar = c(0, 0, 0, 2))
 plot(1:10, type = "n", axes = F)
-rasterImage(img, 1, 0.55, 9.5, 10.45)
+rasterImage(img, 1, 0.55, 9.65, 10.5)
 text(x = 0.8, y = 10.2, "a", cex = 1.5, font = 2)
 
 
@@ -346,12 +346,12 @@ box(lwd = 1.5)
 mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1.25)
 mtext(side = 2, "Richness Ratio", line = 2.5, cex = 1.25)
 
-text(x = 1.05, y = 1.18, expression(paste("E"["relic"], " > E"["intact"])), 
-     pos = 4, cex = 0.8, xpd = T)
-text(x = 1.05, y = 1, expression(paste("E"["relic"], " = E"["intact"])), 
-     pos = 4, cex = 0.8, xpd = T)
-text(x = 1.05, y = 0.81, expression(paste("E"["relic"], " < E"["intact"])), 
-     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.02, y = 1.18, expression(paste(italic("E")["relic"], 
+     " > ", italic("E")["intact"])), pos = 4, cex = 1, xpd = T)
+text(x = 1.02, y = 1, expression(paste(italic("E")["relic"], 
+     " = ", italic("E")["intact"])), pos = 4, cex = 1, xpd = T)
+text(x = 1.02, y = 0.81, expression(paste(italic("E")["relic"], 
+     " < ", italic("E")["intact"])), pos = 4, cex = 1, xpd = T)
 
 text(x = 0.02, y = 1.2, "b", cex = 1.5, font = 2)
 
@@ -380,12 +380,12 @@ box(lwd = 1.5)
 mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1.25)
 mtext(side = 2, "Richness Ratio", line = 2.5, cex = 1.25)
 
-text(x = 1.05, y = 1.35, expression(paste("S"["relic"], " > S"["intact"])), 
-     pos = 4, cex = 0.8, xpd = T)
-text(x = 1.05, y = 1, expression(paste("S"["relic"], " = S"["intact"])), 
-     pos = 4, cex = 0.8, xpd = T)
-text(x = 1.05, y = 0.85, expression(paste("S"["relic"], " < S"["intact"])), 
-     pos = 4, cex = 0.8, xpd = T)
+text(x = 1.02, y = 1.35, expression(paste(italic("S")["relic"], 
+     " > ", italic("S")["intact"])), pos = 4, cex = 1, xpd = T)
+text(x = 1.02, y = 1, expression(paste(italic("S")["relic"], 
+     " = ", italic("S")["intact"])), pos = 4, cex = 1, xpd = T)
+text(x = 1.02, y = 0.85, expression(paste(italic("S")["relic"], 
+     " < ", italic("S")["intact"])), pos = 4, cex = 1, xpd = T)
 
 text(x = 0.02, y = 1.4, "c", cex = 1.5, font = 2)
 
@@ -407,10 +407,10 @@ grid.raster(img)
 ## Supplemenatal Figure (SI)
 ```{r}
 png(filename="../figures/FigureS1-SimulationBC.png",
-    width = 1600, height = 600, res = 96*2)
+    width = 1800, height = 600, res = 96*2)
 
 layout(matrix(c(1,2), 1, 2, byrow=T))
-par(mar = c(4, 4, 1, 5) + 0.5, oma = c(0, 1, 1, 0))
+par(mar = c(4, 4, 1, 5.5) + 0.5, oma = c(0, 1, 1, 1))
 
 # Evenness
 bc.tab <- bc.tab.even
@@ -432,13 +432,14 @@ box(lwd = 1.5)
 mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1)
 
 text(x = 1.05, y = 0.475, expression(paste("E"["relic"], " < E"["intact"])), 
-     pos = 4, cex = 0.8, xpd = T)
+     pos = 4, cex = 1, xpd = T)
 text(x = 1.05, y = 0.445, expression(paste("E"["relic"], " = E"["intact"])), 
-     pos = 4, cex = 0.8, xpd = T)
+     pos = 4, cex = 1, xpd = T)
 text(x = 1.05, y = 0.5, expression(paste("E"["relic"], " > E"["intact"])), 
-     pos = 4, cex = 0.8, xpd = T)
+     pos = 4, cex = 1, xpd = T)
 
-mtext("A", side = 3, outer = T, font = 2, at = 0, padj = 2)
+#mtext("A", side = 3, outer = T, font = 2, at = 0, padj = 2)
+text(x = 0.022, y = 0.505, "a", cex = 1.25, font = 2)
 
 
 # Richness
@@ -461,15 +462,17 @@ axis(side = 2, labels = F, tck = 0.02, lwd = 1.5)
 box(lwd = 1.5)
 
 text(x = 1.05, y = 0.55, expression(paste("S"["relic"], " > S"["intact"])), 
-     pos = 4, cex = 0.8, xpd = T)
-text(x = 1.05, y = 0.45, expression(paste("S"["relic"], " = S"["intact"])), 
-     pos = 4, cex = 0.8, xpd = T)
-text(x = 1.05, y = 0.435, expression(paste("S"["relic"], " < S"["intact"])), 
-     pos = 4, cex = 0.8, xpd = T)
+     pos = 4, cex = 1, xpd = T)
+text(x = 1.05, y = 0.455, expression(paste("S"["relic"], " = S"["intact"])), 
+     pos = 4, cex = 1, xpd = T)
+text(x = 1.05, y = 0.43, expression(paste("S"["relic"], " < S"["intact"])), 
+     pos = 4, cex = 1, xpd = T)
 
 mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1)
 
-mtext("B", side = 3, outer = T, font = 2, at = 0.5, padj = 2)
+#mtext("B", side = 3, outer = T, font = 2, at = 0.5, padj = 2)
+text(x = 0.022, y = 0.57, "b", cex = 1.25, font = 2)
+
 
 # Close Plot Device
 dev.off()
