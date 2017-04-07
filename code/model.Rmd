@@ -357,7 +357,7 @@ text(x = 0.02, y = 1.2, "b", cex = 1.5, font = 2)
 
 # Richness
 ratio.tab <- ratio.tab.s
-plot(ratio.tab[5, ], ratio.tab[1, ], #type = 'n',
+plot(ratio.tab[5, ], ratio.tab[1, ], type = 'n',
      pch = 23, col = "black", bg = "white", axes = F,
      xlab = "",
      ylab = "",
