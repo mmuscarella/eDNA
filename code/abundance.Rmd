@@ -15,7 +15,7 @@ communities is affected by extracellular DNA
 ```{r, results='hide', warning=FALSE, message=FALSE}
 #rm(list=ls())
 getwd()
-setwd("~/GitHub/eDNA/code")
+setwd("~/GitHub/relicDNA/code")
 require("plyr")
 require("grid")
 require("png")
@@ -25,7 +25,7 @@ sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
 
 # Load data and calcualte corrected copy number
 ```{r}
-eDNA.raw <- read.table("../data/eDNA_qPCR.txt", sep = "\t", header = T)
+eDNA.raw <- read.table("../data/relicDNA_qPCR.txt", sep = "\t", header = T)
 
 # Correct for dilutions and sample processing
 
@@ -65,7 +65,7 @@ eDNA.prop <- eDNA.prop[order(eDNA.prop[,3]) ,]
 # Three samples (cat feces [32], human feces [28], T7Core) have negative proportions
 # Set these to zero (i.e., no eDNA)
 eDNA.prop$prop <- ifelse(eDNA.prop$prop < 0, 0, eDNA.prop$prop)
-write.table(eDNA.prop, "../data/eDNA.prop.txt", sep = "\t", col.names = T, row.names = F)
+write.table(eDNA.prop, "../data/relicDNA.prop.txt", sep = "\t", col.names = T, row.names = F)
 
 # Distribution of eDNA
 qqnorm(eDNA.prop$prop)
@@ -86,6 +86,7 @@ summary(eDNA.prop.lm)
 eDNA.anova <- Anova(eDNA.prop.lm, type = "II")
 eDNA.anova
 
+TukeyHSD(aov(eDNA.prop.lm), "env")
 
 # Calculate means, sem, and sample size by enviroment
 eDNA.mean <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, mean)
@@ -96,6 +97,7 @@ eDNA.sem <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, sem)
 eDNA.table <- data.frame(eDNA.mean, eDNA.sem[ ,2], eDNA.n[ ,2])
 colnames(eDNA.table) <- c("env", "mean", "sem", "n")
 eDNA.table <- eDNA.table[order(eDNA.table[,2]), ]
+
 ```
 
 # Make bar plot with error bars by environment
@@ -107,7 +109,7 @@ bp <- barplot(eDNA.table$mean, ylim =c(0, 0.6),
               pch = 15, cex = 1.25, las = 1, cex.lab = 1.25, cex.axis = 1,
               col = "gray90", axis.lty = 1, lwd = 2, xlab = NA,
               ylab = "Proportion eDNA",
-              names.arg = c("Gut", "Soil", "Sediment", "Water"), cex.names = 0.9)
+              names.arg = c("Soil", "Sediment", "Gut", "Water"), cex.names = 0.9)
               box(lwd = 2)
 arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean - eDNA.table$sem,
        angle = 90,  length = 0.1, lwd = 2)
@@ -146,7 +148,7 @@ axis(side = 4, lwd.ticks = 2, cex.axis = 1.5, las = 1,
      at=c(0.0, 0.2, 0.4, 0.6), labels = F, tck = -0.02)
 
 axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
-     labels = c("Gut", "Soil", "Sediment", "Water"), at = c(1, 2, 3, 4))
+     labels = c("Soil", "Sediment", "Gut", "Water"), at = c(1, 2, 3, 4))
 
 axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
      at = c(1, 2, 3, 4), labels = F, tck = -0.02)
