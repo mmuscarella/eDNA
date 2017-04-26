@@ -90,7 +90,7 @@ design <- read.delim(design, header=T, row.names=1)
 ```
 
 ## Import Shared, Taxonomy, and Phylogeny Files
-```{r}
+```{r, eval = T}
 OTU <- read.otu(shared = shared, cutoff = "0.03")
 OTU.tax <- read.tax(taxonomy = tax, format = "rdp")
 OTU.tre <- read.tree("../mothur/output/eDNA.bac.rename.tree")
