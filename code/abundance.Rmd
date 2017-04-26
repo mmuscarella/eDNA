@@ -86,9 +86,7 @@ summary(eDNA.prop.lm)
 eDNA.anova <- Anova(eDNA.prop.lm, type = "II")
 eDNA.anova
 
-tukey <- HSD.test(eDNA.prop.lm, "env")
 TukeyHSD(aov(eDNA.prop.lm), "env")
-
 
 # Calculate means, sem, and sample size by enviroment
 eDNA.mean <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, mean)
