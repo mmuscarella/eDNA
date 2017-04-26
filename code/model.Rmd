@@ -13,7 +13,7 @@ A model approach to relic DNA.
 # Initial Setup
 ```{r}
 #rm(list=ls())
-setwd("~/GitHub/eDNA/code")
+setwd("~/GitHub/relicDNA/code")
 library("vegan")
 library("png")
 library("grid")
@@ -66,12 +66,12 @@ for(i in 1:length(props)){
   n <- props[i]
   # Initialize
   temp.null <- c(sample(otus, size = size.comm, replace = T, prob = gamma1))
-  temp.uneven <- c(sample(otus, size = size.comm, replace = T, prob = gamma1), 
+  temp.uneven <- c(sample(otus, size = size.comm, replace = T, prob = gamma1),
                    sample(otus, size = n, replace = T, prob = gamma2))
-  temp.even <- c(sample(otus, size = size.comm, replace = T, prob = gamma1), 
+  temp.even <- c(sample(otus, size = size.comm, replace = T, prob = gamma1),
                  sample(otus, size = n, replace = T, prob = gamma3))
-  temp.same <- c(sample(otus, size = size.comm, replace = T, prob = gamma1), 
-                 sample(otus, size = n, replace = T, prob = gamma1)) 
+  temp.same <- c(sample(otus, size = size.comm, replace = T, prob = gamma1),
+                 sample(otus, size = n, replace = T, prob = gamma1))
   tab1 <- table(temp.null)
   tab2 <- table(temp.uneven)
   tab3 <- table(temp.even)
@@ -86,42 +86,42 @@ for(i in 1:length(props)){
     if (otus[j] %in% names(tab1)){
       sbys[1, j] <- tab1[which(names(tab1) == otus[j])]
     } else {sbys[1, j] <- 0}
-    
+
     if (otus[j] %in% names(tab2)){
       sbys[2, j] <- tab2[which(names(tab2) == otus[j])]
     } else {sbys[2, j] <- 0}
-    
+
     if (otus[j] %in% names(tab3)){
       sbys[3, j] <- tab3[which(names(tab3) == otus[j])]
     } else {sbys[3, j] <- 0}
-    
+
     if (otus[j] %in% names(tab4)){
       sbys[4, j] <- tab4[which(names(tab4) == otus[j])]
     } else {sbys[4, j] <- 0}
-    
+
   }
 
-  
+
   sbys2 <- rrarefy(sbys, 10000)
-  
+
   rich <- specnumber(sbys2)
-  
+
   ratio.tab[1, i] <- round(rich[1]/rich[1], 2)
   ratio.tab[2, i] <- round(rich[2]/rich[1], 2)
   ratio.tab[3, i] <- round(rich[3]/rich[1], 2)
   ratio.tab[4, i] <- round(rich[4]/rich[1], 2)
   ratio.tab[5, i] <- props[i] / size.comm
-  
+
   dis <- as.matrix(vegdist(sbys2, method = "bray"))
   bc.tab[1, i] <- dis[2, 1]
   bc.tab[2, i] <- dis[3, 1]
   bc.tab[3, i] <- dis[4, 1]
   bc.tab[4, i] <- props[i] / size.comm
-  
+
   print(paste(i, " of ", dim(ratio.tab)[2], sep = ""))
 }
 
-ratio.tab.even <- ratio.tab 
+ratio.tab.even <- ratio.tab
 bc.tab.even <- bc.tab
 
 ```
@@ -208,11 +208,11 @@ for(i in 1:length(props)){
   n <- props[i]
   # Initialize
   temp.null <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1))
-  temp.uneven <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1), 
+  temp.uneven <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1),
                    sample(otus2, size = n, replace = T, prob = gamma2))
-  temp.even <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1), 
+  temp.even <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1),
                  sample(otus3, size = n, replace = T, prob = gamma3))
-  temp.same <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1), 
+  temp.same <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1),
                  sample(otus1, size = n, replace = T, prob = gamma1))
   tab1 <- table(temp.null)
   tab2 <- table(temp.uneven)
@@ -228,37 +228,37 @@ for(i in 1:length(props)){
     if (otus[j] %in% names(tab1)){
       sbys[1, j] <- tab1[which(names(tab1) == otus[j])]
     } else {sbys[1, j] <- 0}
-    
+
     if (otus[j] %in% names(tab2)){
       sbys[2, j] <- tab2[which(names(tab2) == otus[j])]
     } else {sbys[2, j] <- 0}
-    
+
     if (otus[j] %in% names(tab3)){
       sbys[3, j] <- tab3[which(names(tab3) == otus[j])]
     } else {sbys[3, j] <- 0}
-    
+
     if (otus[j] %in% names(tab4)){
       sbys[4, j] <- tab4[which(names(tab4) == otus[j])]
     } else {sbys[4, j] <- 0}
-    
+
   }
-  
+
   sbys2 <- rrarefy(sbys, 10000)
-  
+
   rich <- specnumber(sbys2)
-  
+
   ratio.tab[1, i] <- round(rich[1]/rich[1], 2)
   ratio.tab[2, i] <- round(rich[2]/rich[1], 2)
   ratio.tab[3, i] <- round(rich[3]/rich[1], 2)
   ratio.tab[4, i] <- round(rich[4]/rich[1], 2)
   ratio.tab[5, i] <- props[i] / size.comm
-  
+
   dis <- as.matrix(vegdist(sbys2, method = "bray"))
   bc.tab[1, i] <- dis[2, 1]
   bc.tab[2, i] <- dis[3, 1]
   bc.tab[3, i] <- dis[4, 1]
   bc.tab[4, i] <- props[i] / size.comm
-  
+
   print(paste(i, " of ", dim(ratio.tab)[2], sep = ""))
 }
 
@@ -346,11 +346,11 @@ box(lwd = 1.5)
 mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1.25)
 mtext(side = 2, "Richness Ratio", line = 2.5, cex = 1.25)
 
-text(x = 1.02, y = 1.18, expression(paste(italic("E")["relic"], 
+text(x = 1.02, y = 1.18, expression(paste(italic("E")["relic"],
      " > ", italic("E")["intact"])), pos = 4, cex = 1, xpd = T)
-text(x = 1.02, y = 1, expression(paste(italic("E")["relic"], 
+text(x = 1.02, y = 1, expression(paste(italic("E")["relic"],
      " = ", italic("E")["intact"])), pos = 4, cex = 1, xpd = T)
-text(x = 1.02, y = 0.81, expression(paste(italic("E")["relic"], 
+text(x = 1.02, y = 0.81, expression(paste(italic("E")["relic"],
      " < ", italic("E")["intact"])), pos = 4, cex = 1, xpd = T)
 
 text(x = 0.02, y = 1.2, "b", cex = 1.5, font = 2)
@@ -380,16 +380,16 @@ box(lwd = 1.5)
 mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1.25)
 mtext(side = 2, "Richness Ratio", line = 2.5, cex = 1.25)
 
-text(x = 1.02, y = 1.35, expression(paste(italic("S")["relic"], 
+text(x = 1.02, y = 1.35, expression(paste(italic("S")["relic"],
      " > ", italic("S")["intact"])), pos = 4, cex = 1, xpd = T)
-text(x = 1.02, y = 1, expression(paste(italic("S")["relic"], 
+text(x = 1.02, y = 1, expression(paste(italic("S")["relic"],
      " = ", italic("S")["intact"])), pos = 4, cex = 1, xpd = T)
-text(x = 1.02, y = 0.85, expression(paste(italic("S")["relic"], 
+text(x = 1.02, y = 0.85, expression(paste(italic("S")["relic"],
      " < ", italic("S")["intact"])), pos = 4, cex = 1, xpd = T)
 
 text(x = 0.02, y = 1.4, "c", cex = 1.5, font = 2)
 
-#legend("topleft", c("Relic has Larger S", "Relic has Smaller S"), 
+#legend("topleft", c("Relic has Larger S", "Relic has Smaller S"),
 #       pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
 #       cex = 0.8)
 
@@ -431,11 +431,11 @@ box(lwd = 1.5)
 
 mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1)
 
-text(x = 1.05, y = 0.475, expression(paste("E"["relic"], " < E"["intact"])), 
+text(x = 1.05, y = 0.475, expression(paste("E"["relic"], " < E"["intact"])),
      pos = 4, cex = 1, xpd = T)
-text(x = 1.05, y = 0.445, expression(paste("E"["relic"], " = E"["intact"])), 
+text(x = 1.05, y = 0.445, expression(paste("E"["relic"], " = E"["intact"])),
      pos = 4, cex = 1, xpd = T)
-text(x = 1.05, y = 0.5, expression(paste("E"["relic"], " > E"["intact"])), 
+text(x = 1.05, y = 0.5, expression(paste("E"["relic"], " > E"["intact"])),
      pos = 4, cex = 1, xpd = T)
 
 #mtext("A", side = 3, outer = T, font = 2, at = 0, padj = 2)
@@ -461,11 +461,11 @@ axis(side = 1, labels = F, tck = 0.02, lwd = 1.5)
 axis(side = 2, labels = F, tck = 0.02, lwd = 1.5)
 box(lwd = 1.5)
 
-text(x = 1.05, y = 0.55, expression(paste("S"["relic"], " > S"["intact"])), 
+text(x = 1.05, y = 0.55, expression(paste("S"["relic"], " > S"["intact"])),
      pos = 4, cex = 1, xpd = T)
-text(x = 1.05, y = 0.455, expression(paste("S"["relic"], " = S"["intact"])), 
+text(x = 1.05, y = 0.455, expression(paste("S"["relic"], " = S"["intact"])),
      pos = 4, cex = 1, xpd = T)
-text(x = 1.05, y = 0.43, expression(paste("S"["relic"], " < S"["intact"])), 
+text(x = 1.05, y = 0.43, expression(paste("S"["relic"], " < S"["intact"])),
      pos = 4, cex = 1, xpd = T)
 
 mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1)

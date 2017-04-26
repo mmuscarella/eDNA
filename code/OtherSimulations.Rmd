@@ -13,7 +13,7 @@ A model approach to relic DNA.
 # Initial Setup
 ```{r}
 rm(list=ls())
-setwd("~/GitHub/eDNA/code")
+setwd("~/GitHub/relicDNA/code")
 library("vegan")
 library("png")
 library("grid")
@@ -73,55 +73,55 @@ for(i in 1:length(props)){
   n <- props[i]
   # Initialize
   temp.null <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1))
-  temp.revSAD <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1), 
+  temp.revSAD <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1),
                    sample(otus2, size = n, replace = T, prob = gamma2))
-  temp.radSAD <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1), 
+  temp.radSAD <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1),
                    sample(otus3, size = n, replace = T, prob = gamma3))
   tab1 <- table(temp.null)
   tab2 <- table(temp.revSAD)
   tab3 <- table(temp.radSAD)
-  
+
   sbys <- matrix(NA, ncol = length(otus), nrow = 5)
   colnames(sbys) <- otus
   rownames(sbys) <- c("site1", "site2", "site3",
                       "comb1", "comb2")
-  
+
   for(j in 1:dim(sbys)[2]){
     if (otus[j] %in% names(tab1)){
       sbys[1, j] <- tab1[which(names(tab1) == otus[j])]
     } else {sbys[1, j] <- 0}
-    
+
     if (otus[j] %in% names(tab2)){
       sbys[2, j] <- tab2[which(names(tab2) == otus[j])]
     } else {sbys[2, j] <- 0}
-    
+
     if (otus[j] %in% names(tab3)){
       sbys[3, j] <- tab3[which(names(tab3) == otus[j])]
     } else {sbys[3, j] <- 0}
-    
+
   }
-  
+
   sbys[4, ] <- sbys[1, ] + sbys[2, ]
   sbys[5, ] <- sbys[1, ] + sbys[3, ]
-  
+
   sbys2 <- rrarefy(sbys, 10000)
-  
+
   rich <- specnumber(sbys2)
-  
+
   ratio.tab[1, i] <- round(rich[1]/rich[1], 2)
   ratio.tab[2, i] <- round(rich[2]/rich[1], 2)
   ratio.tab[3, i] <- round(rich[3]/rich[1], 2)
   ratio.tab[4, i] <- props[i] / size.comm
-  
+
   dis <- as.matrix(vegdist(sbys2, method = "bray"))
   bc.tab[1, i] <- dis[2, 1]
   bc.tab[2, i] <- dis[3, 1]
   bc.tab[3, i] <- props[i] / size.comm
-  
+
   print(paste(i, " of ", dim(ratio.tab)[2], sep = ""))
 }
 
-ratio.tab.rank <- ratio.tab 
+ratio.tab.rank <- ratio.tab
 bc.tab.rank <- bc.tab
 
 ```
@@ -188,7 +188,7 @@ plot(ratio.tab[4, ], ratio.tab[1, ], type = 'n',
 points(ratio.tab[4, ], ratio.tab[2, ], pch = 22,bg = "gray40")
 points(ratio.tab[4, ], ratio.tab[3, ], pch = 21, bg = "gray60")
 abline(h=1, lty = 3, lwd = 1.5)
-legend("topleft", c("Reversed SAD", "2-Stage Randomized SAD"), 
+legend("topleft", c("Reversed SAD", "2-Stage Randomized SAD"),
        pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
        cex = 0.8)
 
@@ -218,7 +218,7 @@ plot(bc.tab[3, ], bc.tab[1, ], type = 'n',
 points(bc.tab[3, ], bc.tab[1, ], pch = 22,bg = "gray40")
 points(bc.tab[3, ], bc.tab[2, ], pch = 21, bg = "gray60")
 abline(h=1, lty = 3, lwd = 1.5)
-legend("topleft", c("Relic has Larger S", "Relic has Smaller S"), 
+legend("topleft", c("Relic has Larger S", "Relic has Smaller S"),
        pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
        cex = 0.8)
 # Close Plot Device
@@ -244,7 +244,7 @@ gamma3 <- gamma3[rev(order(gamma3))]
 # Define OTUs
 otus1 <- paste("OTU", sprintf("%05d", seq(1:length(gamma1))), sep = "")
 otus2 <- paste("OTU", sprintf("%05d", seq(1:length(gamma2))), sep = "")
-otus3 <- paste("OTU", sprintf("%05d", seq(1:length(gamma3)) + 
+otus3 <- paste("OTU", sprintf("%05d", seq(1:length(gamma3)) +
                                 length(otus1)), sep = "")
 
 otus <- union(union(otus1, otus2), otus3)
@@ -270,41 +270,41 @@ for(i in 1:length(props)){
   n <- props[i]
   # Initialize
   temp.null <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1))
-  temp.uneven <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1), 
+  temp.uneven <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1),
                    sample(otus2, size = n, replace = T, prob = gamma2))
-  temp.even <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1), 
+  temp.even <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1),
                  sample(otus3, size = n, replace = T, prob = gamma3))
   tab1 <- table(temp.null)
   tab2 <- table(temp.uneven)
   tab3 <- table(temp.even)
-  
+
   sbys <- matrix(NA, ncol = length(otus), nrow = 5)
   colnames(sbys) <- otus
   rownames(sbys) <- c("site1", "site2", "site3",
                       "comb1", "comb2")
-  
+
   for(j in 1:dim(sbys)[2]){
     if (otus[j] %in% names(tab1)){
       sbys[1, j] <- tab1[which(names(tab1) == otus[j])]
     } else {sbys[1, j] <- 0}
-    
+
     if (otus[j] %in% names(tab2)){
       sbys[2, j] <- tab2[which(names(tab2) == otus[j])]
     } else {sbys[2, j] <- 0}
-    
+
     if (otus[j] %in% names(tab3)){
       sbys[3, j] <- tab3[which(names(tab3) == otus[j])]
     } else {sbys[3, j] <- 0}
-    
+
   }
-  
+
   sbys[4, ] <- sbys[1, ] + sbys[2, ]
   sbys[5, ] <- sbys[1, ] + sbys[3, ]
-  
+
   sbys2 <- rrarefy(sbys, 10000)
-  
+
   rich <- specnumber(sbys2)
-  
+
   ratio.tab[1, i] <- round(rich[1]/rich[1], 2)
   ratio.tab[2, i] <- round(rich[2]/rich[1], 2)
   ratio.tab[3, i] <- round(rich[3]/rich[1], 2)
@@ -371,8 +371,8 @@ plot(ratio.tab[4, ], ratio.tab[1, ], type = 'n',
 points(ratio.tab[4, ], ratio.tab[2, ], pch = 22,bg = "gray40")
 points(ratio.tab[4, ], ratio.tab[3, ], pch = 21, bg = "gray60")
 abline(h=1, lty = 3, lwd = 1.5)
-legend("topleft", c("Relic has Diff. Composition", 
-                    "Relic has Smaller Composition Size"), 
+legend("topleft", c("Relic has Diff. Composition",
+                    "Relic has Smaller Composition Size"),
        pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
        cex = 0.8)
 
@@ -424,7 +424,7 @@ size.comm <- 1000000
 props <- seq(size.comm/100, size.comm, 100000)
 
 ratio.tab <- matrix(NA, nrow = 6, ncol = length(props))
-rownames(ratio.tab) <- c("Null", "UnevenS", "unevenL", 
+rownames(ratio.tab) <- c("Null", "UnevenS", "unevenL",
                          "EvenS", "EvenL", "Proportion")
 
 
@@ -432,52 +432,52 @@ for(i in 1:length(props)){
   n <- props[i]
   # Initialize
   temp.null <- c(sample(otus, size = size.comm, replace = T, prob = gamma1))
-  temp.unevenS <- c(sample(otus, size = size.comm, replace = T, prob = gamma1), 
+  temp.unevenS <- c(sample(otus, size = size.comm, replace = T, prob = gamma1),
                     sample(otusS, size = n, replace = T, prob = gamma2))
-  temp.unevenL <- c(sample(otus, size = size.comm, replace = T, prob = gamma1), 
+  temp.unevenL <- c(sample(otus, size = size.comm, replace = T, prob = gamma1),
                     sample(otusL, size = n, replace = T, prob = gamma3))  
-  temp.evenS <- c(sample(otus, size = size.comm, replace = T, prob = gamma1), 
+  temp.evenS <- c(sample(otus, size = size.comm, replace = T, prob = gamma1),
                   sample(otusS, size = n, replace = T, prob = gamma4))
-  temp.evenL <- c(sample(otus, size = size.comm, replace = T, prob = gamma1), 
+  temp.evenL <- c(sample(otus, size = size.comm, replace = T, prob = gamma1),
                   sample(otusL, size = n, replace = T, prob = gamma5))
   tab1 <- table(temp.null)
   tab2 <- table(temp.unevenS)
   tab3 <- table(temp.unevenL)
   tab4 <- table(temp.evenS)
   tab5 <- table(temp.evenL)
-  
+
   sbys <- matrix(NA, ncol = length(otusL), nrow = 5)
   colnames(sbys) <- otusL
   rownames(sbys) <- c("site1", "site2", "site3", "site4", "site5")
-  
+
   for(j in 1:dim(sbys)[2]){
     if (otusL[j] %in% names(tab1)){
       sbys[1, j] <- tab1[which(names(tab1) == otusL[j])]
     } else {sbys[1, j] <- 0}
-    
+
     if (otusL[j] %in% names(tab2)){
       sbys[2, j] <- tab2[which(names(tab2) == otusL[j])]
     } else {sbys[2, j] <- 0}
-    
+
     if (otusL[j] %in% names(tab3)){
       sbys[3, j] <- tab3[which(names(tab3) == otusL[j])]
     } else {sbys[3, j] <- 0}
-    
+
     if (otusL[j] %in% names(tab4)){
       sbys[4, j] <- tab4[which(names(tab4) == otusL[j])]
     } else {sbys[4, j] <- 0}
-    
+
     if (otusL[j] %in% names(tab5)){
       sbys[5, j] <- tab5[which(names(tab5) == otusL[j])]
     } else {sbys[5, j] <- 0}
-    
+
   }
-  
-  
+
+
   sbys2 <- rrarefy(sbys, 10000)
-  
+
   rich <- specnumber(sbys2)
-  
+
   ratio.tab[1, i] <- round(rich[1]/rich[1], 2)
   ratio.tab[2, i] <- round(rich[2]/rich[1], 2)
   ratio.tab[3, i] <- round(rich[3]/rich[1], 2)
@@ -550,8 +550,8 @@ points(ratio.tab[6, ], ratio.tab[3, ], pch = 21, bg = "gray60")
 points(ratio.tab[6, ], ratio.tab[4, ], pch = 22,bg = "gray40")
 points(ratio.tab[6, ], ratio.tab[5, ], pch = 21, bg = "gray60")
 abline(h=1, lty = 3, lwd = 1.5)
-legend("topleft", c("Mixed with Less Even Relic", 
-                    "Mixed with More Even Relic"), 
+legend("topleft", c("Mixed with Less Even Relic",
+                    "Mixed with More Even Relic"),
        pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
        cex = 0.8)
 # Close Plot Device
@@ -589,36 +589,36 @@ while(t < 100){
   # Store Initial Status
   len <- length(active)
   rlen <- length(relic)
-  
+
   # Random Community Growth
   active <- c(active, active[c(sample(c(1:len), len*0.09, replace = F))])
-  
+
   # Random Immigration from Regional
   active <- c(active, sample(otus, size = len*0.01, replace = T, prob = gamma))
-  
+
   # Random Relic Generation
   temp <- sample(c(1:len), len*0.1, replace = F)
   relic <- c(relic, active[temp])
   active <- active[-c(temp)]
-  
+
   # Random Relic Degradation
   if(rlen > 0){
     deg <- runif(rlen)
     #deg <- rexp(rlen)
     relic <- relic[-c(sample(c(1:rlen), rlen*0.1, replace = F, prob = deg))]
   }
-  
-  
+
+
   # Time Counter
   t <- t+1
-  
+
   # Print N
   print(paste("N1 = ", length(active),  
               "; Nr1 = ", length(relic), sep = ""))
 }
 
 
-active.t <- table(active); 
+active.t <- table(active);
 relic.t <- table(relic)
 
 sbys <- matrix(NA, ncol = length(otus), nrow = 3)
@@ -631,11 +631,11 @@ for(i in 1:dim(sbys)[2]){
   if (otus[i] %in% names(active.t)){
     sbys[1, i] <- active.t[which(names(active.t) == otus[i])]
   } else {sbys[1, i] <- 0}
-  
+
   if (otus[i] %in% names(relic.t)){
     sbys[2, i] <- relic.t[which(names(relic.t) == otus[i])]
   } else {sbys[2, i] <- 0}
-  
+
 }
 
 sbys[3, ] <- sbys[1, ] + sbys[2, ]
@@ -692,7 +692,7 @@ while(t < 100){
   site1 <- c(site1, site1[c(sample(c(1:len1), len1*0.1, replace = F))])
   site2 <- c(site2, site2[c(sample(c(1:len2), len2*0.1, replace = F))])
   site3 <- c(site3, site3[c(sample(c(1:len3), len3*0.1, replace = F))])
-  
+
   # Random Relic Generation
   temp1 <- sample(c(1:len1), len1*0.1, replace = F)
   temp2 <- sample(c(1:len2), len2*0.1, replace = F)
@@ -705,7 +705,7 @@ while(t < 100){
   site1 <- site1[-c(temp1)]
   site2 <- site2[-c(temp2)]
   site3 <- site3[-c(temp3)]
-  
+
   # Random Relic Degradation
   if(rlen1 > 0){
     relic1 <- relic1[-c(sample(c(1:rlen1), rlen1*0.1, replace = F))]
@@ -716,12 +716,12 @@ while(t < 100){
   if(rlen3 > 0){
     relic3 <- relic3[-c(sample(c(1:rlen3), rlen3*0.1, replace = F))]
   }
-  
+
   # Time Counter
   t <- t+1
-  
+
   # Print N
-  print(paste("N1 = ", length(site1), "; N2 = ", length(site2), 
+  print(paste("N1 = ", length(site1), "; N2 = ", length(site2),
               "; Nr1 = ", length(relic1), "; Nr2 = ", length(relic2), sep = ""))
 }
 
@@ -731,7 +731,7 @@ relic1.t <- table(relic1); relic2.t <- table(relic2); relic3.t <- table(relic3)
 
 sbys <- matrix(NA, ncol = length(otus), nrow = 9)
 colnames(sbys) <- otus
-rownames(sbys) <- c("site1", "site2", "site3", 
+rownames(sbys) <- c("site1", "site2", "site3",
                     "relic1", "relic2", "relic3",
                     "comb1", "comb2", "comb3")
 
@@ -739,27 +739,27 @@ for(i in 1:dim(sbys)[2]){
   if (otus[i] %in% names(site1.t)){
     sbys[1, i] <- site1.t[which(names(site1.t) == otus[i])]
   } else {sbys[1, i] <- 0}
-  
+
   if (otus[i] %in% names(site2.t)){
     sbys[2, i] <- site2.t[which(names(site2.t) == otus[i])]
   } else {sbys[2, i] <- 0}
-  
+
   if (otus[i] %in% names(site3.t)){
     sbys[3, i] <- site3.t[which(names(site3.t) == otus[i])]
   } else {sbys[3, i] <- 0}
-  
+
   if (otus[i] %in% names(relic1.t)){
     sbys[4, i] <- relic1.t[which(names(relic1.t) == otus[i])]
   } else {sbys[4, i] <- 0}
-  
+
   if (otus[i] %in% names(relic2.t)){
     sbys[5, i] <- relic2.t[which(names(relic2.t) == otus[i])]
   } else {sbys[5, i] <- 0}
-  
+
   if (otus[i] %in% names(relic3.t)){
     sbys[6, i] <- relic3.t[which(names(relic3.t) == otus[i])]
   } else {sbys[6, i] <- 0}
-  
+
 }
 
 sbys[7, ] <- sbys[1, ] + sbys[4, ]
@@ -779,4 +779,3 @@ ratio1
 ratio2
 ratio3
 ```
-
