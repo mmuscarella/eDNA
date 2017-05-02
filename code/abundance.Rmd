@@ -20,12 +20,13 @@ require("plyr")
 require("grid")
 require("png")
 require("car")
+require("bbmle")
 sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
 ```
 
 # Load data and calcualte corrected copy number
 ```{r}
-eDNA.raw <- read.table("../data/relicDNA_qPCR.txt", sep = "\t", header = T)
+eDNA.raw <- read.table("../data/eDNA_qPCR.txt", sep = "\t", header = T)
 
 # Correct for dilutions and sample processing
 
@@ -177,3 +178,73 @@ graphics.off()
 img <- readPNG("../figures/Figure2-Prop_eDNA.png")
 grid.raster(img)
 ```
+
+# Optimizing DNAse concentration
+```{r}
+eDNA.DNase.raw <- read.table("../data/eDNA_DNase.txt", sep = "\t", header = T)
+
+# Correct for dilutions and sample processing
+
+# eDNA.DNase.raw[,7] = copies not corrected by dilution factor
+# eDNA.DNase.raw[,8] = dilution factor
+# eDNA.DNase.raw[,9] = volume (uL) in supernatant of phenol-chloroform extraction
+# eDNA.DNase.raw[,10] = volume (ul) from supernatant of phenol-chlorofom subsampled
+
+DNase.copies.corr <- eDNA.DNase.raw[,7] * (eDNA.DNase.raw[,8] * (eDNA.DNase.raw[,9]/eDNA.DNase.raw[,10]))
+
+# Make new dataframe with corrected copy numbers
+eDNA.DNase.corr <- data.frame(eDNA.DNase.raw, DNase.copies.corr)
+
+# Use `ddply` to return the DNase-1 degradable proportion of 16S rRNA gene copy
+eDNA.DNase.prop <- ddply(eDNA.DNase.corr, .(sample.name, Dnase), summarize,
+                   prop = 1 - ((DNase.copies.corr[treat == "E"]) / (DNase.copies.corr[treat == "C"])))
+
+## Run MLE
+#starting values 
+V = 0.55 
+K = 5 
+Z = 10
+
+# Michaelis-Menten
+fit <- mle2(eDNA.DNase.prop$prop ~ dnorm(mean = v * eDNA.DNase.prop$Dnase / (K + eDNA.DNase.prop$Dnase), sd = z), 
+    start = list(v = V, k = K, z = Z), data = eDNA.DNase.prop)
+
+# Plot Data
+png(filename="~/GitHub/relicDNA/figures/FigureS5-DNase.png",
+    width = 1200, height = 1200, res = 96*2)
+
+plot.new()
+par(mar = c(7, 7, 5, 7))
+
+plot(eDNA.DNase.prop$Dnase, eDNA.DNase.prop$prop, xlim = c(0, 70), 
+     ylim = c(0, 1), type = "p", 
+     pch = 22, bg = "grey", col = "black", cex = 2, ylab = "", xlab = "", 
+     cex.lab = 1.5, las = 1, lwd = 2, yaxt = "n", xaxt = "n")
+box(lwd=2)
+
+# Add ticks and tick labels
+axis(side = 2, lwd.ticks = 2, las = 1, cex.axis = 1.25, 
+   labels = c("0.0", "0.25", "0.5", "0.75", "1.0"), at = c(0, 0.25, 0.5, 0.75, 1.0))
+
+axis(side = 4, labels = F, lwd.ticks = 2, 
+   at = c(0, 0.25, 0.5, 0.75, 1.0))
+
+axis(side = 1, lwd.ticks = 2, cex.axis = 1.25, las = 1, mgp = c(3, 1, 0),
+    labels = c(0, 20, 40, 60), at = c(0, 20, 40, 60))
+
+axis(side = 3, labels = F, lwd.ticks = 2, las = 1, cex.axis = 1.25, 
+   at = c(0, 20, 40, 60))
+
+mtext(expression(paste("DNAse (", mu, "g/L)")), side = 1, outer = TRUE, cex = 1.5, 
+      line = -4, adj = 0.5)
+
+mtext(expression(paste('Relic DNA')), 
+      side = 2, outer = TRUE, cex = 1.5, line = -3, adj = 0.6)
+
+# Plot function
+curve((coef(fit)[[1]] * x) / (coef(fit)[[2]] + x), from = 0, to = 60, add = TRUE, lty = 6, lwd = 2.5)
+
+dev.off()
+graphics.off()
+```
+
