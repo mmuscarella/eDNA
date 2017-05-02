@@ -210,7 +210,7 @@ fit <- mle2(eDNA.DNase.prop$prop ~ dnorm(mean = v * eDNA.DNase.prop$Dnase / (K +
     start = list(v = V, k = K, z = Z), data = eDNA.DNase.prop)
 
 # Plot Data
-png(filename="~/GitHub/relicDNA/figures/FigureS5-DNase.png",
+png(filename="~/GitHub/relicDNA/figures/FigureS6-DNase.png",
     width = 1200, height = 1200, res = 96*2)
 
 plot.new()
@@ -235,7 +235,7 @@ axis(side = 1, lwd.ticks = 2, cex.axis = 1.25, las = 1, mgp = c(3, 1, 0),
 axis(side = 3, labels = F, lwd.ticks = 2, las = 1, cex.axis = 1.25, 
    at = c(0, 20, 40, 60))
 
-mtext(expression(paste("DNAse (", mu, "g/L)")), side = 1, outer = TRUE, cex = 1.5, 
+mtext(expression(paste("DNAse (", mu, "L)")), side = 1, outer = TRUE, cex = 1.5, 
       line = -4, adj = 0.5)
 
 mtext(expression(paste('Relic DNA')), 
