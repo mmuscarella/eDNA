@@ -1,0 +1,134 @@
+---
+title: "Effiecncy of relic DNA quantifaction"
+author: "Jay T. Lennon, Mario E. Muscarella"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+header-includes:
+  - \usepackage{array}
+output: pdf_document
+geometry: margin=2.54cm
+---
+
+Comparing efficiency of relic DNA "removal" using DNase and PMA
+
+# Setup Work Environment
+```{r, results='hide', warning=FALSE, message=FALSE}
+#rm(list=ls())
+getwd()
+setwd("~/GitHub/relicDNA/code")
+require("plyr")
+require("grid")
+require("png")
+require("car")
+require("bbmle")
+sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
+```
+
+# Load data and calcualte corrected copy number
+```{r}
+eDNA.raw <- read.table("../data/eDNA_efficiency.txt", sep = "\t", header = T)
+
+
+# Make new dataframe with corrected copy numbers
+eDNA.corr <- data.frame(eDNA.raw, copies.corr)
+```
+
+# Take mean of technical replicates and sort
+```{r}
+# Use `aggregate` to return mean or triplicate qPCR runs
+
+eDNA <- aggregate(eDNA.raw$copies ~ eDNA.raw$sample + eDNA.raw$treatment, eDNA.raw, mean)
+
+# Sort by sample number
+eDNA <- eDNA[order(eDNA[,1]) ,]
+
+# Rename columns
+colnames(eDNA) <- c("sample", "treat", "copies")
+```
+
+# Number of copies added by spike
+```{r}
+spike <- eDNA[ which(eDNA$treat == 'spike'),]
+control <-  eDNA[ which(eDNA$treat == 'control'),]
+spiked.DNA <- spike$copies - control$copies
+```
+
+# PMA efficiency
+```{r}
+# amount of DNA remaining after PMA treamtnet
+PMA <- eDNA[ which(eDNA$treat == 'PMA'),]
+PMA.remain <- PMA$copies/spiked.DNA
+PMA.efficiency <- 1-PMA.remain
+PMA.mean <- mean(PMA.efficiency)
+PMA.sem <-sem(PMA.efficiency)
+PMA.cv <- sd(PMA.efficiency)/mean(PMA.efficiency) # CV
+
+# Mean PMA efficiency is 70% but there's a low outlier of .36
+```
+
+# DNase efficiency
+```{r}
+# amount of DNA remaining after DNase treamtnet
+DNase <- eDNA[ which(eDNA$treat == 'DNase'),]
+DNase.remain <- DNase$copies/spiked.DNA
+DNase.efficiency <- 1-DNase.remain
+DNase.mean <- mean(DNase.efficiency)
+DNase.sem <-sem(DNase.efficiency)
+DNase.cv <- sd(DNase.efficiency)/mean(DNase.efficiency)
+
+# Mean DNase efficiency is 98% 
+```
+
+# Does efficiency differ between methods?
+```{r}
+treat.PMA.id <- c("PMA", "PMA", "PMA", "PMA")
+treat.PMA <- data.frame(PMA.efficiency, treat.PMA.id)
+as.data.frame(treat.PMA)
+colnames(treat.PMA) <- c("efficiency", "treat")
+
+treat.DNase.id <- c("DNase", "DNase", "DNase", "DNase")
+treat.DNase <- data.frame(DNase.efficiency, treat.DNase.id)
+as.data.frame(treat.DNase)
+colnames(treat.DNase) <- c("efficiency", "treat")
+
+t.test.data <- rbind(treat.PMA, treat.DNase)
+
+efficiency.test <- t.test(t.test.data$efficiency ~ t.test.data$treat)
+summary(efficiency.test)
+
+# conclusion is that PMA and DNase are equally and highly efficient
+```
+
+
+# Plot efficiencies
+```{r}
+# Make table with summary stats
+PMA.sum <- data.frame(PMA.mean, PMA.sem)
+colnames(PMA.sum) <-c("mean", "sem")
+DNase.sum <- data.frame(DNase.mean, DNase.sem)
+colnames(DNase.sum) <-c("mean", "sem")
+eDNA.sum <- rbind(PMA.sum, DNase.sum)
+
+# Make bar plot with error bars by environment
+```{r, eval=F}
+png(filename="../figures/efficiency.png",
+    width = 800, height = 800, res = 96*2)
+
+bp <- barplot(eDNA.sum$mean, ylim =c(0, 1.1),
+              pch = 15, cex = 1.25, las = 1, cex.lab = 1.25, cex.axis = 1,
+              col = "gray90", axis.lty = 1, lwd = 2, xlab = NA,
+              ylab = "Efficiency of relic DNA removal (%)",
+              names.arg = c("PMA", "DNase"), cex.names = 0.9)
+              box(lwd = 2)
+arrows(x0 = bp, y0 = eDNA.sum$mean, y1 = eDNA.sum$mean - eDNA.sum$sem,
+       angle = 90,  length = 0.1, lwd = 2)
+arrows(x0 = bp, y0 = eDNA.sum$mean, y1 = eDNA.sum$mean + eDNA.sum$sem,
+       angle = 90, length=0.1, lwd = 2)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/efficiency.png")
+grid.raster(img)
+```
