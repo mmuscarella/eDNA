@@ -223,3 +223,6 @@ axis(side = 2, labels = T, lwd = 1.5, las = 1)
 mtext("Log Abundance", side = 2, cex = 1.5, line = 2.5)
 mtext("Species Index", side = 1, cex = 1.5, line = 0.5)
 box(lwd = 1.5)
+
+# Save Outputs
+save(same.rates, low.decay, high.decay, high.birth, file = "../data/simSAD.R")

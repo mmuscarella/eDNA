@@ -482,3 +482,67 @@ graphics.off()
 img <- readPNG("../figures/FigureS1-SimulationBC.png")
 grid.raster(img)
 ```
+
+
+# Model With Simulation Output
+```{r}
+load("../data/simSAD.R")
+
+# Simple Plot
+layout(1)
+plot(log10(gamma1), col = "forestgreen",
+     main = "Species Abundance Distributions",
+     xlab = "Species Index", ylab = "Log Probability",
+     las = 1)
+points(log10(gamma2), col = "red")
+points(log10(gamma3), col = "blue")
+
+# Same Rates
+total1 <- table(c(same.rates[[1]], same.rates[[2]]))
+active1 <- table(same.rates[[1]])
+relic1 <- table(same.rates[[2]])
+
+total1 <- total1[rev(order(total1))]
+active1 <- active1[rev(order(active1))]
+relic1 <- relic1[rev(order(relic1))]
+
+# Low Decay
+total2 <- table(c(low.decay[[1]], low.decay[[2]]))
+active2 <- table(low.decay[[1]])
+relic2 <- table(low.decay[[2]])
+
+total2 <- total2[rev(order(total2))]
+active2 <- active2[rev(order(active2))]
+relic2 <- relic2[rev(order(relic2))]
+
+# High Decay
+total3 <- table(c(high.decay[[1]], high.decay[[2]]))
+active3 <- table(high.decay[[1]])
+relic3 <- table(high.decay[[2]])
+
+total3 <- total3[rev(order(total3))]
+active3 <- active3[rev(order(active3))]
+relic3 <- relic3[rev(order(relic3))]
+
+# Simple Plot
+layout(1)
+par(mar = c(3, 5, 3, 2.5))
+plot(log10(active1), col = "cornflowerblue",
+     main = "Local Species Abundance Distributions",
+     xlab = "", ylab = "", 
+     xlim = c(0, max(length(active1), length(relic2))),
+     ylim = c(0, max(max(log10(active1)), max(log10(relic2)))),
+     las = 1, type = "p", xaxt = "n", yaxt = "n", pch = 16)
+points(log10(relic1), col = "palegreen3", type = "p", pch = 16)
+points(log10(relic2), col = "darkgreen", type = "p", pch = 16)
+points(log10(relic3), col = "olivedrab3", type = "p", pch = 16)
+legend("topright", legend = c("Active", "Relic"), pch = 16, 
+       bty = "n", col = c("forestgreen", "darkblue"))
+axis(side = 1, labels = F, lwd = 1.5, tck = 0)
+axis(side = 2, labels = T, lwd = 1.5, las = 1)
+mtext("Log Abundance", side = 2, cex = 1.5, line = 2.5)
+mtext("Species Index", side = 1, cex = 1.5, line = 0.75)
+box(lwd = 1.5)
+
+
+```
