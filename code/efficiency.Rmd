@@ -102,21 +102,23 @@ summary(efficiency.test)
 # Plot efficiencies
 ```{r}
 # Make table with summary stats
-PMA.sum <- data.frame(PMA.mean, PMA.sem)
+PMA.sum <- data.frame(PMA.mean * 100, PMA.sem * 100)
 colnames(PMA.sum) <-c("mean", "sem")
-DNase.sum <- data.frame(DNase.mean, DNase.sem)
+DNase.sum <- data.frame(DNase.mean * 100, DNase.sem * 100)
 colnames(DNase.sum) <-c("mean", "sem")
 eDNA.sum <- rbind(PMA.sum, DNase.sum)
 
 # Make bar plot with error bars by environment
-```{r, eval=F}
+#```{r, eval=F}
 png(filename="../figures/efficiency.png",
     width = 800, height = 800, res = 96*2)
 
-bp <- barplot(eDNA.sum$mean, ylim =c(0, 1.1),
+par(mar = c(4, 6, 1, 1))
+
+bp <- barplot(eDNA.sum$mean, ylim =c(0, 110), xlim = c(0.25, 4), width = 1,
               pch = 15, cex = 1.25, las = 1, cex.lab = 1.25, cex.axis = 1,
-              col = "gray90", axis.lty = 1, lwd = 2, xlab = NA,
-              ylab = "Efficiency of relic DNA removal (%)",
+              col = "gray90", axis.lty = 1, lwd = 2, xlab = NA, space = 0.75,
+              ylab = "Relic DNA\nRemoval Efficiency (%)",
               names.arg = c("PMA", "DNase"), cex.names = 0.9)
               box(lwd = 2)
 arrows(x0 = bp, y0 = eDNA.sum$mean, y1 = eDNA.sum$mean - eDNA.sum$sem,
