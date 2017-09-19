@@ -1,0 +1,44 @@
+---
+title: "Chimerism of relic DNA"
+author: "Jay T. Lennon, Mario E. Muscarella"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+header-includes:
+  - \usepackage{array}
+output: pdf_document
+geometry: margin=2.54cm
+---
+
+Comparing efficiency of relic DNA "removal" using DNase and PMA
+
+# Setup Work Environment
+```{r, results='hide', warning=FALSE, message=FALSE}
+#rm(list=ls())
+getwd()
+setwd("~/GitHub/relicDNA/code")
+require("plyr")
+require("grid")
+require("png")
+require("car")
+require("bbmle")
+sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
+```
+
+# Load data and design
+```{r}
+eDNA.chim <- read.table("../data/chimerism.txt", sep = "\t", header = T)
+eDNA.design <- read.table("../data/eDNA_Design.txt",  header=T)
+eDNA.design <- eDNA.design[order(eDNA.design$samp.id), ]
+
+all.equal(eDNA.design$samp.id, eDNA.chim$sample)
+
+eDNA.chim$env <- eDNA.design$env
+eDNA.chim$trt <- eDNA.design$treat
+```
+
+# Test for env or trt effect on chimerism
+```{r}
+eDNA.chim$chimerism <- (eDNA.chim$before - eDNA.chim$after) / eDNA.chim$before
+
+model <- lm(eDNA.chim$chimerism ~ eDNA.chim$env + eDNA.chim$trt)
+anova(model)
+```
