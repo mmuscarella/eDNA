@@ -1,5 +1,5 @@
 ---
-title: "eDNA"
+title: "Quantifying relic DNA"
 author: "Jay T. Lennon, Mario E. Muscarella, ..."
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 header-includes:
@@ -9,7 +9,7 @@ geometry: margin=2.54cm
 ---
 
 Analysis of quantitative PCR data to test whether the abundance of bacterial
-communities is affected by extracellular DNA
+communities is affected by relic DNA
 
 # Setup Work Environment
 ```{r, results='hide', warning=FALSE, message=FALSE}
