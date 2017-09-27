@@ -12,7 +12,7 @@ Comparing efficiency of relic DNA "removal" using DNase and PMA
 
 # Setup Work Environment
 ```{r, results='hide', warning=FALSE, message=FALSE}
-#rm(list=ls())
+rm(list=ls())
 getwd()
 setwd("~/GitHub/relicDNA/code")
 require("plyr")
@@ -26,10 +26,6 @@ sem <- function(x, ...){sd(x, na.rm = TRUE)/sqrt(length(na.omit(x)))}
 # Load data and calcualte corrected copy number
 ```{r}
 eDNA.raw <- read.table("../data/eDNA_efficiency.txt", sep = "\t", header = T)
-
-
-# Make new dataframe with corrected copy numbers
-eDNA.corr <- data.frame(eDNA.raw, copies.corr)
 ```
 
 # Take mean of technical replicates and sort
@@ -92,7 +88,7 @@ colnames(treat.DNase) <- c("efficiency", "treat")
 
 t.test.data <- rbind(treat.PMA, treat.DNase)
 
-efficiency.test <- t.test(t.test.data$efficiency ~ t.test.data$treat)
+efficiency.test <- t.test(t.test.data$efficiency ~ t.test.data$treat, equal.var = FALSE)
 summary(efficiency.test)
 
 # conclusion is that PMA and DNase are equally and highly efficient
