@@ -548,7 +548,7 @@ points(log10(relic1), col = "gray30", type = "p", pch = 15)
 points(log10(relic2), col = "gray30", type = "p", pch = 16)
 points(log10(relic3), col = "gray30", type = "p", pch = 17)
 legend("topright", legend = c("Active", "Relic Same Rates", 
-       "Relic High Decay", "Relic Low Decay"), pch = c(16, 15, 16, 17), 
+       "Relic Low Decay", "Relic High Decay"), pch = c(16, 15, 16, 17), 
        bty = "n", col = c("gray", "gray30", "gray30", "gray30"))
 axis(side = 1, labels = F, lwd = 1.5, tck = 0)
 axis(side = 2, labels = T, lwd = 1.5, las = 1)
