@@ -1,6 +1,6 @@
 ---
 title: "Effiecncy of relic DNA quantifaction"
-author: "Jay T. Lennon, Mario E. Muscarella"
+author: "Jay T. Lennon, Mario E. Muscarella, Brent K. Lehmkuhl"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 header-includes:
   - \usepackage{array}
@@ -89,11 +89,9 @@ colnames(treat.DNase) <- c("efficiency", "treat")
 t.test.data <- rbind(treat.PMA, treat.DNase)
 
 efficiency.test <- t.test(t.test.data$efficiency ~ t.test.data$treat, equal.var = FALSE)
-summary(efficiency.test)
 
-# conclusion is that PMA and DNase are equally and highly efficient
+# DNase and PMA are equally and highly efficient
 ```
-
 
 # Plot efficiencies
 ```{r}
@@ -106,27 +104,28 @@ eDNA.sum <- rbind(PMA.sum, DNase.sum)
 
 # Make bar plot with error bars by environment
 #```{r, eval=F}
-png(filename="../figures/efficiency.png",
+png(filename="../figures/FigureS7-efficiency.png",
     width = 800, height = 800, res = 96*2)
 
 par(mar = c(4, 6, 1, 1))
+opar <- par(lwd = 2)
 
 bp <- barplot(eDNA.sum$mean, ylim =c(0, 110), xlim = c(0.25, 4), width = 1,
-              pch = 15, cex = 1.25, las = 1, cex.lab = 1.25, cex.axis = 1,
-              col = "gray90", axis.lty = 1, lwd = 2, xlab = NA, space = 0.75,
+              cex = 2, las = 1, cex.lab = 1.25, cex.axis = 1,
+              col = "white", axis.lty = 2, lwd = 2, xlab = NA, space = 0.75,
               ylab = "Relic DNA\nRemoval Efficiency (%)",
               names.arg = c("PMA", "DNase"), cex.names = 0.9)
               box(lwd = 2)
 arrows(x0 = bp, y0 = eDNA.sum$mean, y1 = eDNA.sum$mean - eDNA.sum$sem,
-       angle = 90,  length = 0.1, lwd = 2)
+       angle = 90,  length = 0.1, lwd = 1.75)
 arrows(x0 = bp, y0 = eDNA.sum$mean, y1 = eDNA.sum$mean + eDNA.sum$sem,
-       angle = 90, length=0.1, lwd = 2)
+       angle = 90, length=0.1, lwd = 1.75)
 
 # Close Plot Device
 dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/efficiency.png")
+img <- readPNG("../figures/FigureS7-efficiency.png")
 grid.raster(img)
 ```
