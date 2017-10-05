@@ -1,6 +1,6 @@
 ---
 title: "Quantifying relic DNA"
-author: "Jay T. Lennon, Mario E. Muscarella, ..."
+author: "Jay T. Lennon, Mario E. Muscarella"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 header-includes:
   - \usepackage{array}
@@ -98,55 +98,145 @@ eDNA.sem <- aggregate(eDNA.prop$prop ~ eDNA.prop$env, eDNA.prop, sem)
 eDNA.table <- data.frame(eDNA.mean, eDNA.sem[ ,2], eDNA.n[ ,2])
 colnames(eDNA.table) <- c("env", "mean", "sem", "n")
 eDNA.table <- eDNA.table[order(eDNA.table[,2]), ]
-
 ```
 
-# Make bar plot with error bars by environment
-```{r, eval=F}
-png(filename="../figures/qPCR.bar.png",
-    width = 800, height = 800, res = 96*2)
-
-bp <- barplot(eDNA.table$mean, ylim =c(0, 0.6),
-              pch = 15, cex = 1.25, las = 1, cex.lab = 1.25, cex.axis = 1,
-              col = "gray90", axis.lty = 1, lwd = 2, xlab = NA,
-              ylab = "Proportion eDNA",
-              names.arg = c("Soil", "Sediment", "Gut", "Water"), cex.names = 0.9)
-              box(lwd = 2)
-arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean - eDNA.table$sem,
-       angle = 90,  length = 0.1, lwd = 2)
-arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean + eDNA.table$sem,
-       angle = 90, length=0.1, lwd = 2)
-
-# Close Plot Device
-dev.off()
-graphics.off()
-
-# Show Plot
-img <- readPNG("../figures/qPCR.bar.png")
-grid.raster(img)
-```
-
-# Make x-y plot with error bars by environment
 ```{r}
-png(filename="../figures/Figure2-Prop_eDNA.png",
+# # Make bar plot with error bars by environment
+# ```{r, eval=F}
+# png(filename="../figures/qPCR.bar.png",
+#     width = 800, height = 800, res = 96*2)
+# 
+# bp <- barplot(eDNA.table$mean, ylim =c(0, 0.6),
+#               pch = 15, cex = 1.25, las = 1, cex.lab = 1.25, cex.axis = 1,
+#               col = "gray90", axis.lty = 1, lwd = 2, xlab = NA,
+#               ylab = "Proportion eDNA",
+#               names.arg = c("Soil", "Sediment", "Gut", "Water"), cex.names = 0.9)
+#               box(lwd = 2)
+# arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean - eDNA.table$sem,
+#        angle = 90,  length = 0.1, lwd = 2)
+# arrows(x0 = bp, y0 = eDNA.table$mean, y1 = eDNA.table$mean + eDNA.table$sem,
+#        angle = 90, length=0.1, lwd = 2)
+# 
+# # Close Plot Device
+# dev.off()
+# graphics.off()
+# 
+# # Show Plot
+# img <- readPNG("../figures/qPCR.bar.png")
+# grid.raster(img)
+```
+
+```{r}
+# Make x-y plot with error bars by environment 
+# ```{r}
+# png(filename="../figures/Figure2-Prop_eDNA.png",
+#     width = 800, height = 800, res = 96*2)
+# 
+# par(mar = c(3, 5, 1, 1))
+# non.bp <- plot(eDNA.table$mean, ylim = c(0, 0.6),
+#                xlim = c(0.5, 4.5), pch = 22, bg = "gray90", lwd = 2,
+#                cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5,
+#                las = 1, ylab = "", xlab = "")
+# box(lwd = 2)
+# 
+# mtext(expression('Proportion Relic DNA'), side = 2,
+#       outer = FALSE, cex = 1.5, line = 3, adj = 0.5)
+# 
+# # Major Axes
+# axis(side = 2, lwd.ticks = 2, cex.axis = 1.25, las = 1,
+#      labels = c(0.0, 0.2, 0.4, 0.6), at = c(0.0, 0.2, 0.4, 0.6))
+# 
+# axis(side = 4, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+#      at=c(0.0, 0.2, 0.4, 0.6), labels = F, tck = -0.02)
+# 
+# axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
+#      labels = c("Soil", "Sediment", "Gut", "Water"), at = c(1, 2, 3, 4))
+# 
+# axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
+#      at = c(1, 2, 3, 4), labels = F, tck = -0.02)
+# 
+# axis(side = 1, labels = F, lwd.ticks = 2, tck = 0.02, at = c(1, 2, 3, 4))
+# axis(side = 2, labels = F, lwd.ticks = 2, tck = 0.02, at = c(0, 0.2, 0.4, 0.6))
+# axis(side = 3, labels = F, lwd.ticks = 2, tck = 0.02, at = c(1, 2, 3, 4))
+# axis(side = 4, labels = F, lwd.ticks = 2, tck = 0.02, at = c(0, 0.2, 0.4, 0.6))
+# 
+# arrows(x0 = c(1, 2, 3, 4), y0 = eDNA.table$mean,
+#        y1 = eDNA.table$mean - eDNA.table$sem, angle = 90,
+#        length = 0.1, lwd = 2)
+# 
+# arrows(x0 = c(1,2,3,4), y0 = eDNA.table$mean,
+#        y1 = eDNA.table$mean + eDNA.table$sem, angle = 90,
+#        length=0.1, lwd = 2)
+# 
+# points(x = c(1:4), eDNA.table$mean,
+#       pch = 22, bg = "gray90", lwd = 2, cex = 3)
+# 
+# # Close Plot Device
+# dev.off()
+# graphics.off()
+# 
+# # Show Plot
+# img <- readPNG("../figures/Figure2-Prop_eDNA.png")
+# grid.raster(img)
+```
+
+# Make x-y plot with error bars by environment with individual data points
+```{r}
+# Relic DNA data for plotting
+relic.soil <- eDNA.prop[ which(eDNA.prop$env == "soil"),]
+relic.sed <- eDNA.prop[ which(eDNA.prop$env == "sed"),]
+relic.feces <- eDNA.prop[ which(eDNA.prop$env == "feces"),]
+relic.water <- eDNA.prop[ which(eDNA.prop$env == "water"),]
+
+# Relic DNA table
+relic.mean <- aggregate(eDNA.prop$prop ~ env, eDNA.prop, mean)
+relic.sem <- aggregate(eDNA.prop$prop ~ env, eDNA.prop, sem)
+relic.95.LL <- aggregate(prop ~ env, eDNA.prop,
+          FUN = function(x) t.test(x)$conf.int[1])
+relic.95.UL <- aggregate(prop ~ env, eDNA.prop,
+          FUN = function(x) t.test(x)$conf.int[2])
+relic.table <- data.frame(relic.mean[1], relic.mean[2], relic.sem[2],
+          relic.95.LL[2], relic.95.UL[2])
+colnames(relic.table) <- c("env", "mean", "sem", "LCI", "UCI")
+relic.table <- relic.table[order(relic.table$mean),]
+
+png(filename="../figures/Figure2-Prop.relic.png",
     width = 800, height = 800, res = 96*2)
 
-par(mar = c(3, 5, 1, 1))
-non.bp <- plot(eDNA.table$mean, ylim = c(0, 0.6),
-               xlim = c(0.5, 4.5), pch = 22, bg = "gray90", lwd = 2,
-               cex = 3, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5,
-               las = 1, ylab = "", xlab = "")
+par(mar = c(4, 5, 1, 1))
+
+non.bp.rich <- plot(jitter(rep(1, length(relic.soil$prop)), amount = 0.1), relic.soil$prop, 
+      ylim = c(-0.1, 1), xlim = c(0.5, 4.5), pch = 21, col = "lightgrey", bg = "lightgrey", lwd = 2,
+      cex = 1.7, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5,
+      las = 1, ylab = "", xlab = "")
+      box(lwd = 2)
+points(jitter(rep(2, length(relic.sed$prop)), amount = 0.1), relic.sed$prop, pch = 21, 
+       bg = "lightgrey", col = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(3, length(relic.feces$prop)), amount = 0.1), relic.feces$prop, pch = 21, 
+       bg = "lightgrey", col = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(4, length(relic.water$prop)), amount = 0.1),relic.water$prop, pch = 21, 
+       bg = "lightgrey", col = "lightgrey", lwd = 2, cex = 1.7) 
+
+# rect(xleft, ybottom, xright, ytop)
+rect(0.8, (mean(relic.soil$prop) + 0.025), 1.2, (mean(relic.soil$prop)- 0.025), col = "NA", border = "black", lwd = 2)
+
+rect(1.8, (mean(relic.sed$prop) + 0.025), 2.2, (mean(relic.sed$prop)- 0.025), col = "NA", border = "black", lwd = 2)
+
+rect(2.8, (mean(relic.feces$prop) + 0.025), 3.2, (mean(relic.feces$prop) - 0.025), col = "NA", border = "black", lwd = 2)
+
+rect(3.8, (mean(relic.water$prop) + 0.025), 4.2, (mean(relic.water$prop) - 0.025), col = "NA", border = "black", lwd = 2)
+
 box(lwd = 2)
 
 mtext(expression('Proportion Relic DNA'), side = 2,
-      outer = FALSE, cex = 1.5, line = 3, adj = 0.5)
+      outer = FALSE, cex = 1.5, line = 3.6, adj = 0.5)
 
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1.25, las = 1,
-     labels = c(0.0, 0.2, 0.4, 0.6), at = c(0.0, 0.2, 0.4, 0.6))
+     labels = c("0.0", "0.25", "0.50", "0.75", "1.00"), at = c(0.0, 0.25, 0.5, 0.75, 1.0))
 
 axis(side = 4, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-     at=c(0.0, 0.2, 0.4, 0.6), labels = F, tck = -0.02)
+     at=c(0.0, 0.25, 0.5, 0.75, 1.0), labels = F, tck = -0.02)
 
 axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
      labels = c("Soil", "Sediment", "Gut", "Water"), at = c(1, 2, 3, 4))
@@ -154,27 +244,16 @@ axis(side = 1, lwd.ticks = 2, cex.axis = 0.9, las = 1,
 axis(side = 3, lwd.ticks = 2, cex.axis = 1.5, las = 1,
      at = c(1, 2, 3, 4), labels = F, tck = -0.02)
 
-axis(side = 1, labels = F, lwd.ticks = 2, tck = 0.02, at = c(1, 2, 3, 4))
-axis(side = 2, labels = F, lwd.ticks = 2, tck = 0.02, at = c(0, 0.2, 0.4, 0.6))
-axis(side = 3, labels = F, lwd.ticks = 2, tck = 0.02, at = c(1, 2, 3, 4))
-axis(side = 4, labels = F, lwd.ticks = 2, tck = 0.02, at = c(0, 0.2, 0.4, 0.6))
-
-arrows(x0 = c(1, 2, 3, 4), y0 = eDNA.table$mean,
-       y1 = eDNA.table$mean - eDNA.table$sem, angle = 90,
+arrows(x0 = c(1,2,3,4), y0 = relic.table$mean, y1 = relic.table$LCI, angle = 90,
        length = 0.1, lwd = 2)
-
-arrows(x0 = c(1,2,3,4), y0 = eDNA.table$mean,
-       y1 = eDNA.table$mean + eDNA.table$sem, angle = 90,
+arrows(x0 = c(1,2,3,4), y0 = relic.table$mean, y1 = relic.table$UCI, angle = 90,
        length=0.1, lwd = 2)
-
-points(x = c(1:4), eDNA.table$mean,
-      pch = 22, bg = "gray90", lwd = 2, cex = 3)
 
 # Close Plot Device
 dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/Figure2-Prop_eDNA.png")
+img <- readPNG("../figures/Figure2-Prop.relic.png")
 grid.raster(img)
 ```
