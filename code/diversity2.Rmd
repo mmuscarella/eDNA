@@ -217,12 +217,14 @@ rich.2.ag.95 <- aggregate(rich.ratio ~ env, rich.2,
 rich.table <- data.frame(rich.2.ag.mean$env, rich.2.ag.mean$rich.ratio,
                          rich.2.ag.sem$rich.ratio, rich.2.ag.95$rich.ratio)
 colnames(rich.table) <- c("env", "mean", "sem", "LCI", "UCI")
+rich.order <- c("soil", "sed", "feces", "water")
+rich.table <- rich.table[match(rich.order, rich.table$env),]
 
 # Regression: richness ratio vs. proportion eDNA
 eDNA.prop <- read.table("../data/relicDNA.prop.txt", sep = "\t", header = T)
 eDNA.prop.sub <- eDNA.prop[eDNA.prop$sample.number %in% rich.2$qPCR.match, ]
 eDNA.prop.sub2 <- eDNA.prop.sub[order(eDNA.prop.sub$sample.number), ]
-rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$env + eDNA.prop.sub2$prop)
+rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$env + eDNA.prop.sub2$prop + eDNA.prop.sub2$env*eDNA.prop.sub2$prop)
 rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ prop, data = eDNA.prop.sub2)
 
 summary(rich.reg)
@@ -285,13 +287,15 @@ even.2.ag.95 <- aggregate(even.ratio ~ env, even.2,
 even.table <- data.frame(even.2.ag.mean$env, even.2.ag.mean$even.ratio,
                          even.2.ag.sem$even.ratio, even.2.ag.95$even.ratio)
 colnames(even.table) <- c("env", "mean", "sem", "LCI", "UCI")
-
+even.order <- c("soil", "sed", "feces", "water")
+even.table <- even.table[match(even.order, even.table$env),]
 
 # Regression: evennes ratio vs. proportion eDNA
-even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop + eDNA.prop.sub2$env )
+even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop + eDNA.prop.sub2$env)
+even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop + eDNA.prop.sub2$env + eDNA.prop.sub2$prop*eDNA.prop.sub2$env)
+
 even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ prop, 
                data = eDNA.prop.sub2)
-
 
 summary(even.reg)
 
@@ -370,7 +374,7 @@ TukeyHSD(faith.anova)
 # Calculate ratios
 phylo.2$phylo.ratio <- phylo.2$phylo.C / phylo.2$phylo.E
 
-# Richness table
+# Phylo table
 phylo.2.ag.mean <- aggregate(phylo.ratio ~ env, phylo.2, mean)
 phylo.2.ag.sem <- aggregate(phylo.ratio ~ env, phylo.2, sem)
 phylo.2.ag.95 <- aggregate(phylo.ratio ~ env, phylo.2,
@@ -378,14 +382,17 @@ phylo.2.ag.95 <- aggregate(phylo.ratio ~ env, phylo.2,
 phylo.table <- data.frame(phylo.2.ag.mean$env, phylo.2.ag.mean$phylo.ratio,
                          phylo.2.ag.sem$phylo.ratio, phylo.2.ag.95$phylo.ratio)
 colnames(phylo.table) <- c("env", "mean", "sem", "LCI", "UCI")
-
+phylo.order <- c("soil", "sed", "feces", "water")
+phylo.table <- phylo.table[match(phylo.order, phylo.table$env),]
 
 # Regression: PD ratio vs. proportion eDNA
-phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ eDNA.prop.sub2$prop * eDNA.prop.sub2$env )
+phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ 
+                eDNA.prop.sub2$prop + eDNA.prop.sub2$env + 
+                  eDNA.prop.sub2$prop * eDNA.prop.sub2$env, 
+                data = eDNA.prop.sub2)
 
 phylo.reg <- lm(phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio ~ prop, 
                 data = eDNA.prop.sub2)
-
 
 summary(phylo.reg)
 
@@ -403,41 +410,49 @@ phylo.soil.ttest <- t.test(phylo.soil$phylo.ratio, mu = 1)
 
 phylo.water <- phylo.2[ which(phylo.2$env == "water"),]
 phylo.water.ttest <- t.test(phylo.water$phylo.ratio, mu = 1)
-
 ```
 
 # Alpha Plots
 ## Alpha Ratios
 ```{r}
-png(filename="../figures/Figure3-Alpha2.png",
+png(filename="../figures/Figure3-Alpha.png",
     width = 800, height = 1800, res = 96*2)
 
 layout(matrix(c(1:3), byrow = T))
 par(mar = c(0.5, 4, 1, 1), oma = c(3, 4, 1, 1))
 
 # Richness Panel
-rich.plot <- plot(jitter(rep(1, nrow(rich.2[ which(rich.2$env == "feces"),])), amount = 0.1),rich.feces$rich.ratio, 
-      ylim = c(0.5, 1.5), xlim = c(0.5, 4.5), pch = 21, bg = "lightgrey", lwd = 2,
+rich.plot <- plot(jitter(rep(1, nrow(rich.soil)), amount = 0.1), rich.soil$rich.ratio, 
+      ylim = c(0.5, 1.5), xlim = c(0.5, 4.5), pch = 21, col = "lightgrey", bg = "lightgrey", lwd = 2,
       cex = 1.7, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5,
       las = 1, ylab = "", xlab = "")
       box(lwd = 2)
-points(jitter(rep(2, nrow(rich.2[ which(rich.2$env == "sed"),])), amount = 0.1),rich.sed$rich.ratio, pch = 21, 
-       bg = "lightgrey", lwd = 2, cex = 1.7)
-points(jitter(rep(3, nrow(rich.2[ which(rich.2$env == "soil"),])), amount = 0.1),rich.soil$rich.ratio, pch = 21, 
-       bg = "lightgrey", lwd = 2, cex = 1.7)
-points(jitter(rep(4, nrow(rich.2[ which(rich.2$env == "water"),])), amount = 0.1),rich.water$rich.ratio, pch = 21, 
-       bg = "lightgrey", lwd = 2, cex = 1.7) 
+      
+points(jitter(rep(2, nrow(rich.sed)), amount = 0.1), rich.sed$rich.ratio, pch = 21, 
+       col = "lightgrey", bg = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(3, nrow(rich.feces)), amount = 0.1), rich.feces$rich.ratio, pch = 21, 
+       col = "lightgrey", bg = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(4, nrow(rich.water)), amount = 0.1),rich.water$rich.ratio, pch = 21, 
+       col = "lightgrey", bg = "lightgrey", lwd = 2, cex = 1.7) 
+
+# rect(xleft, ybottom, xright, ytop)
+rect(0.8, (mean(rich.soil$rich.ratio) + 0.025), 1.2, 
+     (mean(rich.soil$rich.ratio)- 0.025), col = "NA", border = "black", lwd = 2)
+
+rect(1.8, (mean(rich.sed$rich.ratio) + 0.025), 2.2, 
+     (mean(rich.sed$rich.ratio)- 0.025), col = "NA", border = "black", lwd = 2)
+
+rect(2.8, (mean(rich.feces$rich.ratio) + 0.025), 3.2, 
+     (mean(rich.feces$rich.ratio) - 0.025), col = "NA", border = "black", lwd = 2)
+
+rect(3.8, (mean(rich.water$rich.ratio) + 0.025), 4.2, 
+     (mean(rich.water$rich.ratio) - 0.025), col = "NA", border = "black", lwd = 2)
 
 abline(h = 1, lty = 3, lwd = 2)
 arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$LCI, angle = 90,
        length = 0.1, lwd = 2)
 arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$UCI, angle = 90,
        length=0.1, lwd = 2)
-
-segments(0.85, rich.table$mean[1], 1.15, rich.table$mean[1], lwd = 2)
-segments(1.85, rich.table$mean[2], 2.15, rich.table$mean[2], lwd = 2)
-segments(2.85, rich.table$mean[3], 3.15, rich.table$mean[3], lwd = 2)
-segments(3.85, rich.table$mean[4], 4.15, rich.table$mean[4], lwd = 2)
 
 mtext(expression('Richness Ratio'), side = 2,
       outer = F, cex = 1.5, line = 3, adj = 0.5)  
@@ -462,27 +477,37 @@ text("a", x = 0.6, y = 1.45, font = 2, cex = 1.75)
 
 
 # Evenness Panel
-even.plot <- plot(jitter(rep(1, nrow(even.2[ which(even.2$env == "feces"),])), amount = 0.1),even.feces$even.ratio, 
-      ylim = c(0.5, 1.5), xlim = c(0.5, 4.5), pch = 21, bg = "lightgrey", lwd = 2,
-      cex = 1.7, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5,
+even.plot <- plot(jitter(rep(1, nrow(even.soil)), amount = 0.1),even.soil$even.ratio, 
+      ylim = c(0.5, 1.5), xlim = c(0.5, 4.5), pch = 21, col = "lightgrey", bg = "lightgrey", 
+      lwd = 2, cex = 1.7, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5,
       las = 1, ylab = "", xlab = "")
       box(lwd = 2)
-points(jitter(rep(2, nrow(even.2[ which(even.2$env == "sed"),])), amount = 0.1), even.sed$even.ratio, pch = 21, 
-       bg = "lightgrey", lwd = 2, cex = 1.7)
-points(jitter(rep(3, nrow(even.2[ which(even.2$env == "soil"),])), amount = 0.1), even.soil$even.ratio, pch = 21, 
-       bg = "lightgrey", lwd = 2, cex = 1.7)
-points(jitter(rep(4, nrow(even.2[ which(even.2$env == "water"),])), amount = 0.1), even.water$even.ratio, pch = 21, 
-       bg = "lightgrey", lwd = 2, cex = 1.7)
+      
+points(jitter(rep(2, nrow(even.sed)), amount = 0.1), even.sed$even.ratio, pch = 21, 
+       col = "lightgrey", bg = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(3, nrow(even.feces)), amount = 0.1), even.feces$even.ratio, pch = 21, 
+       col = "lightgrey", bg = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(4, nrow(even.water)), amount = 0.1), even.water$even.ratio, pch = 21, 
+       col = "lightgrey", bg = "lightgrey", lwd = 2, cex = 1.7)
+
+# rect(xleft, ybottom, xright, ytop)
+rect(0.8, (mean(even.soil$even.ratio) + 0.025), 1.2, 
+     (mean(even.soil$even.ratio)- 0.025), col = "NA", border = "black", lwd = 2)
+
+rect(1.8, (mean(even.sed$even.ratio) + 0.025), 2.2, 
+     (mean(even.sed$even.ratio)- 0.025), col = "NA", border = "black", lwd = 2)
+
+rect(2.8, (mean(even.feces$even.ratio) + 0.025), 3.2, 
+     (mean(even.feces$even.ratio) - 0.025), col = "NA", border = "black", lwd = 2)
+
+rect(3.8, (mean(even.water$even.ratio) + 0.025), 4.2, 
+     (mean(even.water$even.ratio) - 0.025), col = "NA", border = "black", lwd = 2)
+
 abline(h = 1, lty = 3, lwd = 2)
 arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$LCI, angle = 90,
        length = 0.1, lwd = 2)
 arrows(x0 = c(1,2,3,4), y0 = even.table$mean, y1 = even.table$UCI, angle = 90,
        length=0.1, lwd = 2)
-
-segments(0.85, even.table$mean[1], 1.15, even.table$mean[1], lwd = 2)
-segments(1.85, even.table$mean[2], 2.15, even.table$mean[2], lwd = 2)
-segments(2.85, even.table$mean[3], 3.15, even.table$mean[3], lwd = 2)
-segments(3.85, even.table$mean[4], 4.15, even.table$mean[4], lwd = 2)
 
 mtext(expression('Evenness Ratio'), side = 2,
         outer = F, cex = 1.5, line = 3, adj = 0.5)
@@ -505,37 +530,47 @@ axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 text("b", x = 0.6, y = 1.45, font = 2, cex = 1.75)
 
 # Phylo Panel
-phylo.plot <- plot(jitter(rep(1, nrow(phylo.2[ which(phylo.2$env == "feces"),])), amount = 0.1),phylo.feces$phylo.ratio, 
-      ylim = c(0.5, 1.5), xlim = c(0.5, 4.5), pch = 21, bg = "lightgrey", lwd = 2,
+phylo.plot <- plot(jitter(rep(1, nrow(phylo.soil)), amount = 0.1), phylo.soil$phylo.ratio, 
+      ylim = c(0.5, 1.5), xlim = c(0.5, 4.5), pch = 21, col = "lightgrey", bg = "lightgrey", lwd = 2,
       cex = 1.7, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5,
       las = 1, ylab = "", xlab = "")
       box(lwd = 2)
-points(jitter(rep(2, nrow(phylo.2[ which(phylo.2$env == "sed"),])), amount = 0.1), phylo.sed$phylo.ratio, pch = 21, 
-       bg = "lightgrey", lwd = 2, cex = 1.7)
-points(jitter(rep(3, nrow(phylo.2[ which(phylo.2$env == "soil"),])), amount = 0.1), phylo.soil$phylo.ratio, pch = 21, 
-       bg = "lightgrey", lwd = 2, cex = 1.7)
-points(jitter(rep(4, nrow(phylo.2[ which(phylo.2$env == "water"),])), amount = 0.1), phylo.water$phylo.ratio, pch = 21, 
-       bg = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(2, nrow(phylo.sed)), amount = 0.1), phylo.sed$phylo.ratio, pch = 21, 
+       col = "lightgrey", bg = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(3, nrow(phylo.feces)), amount = 0.1), phylo.feces$phylo.ratio, pch = 21, 
+       col = "lightgrey", bg = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(4, nrow(phylo.water)), amount = 0.1), phylo.water$phylo.ratio, pch = 21, 
+       col = "lightgrey", bg = "lightgrey", lwd = 2, cex = 1.7)
+
+# rect(xleft, ybottom, xright, ytop)
+rect(0.8, (mean(phylo.soil$phylo.ratio) + 0.025), 1.2, 
+     (mean(phylo.soil$phylo.ratio)- 0.025), col = "NA", border = "black", lwd = 2)
+
+rect(1.8, (mean(phylo.sed$phylo.ratio) + 0.025), 2.2, 
+     (mean(phylo.sed$phylo.ratio)- 0.025), col = "NA", border = "black", lwd = 2)
+
+rect(2.8, (mean(phylo.feces$phylo.ratio) + 0.025), 3.2, 
+     (mean(phylo.feces$phylo.ratio) - 0.025), col = "NA", border = "black", lwd = 2)
+
+rect(3.8, (mean(phylo.water$phylo.ratio) + 0.025), 4.2, 
+     (mean(phylo.water$phylo.ratio) - 0.025), col = "NA", border = "black", lwd = 2)
+
 abline(h = 1, lty = 3, lwd = 2)
 arrows(x0 = c(1,2,3,4), y0 = phylo.table$mean, y1 = phylo.table$LCI, angle = 90,
        length = 0.1, lwd = 2)
 arrows(x0 = c(1,2,3,4), y0 = phylo.table$mean, y1 = phylo.table$UCI, angle = 90,
        length=0.1, lwd = 2)
 
-segments(0.85, phylo.table$mean[1], 1.15, phylo.table$mean[1], lwd = 2)
-segments(1.85, phylo.table$mean[2], 2.15, phylo.table$mean[2], lwd = 2)
-segments(2.85, phylo.table$mean[3], 3.15, phylo.table$mean[3], lwd = 2)
-segments(3.85, phylo.table$mean[4], 4.15, phylo.table$mean[4], lwd = 2)
-
 mtext(expression("Faith's D Ratio"), side = 2,
         outer = F, cex = 1.5, line = 3, adj = 0.5)
+
 # Major Axes
 axis(side = 2, lwd.ticks = 2, cex.axis = 1.5, las = 1,
     labels = T, at = c(0.5, 1, 1.5))
 axis(side = 4, lwd.ticks = 2, cex.axis = 1, las = 1,
    labels = F, at = c(0.5, 1, 1.5))
 axis(side = 1, lwd.ticks = 2, cex.axis = 1.5, las = 1,
-    labels = c("Gut", "Sediment", "Soil", "Water"), at = c(1, 2, 3, 4))
+    labels = c("Soil", "Sediment", "Gut", "Water"), at = c(1, 2, 3, 4))
 axis(side = 3, lwd.ticks = 2, tck = -0.02, cex.axis = 1.5, las = 1,
     at = c(1, 2, 3, 4), labels = F)
 
@@ -547,13 +582,12 @@ axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 
 text("c", x = 0.6, y = 1.45, font = 2, cex = 1.75)
 
-
 # Close Plot Device
 dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/Figure3-Alpha2.png")
+img <- readPNG("../figures/Figure3-Alpha.png")
 grid.raster(img)
 ```
 
@@ -568,8 +602,8 @@ par(mar = c(1, 6.5, 0.5, 1), oma = c(6, 2, 1.5, 1))
 # rich.reg <- lm(rich.2[order(rich.2$qPCR.match), ]$rich.ratio ~ eDNA.prop.sub2$prop)
 
 plot(eDNA.prop.sub2$prop, rich.2[order(rich.2$qPCR.match), ]$rich.ratio,
-     xlim = c(0, 1), ylim = c(0.5, 2),
-     pch = 22, bg = "gray", lwd = 2, bty = "n",
+    xlim = c(0, 1), ylim = c(0.5, 2),
+     pch = 24, bg = "NA", col = "NA", lwd = 2, bty = "n",
      cex = 2, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5,
      las = 1, ylab = "", xlab = "")
 box(lwd = 2)
@@ -577,8 +611,17 @@ box(lwd = 2)
 pred.frame <- data.frame(prop = seq(0.0, 0.875, length.out = 21))
 add.hull(rich.reg, pred.frame)
 
-points(eDNA.prop.sub2$prop, rich.2[order(rich.2$qPCR.match), ]$rich.ratio,
-       pch = 22, bg = "gray", lwd = 2, cex = 2)
+points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "soil")], rich.2[order(rich.2$qPCR.match), ]$rich.ratio[which(rich.2[order(rich.2$qPCR.match), ]$env == "soil")], pch = 24, 
+       col = "brown", bg = "brown", lwd = 2, cex = 1.7)
+
+points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "sed")], rich.2[order(rich.2$qPCR.match), ]$rich.ratio[which(rich.2[order(rich.2$qPCR.match), ]$env == "sed")], pch = 22, 
+       col = "darkgreen", bg = "darkgreen", lwd = 2, cex = 1.7)
+
+points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "feces")], rich.2[order(rich.2$qPCR.match), ]$rich.ratio[which(rich.2[order(rich.2$qPCR.match), ]$env == "feces")], pch = 21, 
+       col = "red", bg = "red", lwd = 2, cex = 1.7)
+
+points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "water")], rich.2[order(rich.2$qPCR.match), ]$rich.ratio[which(rich.2[order(rich.2$qPCR.match), ]$env == "water")], pch = 23, 
+       col = "blue", bg = "blue", lwd = 2, cex = 1.7)
 
 #legend("topright", cex = 1.2,
 #       c(paste("Slope: P =", round(ttest(rich.reg, 2, 0)[3], 2)),
@@ -617,8 +660,8 @@ text("a", x = 0.02, y = 1.95, font = 2, cex = 1.25)
 
 # even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop)
 plot(eDNA.prop.sub2$prop, even.2[order(even.2$qPCR.match), ]$even.ratio,
-     xlim = c(0, 1), ylim = c(0.5, 1.5),
-     pch = 22, bg = "gray", lwd = 2, bty = "n",
+    xlim = c(0, 1), ylim = c(0.5, 1.5),
+     pch = 24, bg = "NA", col = "NA", lwd = 2, bty = "n",
      cex = 2, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5,
      las = 1, ylab = "", xlab = "")
 box(lwd = 2)
@@ -626,8 +669,17 @@ box(lwd = 2)
 pred.frame <- data.frame(prop = seq(0.0, 0.875, length.out = 21))
 add.hull(even.reg, pred.frame)
 
-points(eDNA.prop.sub2$prop, even.2[order(even.2$qPCR.match), ]$even.ratio,
-       pch = 22, bg = "gray", lwd = 2, cex = 2)
+points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "soil")], even.2[order(even.2$qPCR.match), ]$even.ratio[which(rich.2[order(even.2$qPCR.match), ]$env == "soil")], pch = 24, 
+       col = "brown", bg = "brown", lwd = 2, cex = 1.7)
+
+points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "sed")], even.2[order(even.2$qPCR.match), ]$even.ratio[which(even.2[order(rich.2$qPCR.match), ]$env == "sed")], pch = 22, 
+       col = "darkgreen", bg = "darkgreen", lwd = 2, cex = 1.7)
+
+points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "feces")], even.2[order(even.2$qPCR.match), ]$even.ratio[which(even.2[order(even.2$qPCR.match), ]$env == "feces")], pch = 21, 
+       col = "red", bg = "red", lwd = 2, cex = 1.7)
+
+points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "water")], even.2[order(even.2$qPCR.match), ]$even.ratio[which(even.2[order(even.2$qPCR.match), ]$env == "water")], pch = 23, 
+       col = "blue", bg = "blue", lwd = 2, cex = 1.7)
 
 # legend("topright", cex = 1.2,
 #        c(paste("Slope: P =", sprintf("%.2f",
@@ -669,7 +721,7 @@ text("b", x = 0.02, y = 1.45, font = 2, cex = 1.25)
 
 plot(eDNA.prop.sub2$prop, phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio,
      xlim = c(0, 1), ylim = c(0.5, 1.5),
-     pch = 22, bg = "gray", lwd = 2, bty = "n",
+     pch = 22, bg = "NA", col = "NA", lwd = 2, bty = "n",
      cex = 2, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5,
      las = 1, ylab = "", xlab = "")
 box(lwd = 2)
@@ -677,8 +729,17 @@ box(lwd = 2)
 pred.frame <- data.frame(prop = seq(0.0, 0.875, length.out = 21))
 add.hull(phylo.reg, pred.frame)
 
-points(eDNA.prop.sub2$prop, phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio,
-       pch = 22, bg = "gray", lwd = 2, cex = 2)
+points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "soil")], phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio[which(phylo.2[order(phylo.2$qPCR.match), ]$env == "soil")], pch = 24, 
+       col = "brown", bg = "brown", lwd = 2, cex = 1.7)
+
+points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "sed")], phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio[which(phylo.2[order(phylo.2$qPCR.match), ]$env == "sed")], pch = 22, 
+       col = "darkgreen", bg = "darkgreen", lwd = 2, cex = 1.7)
+
+points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "feces")], phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio[which(phylo.2[order(phylo.2$qPCR.match), ]$env == "feces")], pch = 21, 
+       col = "red", bg = "red", lwd = 2, cex = 1.7)
+
+points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "water")], phylo.2[order(phylo.2$qPCR.match), ]$phylo.ratio[which(phylo.2[order(phylo.2$qPCR.match), ]$env == "water")], pch = 23, 
+       col = "blue", bg = "blue", lwd = 2, cex = 1.7)
 
 # legend("bottomright", cex = 1.2,
 #        c(paste("Slope: P =", round(ttest(phylo.reg, 2, 0)[3], 2)),
@@ -715,6 +776,11 @@ axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
 
 text("c", x = 0.02, y = 1.45, font = 2, cex = 1.5)
+
+# Legend
+legend(0.03, 0.85, c("soil", "sediment", "gut", "water"), pch = c(24, 22, 21, 23), 
+       pt.bg = c("brown", "darkgreen", "red", "blue"), pt.cex = 2, 
+       pt.lwd = 2, bty = 'n')
 
 # Close Plot Device
 dev.off()
