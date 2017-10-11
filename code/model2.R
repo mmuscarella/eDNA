@@ -110,7 +110,7 @@ d <- 0.0001
 t <- 10^4
 
 
-same.rates <- relic.pool(names = otus, N = 1000000, immigration = 100, 
+same.rates <- relic.pool(names = otus, N = 100000, immigration = 100, 
                        birth = 0.01, mortality = 0.01, decay = 0.01, time = 10^4)
 
 active1 <- table(same.rates[[1]])
@@ -140,7 +140,7 @@ box(lwd = 1.5)
 
 
 # Low Decay
-low.decay <- relic.pool(names = otus, N = 1000000, immigration = 1000, 
+low.decay <- relic.pool(names = otus, N = 100000, immigration = 1000, 
                          birth = 0.01, mortality = 0.01, decay = 0.001, time = 10^4)
 
 active1 <- table(low.decay[[1]])
@@ -169,7 +169,7 @@ mtext("Species Index", side = 1, cex = 1.5, line = 0.75)
 box(lwd = 1.5)
 
 # High Decay
-high.decay <- relic.pool(names = otus, N = 1000000, immigration = 1000, 
+high.decay <- relic.pool(names = otus, N = 100000, immigration = 1000, 
                          birth = 0.01, mortality = 0.01, decay = 0.1, time = 10^4)
 
 active1 <- table(high.decay[[1]])
@@ -198,8 +198,8 @@ mtext("Species Index", side = 1, cex = 1.5, line = 0.75)
 box(lwd = 1.5)
 
 # High Birth
-high.birth <- relic.pool(names = otus, N = 1000000, immigration = 1000, 
-                        birth = 0.05, mortality = 0.01, decay = 0.01, time = 10^4)
+high.birth <- relic.pool(names = otus, N = 100000, immigration = 1000, 
+                        birth = 0.5, mortality = 0.01, decay = 0.01, time = 10^4)
 
 active1 <- table(high.birth[[1]])
 relic1 <- table(high.birth[[2]])

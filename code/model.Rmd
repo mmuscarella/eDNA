@@ -535,6 +535,40 @@ active3 <- active3[rev(order(active3))]
 relic3 <- relic3[rev(order(relic3))]
 ```
 
+# Model With Simulation Output
+```{r}
+load("../data/simSAD.RData")
+
+length(same.rates[[1]])
+
+# Same Rates
+total1 <- table(sample(c(same.rates[[1]], same.rates[[2]]), 10000))
+active1 <- table(sample(same.rates[[1]], 10000))
+relic1 <- table(sample(same.rates[[2]], 10000))
+
+total1 <- total1[rev(order(total1))]
+active1 <- active1[rev(order(active1))]
+relic1 <- relic1[rev(order(relic1))]
+
+# Low Decay
+total2 <- table(sample(c(low.decay[[1]], low.decay[[2]]), 10000))
+active2 <- table(sample(low.decay[[1]], 10000))
+relic2 <- table(sample(low.decay[[2]], 10000))
+
+total2 <- total2[rev(order(total2))]
+active2 <- active2[rev(order(active2))]
+relic2 <- relic2[rev(order(relic2))]
+
+# High Decay
+total3 <- table(sample(c(high.decay[[1]], high.decay[[2]]), 10000))
+active3 <- table(sample(high.decay[[1]], 10000))
+relic3 <- table(sample(high.decay[[2]], 10000))
+
+total3 <- total3[rev(order(total3))]
+active3 <- active3[rev(order(active3))]
+relic3 <- relic3[rev(order(relic3))]
+```
+
 # SAD Plots
 ```{r}
 png(filename="../figures/Figure1-SADs.png",
