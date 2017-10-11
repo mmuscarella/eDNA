@@ -208,11 +208,11 @@ for(i in 1:length(props)){
   n <- props[i]
   # Initialize
   temp.null <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1))
-  temp.uneven <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1),
+  temp.uneven <- c(sample(otus1, size = size.comm - n, replace = T, prob = gamma1),
                    sample(otus2, size = n, replace = T, prob = gamma2))
-  temp.even <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1),
+  temp.even <- c(sample(otus1, size = size.comm - n, replace = T, prob = gamma1),
                  sample(otus3, size = n, replace = T, prob = gamma3))
-  temp.same <- c(sample(otus1, size = size.comm, replace = T, prob = gamma1),
+  temp.same <- c(sample(otus1, size = size.comm - n, replace = T, prob = gamma1),
                  sample(otus1, size = n, replace = T, prob = gamma1))
   tab1 <- table(temp.null)
   tab2 <- table(temp.uneven)
@@ -483,11 +483,7 @@ img <- readPNG("../figures/FigureS1-SimulationBC.png")
 grid.raster(img)
 ```
 
-
-# Model With Simulation Output
 ```{r}
-load("../data/simSAD.R")
-
 # Load Regional Pool
 gamma1 <- rlnorm(n=10000, meanlog = 1, sdlog = 0.98)
 gamma1 <- gamma1[rev(order(gamma1))]
@@ -504,6 +500,12 @@ plot(log10(gamma1), col = "forestgreen",
      las = 1)
 points(log10(gamma2), col = "red")
 points(log10(gamma3), col = "blue")
+
+```
+
+# Model With Simulation Output
+```{r}
+load("../data/simSAD.RData")
 
 # Same Rates
 total1 <- table(c(same.rates[[1]], same.rates[[2]]))
@@ -535,26 +537,38 @@ relic3 <- relic3[rev(order(relic3))]
 
 # SAD Plots
 ```{r}
+png(filename="../figures/Figure1-SADs.png",
+    width = 1600, height = 800, res = 96*2)
+
 # Simple Plot
 layout(1)
-par(mar = c(3, 5, 3, 2.5))
+par(mar = c(3, 6, 2, 2))
 plot(log10(active1), col = "gray",
-     main = "Local Species Abundance Distributions",
+     main = "",
      xlab = "", ylab = "", 
      xlim = c(0, max(length(active1), length(relic2))),
-     ylim = c(0, max(max(log10(active1)), max(log10(relic2)))),
+     ylim = c(0, max(max(log10(active1)), max(log10(relic2)), 2.5)),
      las = 1, type = "p", xaxt = "n", yaxt = "n", pch = 16)
-points(log10(relic1), col = "gray30", type = "p", pch = 15)
+points(log10(relic1), col = "gray30", type = "p", pch = 16)
 points(log10(relic2), col = "gray30", type = "p", pch = 16)
-points(log10(relic3), col = "gray30", type = "p", pch = 17)
+points(log10(relic3), col = "gray30", type = "p", pch = 16)
 legend("topright", legend = c("Active", "Relic Same Rates", 
        "Relic Low Decay", "Relic High Decay"), pch = c(16, 15, 16, 17), 
        bty = "n", col = c("gray", "gray30", "gray30", "gray30"))
-axis(side = 1, labels = F, lwd = 1.5, tck = 0)
-axis(side = 2, labels = T, lwd = 1.5, las = 1)
-mtext("Log Abundance", side = 2, cex = 1.5, line = 2.5)
-mtext("Species Index", side = 1, cex = 1.5, line = 0.75)
-box(lwd = 1.5)
+axis(side = 1, labels = F, lwd = 2, tck = 0)
+axis(side = 2, labels = T, lwd = 2, las = 1, cex.axis = 1.25)
+axis(side = 2, labels = F, lwd = 2, tck = 0.02)
+mtext(expression(paste("Log"[10], " Abundance")), side = 2, cex = 2, line = 3)
+mtext("Species Index", side = 1, cex = 2, line = 1)
+box(lwd = 2)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/Figure1-SADs.png")
+grid.raster(img)
 
 ```
 
@@ -562,112 +576,75 @@ box(lwd = 1.5)
 ```{r}
 active.prob <- active1 / sum(active1)
 relic1.prob <- relic1 / sum(relic1)    # Same
-relic2.prob <- relic2 / sum(relic2)    # High
+relic2.prob <- relic2 / sum(relic2)    # Low
 relic3.prob <- relic3 / sum(relic3)    # Low
 
-max(length(active1), length(relic1), length(relic2), length(relic3))
+active1.n <- names(active1)
+active2.n <- names(active2)
+active3.n <- names(active3)
+relic1.n <- names(relic1)  # Same
+relic2.n <- names(relic2)  # Low 
+relic3.n <- names(relic3)  # High
 
-# Define OTUs
-otus <- paste("OTU", sprintf("%05d", seq(1:100000)), sep = "")
 
-gamma1 <- rlnorm(n=10000, meanlog = 1, sdlog = 0.98)
-gamma1 <- gamma1[rev(order(gamma1))]
-
-# Initiate Communities
-site1 <- sample(names(active1), size = length(active1), replace = T, prob = active1)
-site2 <- sample(names(active1), size = length(active1), replace = T, prob = active1)
-site3 <- sample(names(active1), size = length(active1), replace = T, prob = active1)
-
-site1.t <- table(site1); site2.t <- table(site2); site3.t <- table(site3)
-
-specnumber(site1.t)
-specnumber(site2.t)
-specnumber(site3.t)
-
-size.comm <- 1000000
-props <- seq(size.comm/100, size.comm, 50000)
+size.comm <- 10000
+n.relic <- seq(size.comm/100, size.comm, 500)
+n.active <- size.comm - n.relic
+props <- n.relic/size.comm
 
 ratio.tab <- matrix(NA, nrow = 5, ncol = length(props))
-rownames(ratio.tab) <- c("Null", "Same", "High", "Low", "Proportion")
+rownames(ratio.tab) <- c("Null", "Same", "Low", "High", "Proportion")
 
 bc.tab <- matrix(NA, nrow = 4, ncol = length(props))
 rownames(bc.tab) <- c("1-2", "1-3", "1-4", "Proportion")
 
 for(i in 1:length(props)){
-  n <- props[i]
-  # Initialize
-  
-  site1 <- sample(names(active1), size = length(active1), replace = T, prob = active1)
-  
-  temp.null <- c(sample(names(active1), size = size.comm, 
+
+  # Define Community Sizes
+  n1 <- n.active[i]
+  n2 <- n.relic[i]
+
+  # Simuate Mixing Mdel
+  temp.null <- c(sample(active1.n, size = size.comm, 
                         replace = T, prob = active1))
   
-  temp.same <- c(sample(names(active1), size = size.comm, 
-                          replace = T, prob = active1),
-                   sample(names(relic1), size = n, 
-                          replace = T, prob = relic1))
+  temp.same <- c(sample(active1.n, size = n1, 
+                          replace = T, prob = active1/sum(active1)),
+                   sample(relic1.n, size = n2, 
+                          replace = T, prob = relic1/sum(relic1)))
   
-  temp.high <- c(sample(names(active1), size = size.comm, 
-                        replace = T, prob = active1),
-                 sample(names(relic2), size = n, 
-                        replace = T, prob = relic2))
+  temp.low <- c(sample(active2.n, size = n1, 
+                        replace = T, prob = active2/sum(active2)),
+                 sample(relic2.n, size = n2, 
+                        replace = T, prob = relic2/sum(relic2)))
   
-  temp.low <- c(sample(names(active1), size = size.comm, 
-                        replace = T, prob = active1),
-                 sample(names(relic3), size = n, 
-                        replace = T, prob = relic3))
+  temp.high <- c(sample(active3.n, size = n1, 
+                        replace = T, prob = active3/sum(active3)),
+                 sample(relic3.n, size = n2, 
+                        replace = T, prob = relic3/sum(relic3)))
   
   tab1 <- table(temp.null)
   tab2 <- table(temp.same)
-  tab3 <- table(temp.high)
-  tab4 <- table(temp.low)
+  tab3 <- table(temp.low)
+  tab4 <- table(temp.high)
 
-  sbys <- matrix(NA, ncol = length(otus), nrow = 4)
-  colnames(sbys) <- otus
-  rownames(sbys) <- c("site1", "site2", "site3",
-                    "site4")
+  ratio.tab[1, i] <- round(length(tab1)/length(tab1), 2)
+  ratio.tab[2, i] <- round(length(tab2)/length(tab1), 2)
+  ratio.tab[3, i] <- round(length(tab3)/length(tab1), 2)
+  ratio.tab[4, i] <- round(length(tab4)/length(tab1), 2)
+  ratio.tab[5, i] <- props[i]
 
-  for(j in 1:dim(sbys)[2]){
-    if (otus[j] %in% names(tab1)){
-      sbys[1, j] <- tab1[which(names(tab1) == otus[j])]
-    } else {sbys[1, j] <- 0}
-
-    if (otus[j] %in% names(tab2)){
-      sbys[2, j] <- tab2[which(names(tab2) == otus[j])]
-    } else {sbys[2, j] <- 0}
-
-    if (otus[j] %in% names(tab3)){
-      sbys[3, j] <- tab3[which(names(tab3) == otus[j])]
-    } else {sbys[3, j] <- 0}
-
-    if (otus[j] %in% names(tab4)){
-      sbys[4, j] <- tab4[which(names(tab4) == otus[j])]
-    } else {sbys[4, j] <- 0}
-
-  }
-
-
-  sbys2 <- rrarefy(sbys, 10000)
-
-  rich <- specnumber(sbys2)
-
-  ratio.tab[1, i] <- round(rich[1]/rich[1], 2)
-  ratio.tab[2, i] <- round(rich[2]/rich[1], 2)
-  ratio.tab[3, i] <- round(rich[3]/rich[1], 2)
-  ratio.tab[4, i] <- round(rich[4]/rich[1], 2)
-  ratio.tab[5, i] <- props[i] / size.comm
-
-  dis <- as.matrix(vegdist(sbys2, method = "bray"))
-  bc.tab[1, i] <- dis[2, 1]
-  bc.tab[2, i] <- dis[3, 1]
-  bc.tab[3, i] <- dis[4, 1]
-  bc.tab[4, i] <- props[i] / size.comm
+  # dis <- as.matrix(vegdist(sbys2, method = "bray"))
+  # bc.tab[1, i] <- dis[2, 1]
+  # bc.tab[2, i] <- dis[3, 1]
+  # bc.tab[3, i] <- dis[4, 1]
+  # bc.tab[4, i] <- props[i] / size.comm
 
   print(paste(i, " of ", dim(ratio.tab)[2], sep = ""))
 }
 
-ratio.tab.even <- ratio.tab
-bc.tab.even <- bc.tab
+ratio.tab.sim <- ratio.tab
+bc.tab.sim <- bc.tab
 
 ```
 
@@ -705,6 +682,106 @@ mtext(side = 3, "More Even\nRelic", line = -2, cex = 0.8)
 box(lwd = 1.5, bty = "l")
 ```
 
+# Manuscript Figures
+## Figure 1
+```{r}
+png(filename="../figures/Figure1-Model_NEW.png",
+    width = 1600, height = 1300, res = 96*2)
+
+layout(matrix(c(1,1,2,3), 2, 2, byrow=T), heights=c(4, 3))
+par(oma = c(0.5, 1, 0.5, 1))
+
+# Conceptual Model
+img <- readPNG("../figures/Figure1A.png")
+par(mar = c(0, 0, 0, 2))
+plot(1:10, type = "n", axes = F)
+rasterImage(img, 1, 0.55, 9.65, 10.5)
+text(x = 0.8, y = 10.2, "a", cex = 1.5, font = 2)
+
+
+par(mar = c(4, 4, 1, 5) + 0.5)
+
+# Evenness
+ratio.tab <- ratio.tab.sim
+plot(ratio.tab[5, ], ratio.tab[1, ], type = 'n',
+     pch = 23, col = "black", bg = "white", axes = F,
+     xlab = "",
+     ylab = "",
+     xlim = c(0, 1), ylim = c(0.78,1.22), las = 1)
+
+# abline(h=1, lty = 3, lwd = 1.5)
+
+points(ratio.tab[5, ], ratio.tab[2, ], pch = 22,bg = "gray40")
+points(ratio.tab[5, ], ratio.tab[3, ], pch = 21, bg = "gray60")
+points(ratio.tab[5, ], ratio.tab[4, ], pch = 23,bg = "white")
+
+axis(side = 1, labels = T, tck = -0.05, lwd = 1.5, las = 1)
+axis(side = 2, labels = T, tck = -0.05, lwd = 1.5, las = 1,
+     at = c(seq(0.8, 1.4, 0.2)))
+axis(side = 1, labels = F, tck = 0.02, lwd = 1.5)
+axis(side = 2, labels = F, tck = 0.02, lwd = 1.5,
+     at = c(seq(0.8, 1.4, 0.2)))
+box(lwd = 1.5)
+
+mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1.25)
+mtext(side = 2, "Richness Ratio", line = 2.5, cex = 1.25)
+
+text(x = 1.02, y = 1.18, expression(paste(italic("E")["relic"],
+     " > ", italic("E")["intact"])), pos = 4, cex = 1, xpd = T)
+text(x = 1.02, y = 1, expression(paste(italic("E")["relic"],
+     " = ", italic("E")["intact"])), pos = 4, cex = 1, xpd = T)
+text(x = 1.02, y = 0.81, expression(paste(italic("E")["relic"],
+     " < ", italic("E")["intact"])), pos = 4, cex = 1, xpd = T)
+
+text(x = 0.02, y = 1.2, "b", cex = 1.5, font = 2)
+
+# Richness
+ratio.tab <- ratio.tab.s
+plot(ratio.tab[5, ], ratio.tab[1, ], type = 'n',
+     pch = 23, col = "black", bg = "white", axes = F,
+     xlab = "",
+     ylab = "",
+     xlim = c(0, 1), ylim = c(0.77,1.43), las = 1)
+
+# abline(h=1, lty = 3, lwd = 1.5)
+
+points(ratio.tab[5, ], ratio.tab[2, ], pch = 22,bg = "gray40")
+points(ratio.tab[5, ], ratio.tab[3, ], pch = 21, bg = "gray60")
+points(ratio.tab[5, ], ratio.tab[4, ], pch = 23,bg = "white")
+
+axis(side = 1, labels = T, tck = -0.05, lwd = 1.5, las = 1)
+axis(side = 2, labels = T, tck = -0.05, lwd = 1.5, las = 1,
+     at = c(seq(0.8, 1.4, 0.2)))
+axis(side = 1, labels = F, tck = 0.02, lwd = 1.5)
+axis(side = 2, labels = F, tck = 0.02, lwd = 1.5,
+     at = c(seq(0.8, 1.4, 0.2)))
+box(lwd = 1.5)
+
+mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1.25)
+mtext(side = 2, "Richness Ratio", line = 2.5, cex = 1.25)
+
+text(x = 1.02, y = 1.35, expression(paste(italic("S")["relic"],
+     " > ", italic("S")["intact"])), pos = 4, cex = 1, xpd = T)
+text(x = 1.02, y = 1, expression(paste(italic("S")["relic"],
+     " = ", italic("S")["intact"])), pos = 4, cex = 1, xpd = T)
+text(x = 1.02, y = 0.85, expression(paste(italic("S")["relic"],
+     " < ", italic("S")["intact"])), pos = 4, cex = 1, xpd = T)
+
+text(x = 0.02, y = 1.4, "c", cex = 1.5, font = 2)
+
+#legend("topleft", c("Relic has Larger S", "Relic has Smaller S"),
+#       pch = c(22, 21), pt.bg = c("gray40", "gray60"), bty = "n",
+#       cex = 0.8)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/Figure1-Model_NEW.png")
+grid.raster(img)
+
+```
 
 
 

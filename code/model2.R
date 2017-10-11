@@ -35,8 +35,9 @@ simp_even <- function(SAD = " "){
 }
 
 
-gamma1 <- rlnorm(n=100000, meanlog = 1, sdlog = 0.98)
-gamma1 <- gamma1[rev(order(gamma1))]
+gamma1 <- rlnorm(n=1000000, meanlog = -1, sdlog = 2.5) # Changed sdlog param
+gamma1 <- gamma1[rev(order(gamma1))]/sum(gamma1)
+gamma1[1:10]
 
 # Simple Plot
 layout(1)
@@ -52,9 +53,9 @@ otus <- paste("OTU", sprintf("%05d", seq(1:length(gamma1))), sep = "")
 # Examples
 N <- 100000
 i <- 1000
-r <- 0.001
-m <- 0.001
-d <- 0.0001
+r <- 0.01
+m <- 0.01
+d <- 0.01
 t <- 10^4
 
 
@@ -69,7 +70,7 @@ relic.pool <- function(names = otus, N = n,
   site1 <- sample(otus, size = N, replace = T, prob = gamma1)
 
   # Run Simulation
-  for (i in 1:t){
+  for (j in 1:t){
     i.comm <- sample(otus, size = i, replace = T, prob = gamma1)
     comm <- c(site1, i.comm)
     temp <- sample(c(1:length(comm)), size = length(comm) * r, replace = F)
@@ -85,7 +86,8 @@ relic.pool <- function(names = otus, N = n,
     if (length(temp) > 0){
       relic <- relic[-temp]
     }
-    if (i %in% seq(0, t, 100)){
+    if (j %in% seq(0, t, 100)){
+      print(paste("Time: ", j, sep = ""), quote = F)
       print(paste("N_active = ", length(comm), sep = ""), quote = F)
       print(paste("S_active = ", length(unique(comm)), sep = ""), quote = F)
       print(paste("N_relic = ", length(relic), sep = ""), quote = F)
@@ -108,7 +110,7 @@ d <- 0.0001
 t <- 10^4
 
 
-same.rates <- relic.pool(names = otus, N = 100000, immigration = 1000, 
+same.rates <- relic.pool(names = otus, N = 1000000, immigration = 100, 
                        birth = 0.01, mortality = 0.01, decay = 0.01, time = 10^4)
 
 active1 <- table(same.rates[[1]])
@@ -138,7 +140,7 @@ box(lwd = 1.5)
 
 
 # Low Decay
-low.decay <- relic.pool(names = otus, N = 100000, immigration = 1000, 
+low.decay <- relic.pool(names = otus, N = 1000000, immigration = 1000, 
                          birth = 0.01, mortality = 0.01, decay = 0.001, time = 10^4)
 
 active1 <- table(low.decay[[1]])
@@ -167,8 +169,8 @@ mtext("Species Index", side = 1, cex = 1.5, line = 0.75)
 box(lwd = 1.5)
 
 # High Decay
-high.decay <- relic.pool(names = otus, N = 100000, immigration = 1000, 
-                         birth = 0.01, mortality = 0.01, decay = 0.5, time = 10^4)
+high.decay <- relic.pool(names = otus, N = 1000000, immigration = 1000, 
+                         birth = 0.01, mortality = 0.01, decay = 0.1, time = 10^4)
 
 active1 <- table(high.decay[[1]])
 relic1 <- table(high.decay[[2]])
@@ -196,7 +198,7 @@ mtext("Species Index", side = 1, cex = 1.5, line = 0.75)
 box(lwd = 1.5)
 
 # High Birth
-high.birth <- relic.pool(names = otus, N = 100000, immigration = 1000, 
+high.birth <- relic.pool(names = otus, N = 1000000, immigration = 1000, 
                         birth = 0.05, mortality = 0.01, decay = 0.01, time = 10^4)
 
 active1 <- table(high.birth[[1]])
@@ -225,4 +227,4 @@ mtext("Species Index", side = 1, cex = 1.5, line = 0.5)
 box(lwd = 1.5)
 
 # Save Outputs
-save(same.rates, low.decay, high.decay, high.birth, file = "../data/simSAD.R")
+save(same.rates, low.decay, high.decay, high.birth, file = "../data/simSAD.RData")
