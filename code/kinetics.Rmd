@@ -43,21 +43,23 @@ eDNA.DNase.corr <- data.frame(eDNA.DNase.raw, DNase.copies.corr)
 eDNA.DNase.prop.1 <- ddply(eDNA.DNase.corr, .(sample.name, Dnase), summarize,
                    prop = 1 - ((DNase.copies.corr[treat == "E"]) / (DNase.copies.corr[treat == "C"])))
 
-DNase.conc <- (10 * eDNA.DNase.prop$Dnase) / 500
+DNase.conc <- (10 * eDNA.DNase.prop.1$Dnase) / 500
 # 10 = concentraiton of DNase in units (U) per uL
 # 500 = volume of reaction in uL
 
 eDNA.DNase.prop <- data.frame(eDNA.DNase.prop.1, DNase.conc)
+
   
 ## Run MLE
 #starting values 
-V = 0.65 
+V = 0.6 
 K = 0.1
-Z = 10
+Z = 1
 
 # Michaelis-Menten
-fit <- mle2(eDNA.DNase.prop$prop ~ dnorm(mean = v * eDNA.DNase.prop$Dnase.conc / (K + eDNA.DNase.prop$Dnase.conc), sd = z), 
-    start = list(v = V, k = K, z = Z), data = eDNA.DNase.prop)
+fit <- mle2(eDNA.DNase.prop$prop ~ dnorm(mean = v * eDNA.DNase.prop$DNase.conc / 
+    (k + eDNA.DNase.prop$DNase.conc), sd = z), start = list(v = V, k = K, z = Z), 
+    data = eDNA.DNase.prop)
 
 # Plot Data
 png(filename="~/GitHub/relicDNA/figures/FigureS6-DNase.png",
