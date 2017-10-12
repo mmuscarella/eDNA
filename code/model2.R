@@ -35,8 +35,9 @@ simp_even <- function(SAD = " "){
 }
 
 
-gamma1 <- rlnorm(n=100000, meanlog = 1, sdlog = 0.98)
-gamma1 <- gamma1[rev(order(gamma1))]
+gamma1 <- rlnorm(n=1000000, meanlog = -1, sdlog = 2.5) # Changed sdlog param
+gamma1 <- gamma1[rev(order(gamma1))]/sum(gamma1)
+gamma1[1:10]
 
 # Simple Plot
 layout(1)
@@ -52,9 +53,9 @@ otus <- paste("OTU", sprintf("%05d", seq(1:length(gamma1))), sep = "")
 # Examples
 N <- 100000
 i <- 1000
-r <- 0.001
-m <- 0.001
-d <- 0.0001
+r <- 0.01
+m <- 0.01
+d <- 0.01
 t <- 10^4
 
 
@@ -67,13 +68,18 @@ relic.pool <- function(names = otus, N = n,
   
   # Initiate Community
   site1 <- sample(otus, size = N, replace = T, prob = gamma1)
-
+  
   # Run Simulation
-  for (i in 1:t){
+  for (j in 1:t){
+    # Immigration
     i.comm <- sample(otus, size = i, replace = T, prob = gamma1)
     comm <- c(site1, i.comm)
+    
+    # Birth
     temp <- sample(c(1:length(comm)), size = length(comm) * r, replace = F)
     comm <- c(comm, comm[temp])
+    
+    # Death
     if (!exists("relic")){
       relic <- vector(mode = "character", length = 0)
     }
@@ -81,23 +87,30 @@ relic.pool <- function(names = otus, N = n,
     dead <- comm[temp]
     comm <- comm[-temp]
     relic <- c(relic, dead)
+    
+    # Decay
     temp <- sample(c(1:length(relic)), size = length(relic) * d, replace = F)
     if (length(temp) > 0){
       relic <- relic[-temp]
     }
-    if (i %in% seq(0, t, 100)){
+    
+    # Print Statements
+    if (j %in% seq(0, t, 100)){
       print(paste("N_active = ", length(comm), sep = ""), quote = F)
       print(paste("S_active = ", length(unique(comm)), sep = ""), quote = F)
       print(paste("N_relic = ", length(relic), sep = ""), quote = F)
       print(paste("S_relic = ", length(unique(relic)), sep = ""), quote = F)
     }
-    out <- list(comm, relic, 
+    
+    # Output
+    out <- list(Comm = comm, Relic = relic, 
                 N_active = length(comm), S_active = length(unique(comm)),
-                N_relic = length(relic), S_relic = length(unique(relic)))
+                SimpE_active = simp_even(table(comm)),
+                N_relic = length(relic), S_relic = length(unique(relic)),
+                SimpE_active = simp_even(table(comm)))
   }
   return(out)
 }
-
 # Same Rates
 # Examples
 N <- 100000
@@ -108,7 +121,7 @@ d <- 0.0001
 t <- 10^4
 
 
-same.rates <- relic.pool(names = otus, N = 100000, immigration = 1000, 
+same.rates <- relic.pool(names = otus, N = 100000, immigration = 100, 
                        birth = 0.01, mortality = 0.01, decay = 0.01, time = 10^4)
 
 active1 <- table(same.rates[[1]])
@@ -195,9 +208,9 @@ mtext("Log Abundance", side = 2, cex = 1.5, line = 2.5)
 mtext("Species Index", side = 1, cex = 1.5, line = 0.75)
 box(lwd = 1.5)
 
-# Low Decay
+# High Birth
 high.birth <- relic.pool(names = otus, N = 100000, immigration = 1000, 
-                        birth = 0.05, mortality = 0.01, decay = 0.01, time = 10^4)
+                        birth = 0.5, mortality = 0.01, decay = 0.01, time = 10^4)
 
 active1 <- table(high.birth[[1]])
 relic1 <- table(high.birth[[2]])
@@ -225,4 +238,4 @@ mtext("Species Index", side = 1, cex = 1.5, line = 0.5)
 box(lwd = 1.5)
 
 # Save Outputs
-save(same.rates, low.decay, high.decay, high.birth, file = "../data/simSAD.R")
+save(same.rates, low.decay, high.decay, high.birth, file = "../data/simSAD.RData")

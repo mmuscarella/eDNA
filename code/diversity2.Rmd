@@ -323,11 +323,14 @@ even.water.ttest <- t.test(even.water$even.ratio, mu = 1)
 # Test if all OTUs are in tree
 sum(colnames(OTU) %in% OTU.tre$tip.label) == length(colnames(OTU) %in% OTU.tre$tip.label)
 
-# Root Tree if Needed
-is.rooted(OTU.tre)
-OTU.tre.rooted <- midpoint(OTU.tre)
+
 
 if (run.all == TRUE){
+  
+  # Root Tree if Needed
+  is.rooted(OTU.tre)
+  OTU.tre.rooted <- midpoint(OTU.tre)
+
   OTU.2 <- rrarefy(OTU, 30000)
   OTU.2 <- OTU.2[,which(colSums(OTU.2) > 0)]
   OTU.tre.2 <- prune.sample(OTU.2, OTU.tre.rooted)
@@ -435,22 +438,24 @@ points(jitter(rep(3, nrow(rich.feces)), amount = 0.1), rich.feces$rich.ratio, pc
 points(jitter(rep(4, nrow(rich.water)), amount = 0.1),rich.water$rich.ratio, pch = 21, 
        col = "lightgrey", bg = "lightgrey", lwd = 2, cex = 1.7) 
 
-points(1, mean(rich.soil$rich.ratio), pch = 21, col = "black", 
-       bg = "NA", lwd = 2, cex = 3.5)  
-points(2, mean(rich.sed$rich.ratio), pch = 21, col = "black", 
-       bg = "NA", lwd = 2, cex = 3.5)  
-
-points(3, mean(rich.feces$rich.ratio), pch = 21, col = "black", 
-       bg = "NA", lwd = 2, cex = 3.5)  
-
-points(4, mean(rich.water$rich.ratio), pch = 21, col = "black", 
-       bg = "NA", lwd = 2, cex = 3.5)  
-
-abline(h = 1, lty = 3, lwd = 2)
 arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$LCI, angle = 90,
        length = 0.1, lwd = 2)
 arrows(x0 = c(1,2,3,4), y0 = rich.table$mean, y1 = rich.table$UCI, angle = 90,
        length=0.1, lwd = 2)
+
+points(1, mean(rich.soil$rich.ratio), pch = 21, col = "black", 
+       bg = "white", lwd = 2, cex = 3.5)  
+points(2, mean(rich.sed$rich.ratio), pch = 21, col = "black", 
+       bg = "white", lwd = 2, cex = 3.5)  
+
+points(3, mean(rich.feces$rich.ratio), pch = 21, col = "black", 
+       bg = "white", lwd = 2, cex = 3.5)  
+
+points(4, mean(rich.water$rich.ratio), pch = 21, col = "black", 
+       bg = "white", lwd = 2, cex = 3.5)  
+
+abline(h = 1, lty = 3, lwd = 2)
+
 
 mtext(expression('Richness Ratio'), side = 2,
       outer = F, cex = 1.5, line = 3, adj = 0.5)  
@@ -1190,10 +1195,94 @@ dist.e <- as.dist(dist.e)
 mantel.rtest(dist.c, dist.e, nrepet = 999)
 ```
 
-## Centroid Distances Ratios: Taxonomic
+## Centroid Distances Ratios
 ```{r}
 # Data Check
 all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
+all.equal(row.names(eDNA.div), row.names(as.matrix(phylo.dist)))
+
+centroid.dist <- function(env = "" , sbys = "", design = "", phylo = NULL){
+  # Organize Info
+  info <- design[which(design$env == env), ]
+  sbys2 <- sbys[which(row.names(sbys) %in% row.names(info)), ]
+  if(is.null(phylo)){
+    bc.dist <- vegdist(sbys2, method = "bray")
+    group <- info$treat
+    # Calculate Centroid
+    disp <- betadisper(bc.dist, rep(1, dim(sbys2)[1]))
+    cent.dist <- rep(NA, dim(sbys2)[1])
+    names(cent.dist) <- row.names(disp$vectors)
+    for (i in 1:dim(sbys2)[1]){
+      cent.dist[i] <- dist(rbind(disp$vectors[i, ],
+                       disp$centroids[1, ]), method = "euclidean")
+    }
+  } else {
+    phylo2 <- as.matrix(phylo.dist)
+    phylo3 <- as.dist(phylo2[which(rownames(phylo2) %in% row.names(info)),
+                     which(colnames(phylo2) %in% row.names(info))])
+    group <- info$treat
+    # Calculate Centroid
+    disp <- betadisper(phylo3, rep(1, dim(sbys2)[1]))
+    cent.dist <- rep(NA, dim(sbys2)[1])
+    names(cent.dist) <- row.names(disp$vectors)
+    for (i in 1:dim(sbys2)[1]){
+      cent.dist[i] <- dist(rbind(disp$vectors[i, ],
+                       disp$centroids[1, ]), method = "euclidean")
+    }
+  }
+  # Calculate Ratio
+  pairs <- info$pair
+  trt <- info$treat
+  cent.ratio <- rep(NA, length(unique(pairs)))
+  if(all.equal(row.names(info), names(cent.dist))){
+    i <- 1
+    for (pair in unique(pairs)){
+      cent.ratio[i] <- (cent.dist[which(pairs == pair & trt == "C")]) /
+                       (cent.dist[which(pairs == pair & trt == "E")])
+      names(cent.ratio)[i] <- pair
+      i <- i + 1
+    }
+  } else {stop("There is a problem with matching info and centroids")}
+  match <- info[which(info$treat == "C"), which(colnames(info) %in% 
+                                                  c("pair", "qPCR.match"))]
+  cent.ratio.m <- as.data.frame(matrix(NA, length(unique(match$qPCR.match)), 3))
+  colnames(cent.ratio.m) <- c("env", "ratio", "qPCR.match")
+  cent.ratio.m$env <- env
+  cent.ratio.m$qPCR.match <- unique(match$qPCR.match)
+  for(q in unique(match$qPCR.match)){
+  cent.ratio.m$ratio[which(cent.ratio.m$qPCR.match == q)] <- 
+    mean(cent.ratio[which(match$qPCR.match == q)])
+  }
+  return(cent.ratio.m)
+}
+
+# Calculate Taxonomic Centroid Distances
+soil.cent <- centroid.dist(env = "soil" , sbys = OTU.REL.log, design = eDNA.div)
+sed.cent <- centroid.dist(env = "sed" , sbys = OTU.REL.log, design = eDNA.div)
+feces.cent <- centroid.dist(env = "feces" , sbys = OTU.REL.log, design = eDNA.div)
+water.cent <- centroid.dist(env = "water" , sbys = OTU.REL.log, design = eDNA.div)
+
+centroid.distances.tax <- rbind(feces.cent, sed.cent, soil.cent, water.cent)
+
+# Calculate Phylogenetic Centroid Distances
+soil.cent <- centroid.dist(env = "soil" , sbys = OTU.REL.log, 
+                           design = eDNA.div, phylo = phylo.dist)
+sed.cent <- centroid.dist(env = "sed" , sbys = OTU.REL.log, 
+                          design = eDNA.div, phylo = phylo.dist)
+feces.cent <- centroid.dist(env = "feces" , sbys = OTU.REL.log, 
+                            design = eDNA.div, phylo = phylo.dist)
+water.cent <- centroid.dist(env = "water" , sbys = OTU.REL.log, 
+                            design = eDNA.div, phylo = phylo.dist)
+
+centroid.distances.phylo <- rbind(feces.cent, sed.cent, soil.cent, water.cent)
+
+
+# We shouldn't need anything below here. 
+# Well we need to get the code for the stats and linear models.
+
+####################################################
+
+
 
 eDNA.dist <- vegdist(OTU.REL.log, method = "bray")
 eDNA.env <- eDNA.div$env
@@ -1203,8 +1292,8 @@ disp.env <- betadisper(eDNA.dist, eDNA.env)
 disp.group <- betadisper(eDNA.dist, eDNA.group)
 
 # Soil
-env.soi <- which(eDNA.env == "soil")
-cent.soil <- as.data.frame(matrix(NA, nrow = length(env.soi), ncol = 3))
+env.soil <- which(eDNA.env == "soil")
+cent.soil <- as.data.frame(matrix(NA, nrow = length(env.soil), ncol = 3))
 colnames(cent.soil) <- c("T", "C", "E")
 rownames(cent.soil) <- rownames(eDNA.div)[env.soi]
 
@@ -1371,8 +1460,8 @@ for (i in 1:dim(cent.feces.ratio)[1]){
 }
 
 # Ratio Data Table
-ratio.list <- list(cent.feces.ratio[,1], cent.sed.ratio[,1],
-                     cent.soil.ratio[,1], cent.water.ratio[,1])
+ratio.list <- list(feces = cent.feces.ratio[,1], sed = cent.sed.ratio[,1],
+                     soil = cent.soil.ratio[,1], water = cent.water.ratio[,1])
 cent.tax.dist.table <- as.data.frame(matrix(NA, nrow = 4, ncol = 5))
 colnames(cent.tax.dist.table) <- c("env", "mean", "sem", "LCI", "UCI")
 cent.tax.dist.table$env <- c("Gut", "Sediment", "Soil", "Water")
@@ -1685,19 +1774,37 @@ par(mar = c(0.5, 4.5, 0.5, 0.5), oma = c(4, 1, 1, 1))
 #par(mar = c(0.5, 4, 1, 1), oma = c(3, 2, 1, 1))
 
 # Bray Curtis Plot
-centroid.tax.plot <- plot(jitter(rep(1, length(cent.tax.soil$cent.tax.dist)), 
-      amount = 0.1),cent.tax.soil$cent.tax.dist, 
-      ylim = c(0.5, 1.5), xlim = c(0.5, 4.5), pch = 21, bg = "lightgrey", col = "lightgrey", 
+centroid.tax.plot <- plot(0, 0, type = "n",
+      ylim = c(0.5, 1.5), xlim = c(0.5, 4.5), pch = 21, 
+      bg = "lightgrey", col = "lightgrey", 
       lwd = 2, cex = 1.7, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5,
       las = 1, ylab = "", xlab = "")
       box(lwd = 2)
+      
+abline(h = 1, lty = 3, lwd = 2)
 
-points(jitter(rep(2, length(cent.tax.sed$cent.tax.dist)), amount = 0.1), cent.tax.sed$cent.tax.dist, 
+arrows(x0 = c(1,2,3,4), y0 = t.cent.tax.dist.table$mean, 
+       y1 = t.cent.tax.dist.table$LCI, angle = 90, length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = t.cent.tax.dist.table$mean, 
+       y1 = t.cent.tax.dist.table$UCI, angle = 90, length = 0.1, lwd = 2)
+points(c(1,2,3,4), t.cent.tax.dist.table$mean, pch = 21, col = "black",
+       bg = "white", lwd = 2, cex = 3.5)
+
+points(jitter(rep(1, length(ratio.list$soil)), amount = 0.1), ratio.list$soil, 
        pch = 21, bg = "lightgrey", col = "lightgrey", lwd = 2, cex = 1.7)
-points(jitter(rep(3, length(cent.tax.feces$cent.tax.dist)), amount = 0.1), cent.tax.feces$cent.tax.dist, 
+points(jitter(rep(2, length(ratio.list$sed)), amount = 0.1), ratio.list$sed, 
        pch = 21, bg = "lightgrey", col = "lightgrey", lwd = 2, cex = 1.7)
-points(jitter(rep(4, length(cent.tax.water$cent.tax.dist)), amount = 0.1), cent.tax.water$cent.tax.dist, 
-       pch = 21, col = "lightgrey", bg = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(3, length(ratio.list$feces)), amount = 0.1), ratio.list$feces,
+       pch = 21, bg = "lightgrey", col = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(4, length(ratio.list$water)), amount = 0.1), ratio.list$water, 
+       pch = 21, bg = "lightgrey", col = "lightgrey", lwd = 2, cex = 1.7)
+
+arrows(x0 = c(1,2,3,4), y0 = t.cent.tax.dist.table$mean, 
+       y1 = t.cent.tax.dist.table$LCI, angle = 90, length = 0.1, lwd = 2)
+arrows(x0 = c(1,2,3,4), y0 = t.cent.tax.dist.table$mean, 
+       y1 = t.cent.tax.dist.table$UCI, angle = 90, length = 0.1, lwd = 2)
+points(c(1,2,3,4), t.cent.tax.dist.table$mean, pch = 21, col = "black",
+       bg = "NA", lwd = 2, cex = 3.5)
 
 points(1, mean(cent.tax.soil$cent.tax.dist), pch = 21, col = "black",
        bg = "NA", lwd = 2, cex = 3.5)
@@ -1708,11 +1815,23 @@ points(3, mean(cent.tax.feces$cent.tax.dist), pch = 21, col = "black",
 points(4, mean(cent.tax.water$cent.tax.dist), pch = 21, col = "black", 
        bg = "NA", lwd = 2, cex = 3.5) 
 
-abline(h = 1, lty = 3, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = t.cent.tax.dist.table$mean, y1 = t.cent.tax.dist.table$LCI, angle = 90,
-       length = 0.1, lwd = 2)
-arrows(x0 = c(1,2,3,4), y0 = t.cent.tax.dist.table$mean, y1 = t.cent.tax.dist.table$UCI, angle = 90,
-       length = 0.1, lwd = 2)
+points(jitter(rep(2, length(cent.tax.sed$cent.tax.dist)), amount = 0.1),
+       cent.tax.sed$cent.tax.dist, 
+       pch = 21, bg = "lightgrey", col = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(3, length(cent.tax.feces$cent.tax.dist)), amount = 0.1),
+       cent.tax.feces$cent.tax.dist, 
+       pch = 21, bg = "lightgrey", col = "lightgrey", lwd = 2, cex = 1.7)
+points(jitter(rep(4, length(cent.tax.water$cent.tax.dist)), amount = 0.1),
+       cent.tax.water$cent.tax.dist, 
+       pch = 21, col = "lightgrey", bg = "lightgrey", lwd = 2, cex = 1.7)
+
+
+
+
+
+
+
+
 
 mtext('Centroid Distance Ratio\n(Taxonomic)', side = 2,
         outer = F, cex = 1.25, line = 2.5, adj = 0.5)
