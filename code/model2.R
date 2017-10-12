@@ -68,13 +68,18 @@ relic.pool <- function(names = otus, N = n,
   
   # Initiate Community
   site1 <- sample(otus, size = N, replace = T, prob = gamma1)
-
+  
   # Run Simulation
   for (j in 1:t){
+    # Immigration
     i.comm <- sample(otus, size = i, replace = T, prob = gamma1)
     comm <- c(site1, i.comm)
+    
+    # Birth
     temp <- sample(c(1:length(comm)), size = length(comm) * r, replace = F)
     comm <- c(comm, comm[temp])
+    
+    # Death
     if (!exists("relic")){
       relic <- vector(mode = "character", length = 0)
     }
@@ -82,24 +87,30 @@ relic.pool <- function(names = otus, N = n,
     dead <- comm[temp]
     comm <- comm[-temp]
     relic <- c(relic, dead)
+    
+    # Decay
     temp <- sample(c(1:length(relic)), size = length(relic) * d, replace = F)
     if (length(temp) > 0){
       relic <- relic[-temp]
     }
+    
+    # Print Statements
     if (j %in% seq(0, t, 100)){
-      print(paste("Time: ", j, sep = ""), quote = F)
       print(paste("N_active = ", length(comm), sep = ""), quote = F)
       print(paste("S_active = ", length(unique(comm)), sep = ""), quote = F)
       print(paste("N_relic = ", length(relic), sep = ""), quote = F)
       print(paste("S_relic = ", length(unique(relic)), sep = ""), quote = F)
     }
-    out <- list(comm, relic, 
+    
+    # Output
+    out <- list(Comm = comm, Relic = relic, 
                 N_active = length(comm), S_active = length(unique(comm)),
-                N_relic = length(relic), S_relic = length(unique(relic)))
+                SimpE_active = simp_even(table(comm)),
+                N_relic = length(relic), S_relic = length(unique(relic)),
+                SimpE_active = simp_even(table(comm)))
   }
   return(out)
 }
-
 # Same Rates
 # Examples
 N <- 100000

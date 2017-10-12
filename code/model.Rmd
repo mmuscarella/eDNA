@@ -542,27 +542,59 @@ load("../data/simSAD.RData")
 length(same.rates[[1]])
 
 # Same Rates
-total1 <- table(sample(c(same.rates[[1]], same.rates[[2]]), 10000))
-active1 <- table(sample(same.rates[[1]], 10000))
-relic1 <- table(sample(same.rates[[2]], 10000))
+total1 <- table(sample(c(same.rates[[1]], same.rates[[2]]), 9000))
+active1 <- table(sample(same.rates[[1]], 9000))
+relic1 <- table(sample(same.rates[[2]], 9000))
 
 total1 <- total1[rev(order(total1))]
 active1 <- active1[rev(order(active1))]
 relic1 <- relic1[rev(order(relic1))]
 
 # Low Decay
-total2 <- table(sample(c(low.decay[[1]], low.decay[[2]]), 10000))
-active2 <- table(sample(low.decay[[1]], 10000))
-relic2 <- table(sample(low.decay[[2]], 10000))
+total2 <- table(sample(c(low.decay[[1]], low.decay[[2]]), 9000))
+active2 <- table(sample(low.decay[[1]], 9000))
+relic2 <- table(sample(low.decay[[2]], 9000))
 
 total2 <- total2[rev(order(total2))]
 active2 <- active2[rev(order(active2))]
 relic2 <- relic2[rev(order(relic2))]
 
 # High Decay
-total3 <- table(sample(c(high.decay[[1]], high.decay[[2]]), 10000))
-active3 <- table(sample(high.decay[[1]], 10000))
-relic3 <- table(sample(high.decay[[2]], 10000))
+total3 <- table(sample(c(high.decay[[1]], high.decay[[2]]), 9000))
+active3 <- table(sample(high.decay[[1]], 9000))
+relic3 <- table(sample(high.decay[[2]], 9000))
+
+total3 <- total3[rev(order(total3))]
+active3 <- active3[rev(order(active3))]
+relic3 <- relic3[rev(order(relic3))]
+```
+
+# Model With Simulation Output
+```{r}
+load("../data/simSAD.RData")
+
+# Same Rates
+total1 <- table(c(same.rates[[1]], same.rates[[2]]))
+active1 <- table(same.rates[[1]])
+relic1 <- table(same.rates[[2]])
+
+total1 <- total1[rev(order(total1))]
+active1 <- active1[rev(order(active1))]
+relic1 <- relic1[rev(order(relic1))]
+
+# Low Decay
+total2 <- table(c(low.decay[[1]], low.decay[[2]]))
+active2 <- table(low.decay[[1]])
+relic2 <- table(low.decay[[2]])
+
+total2 <- total2[rev(order(total2))]
+active2 <- active2[rev(order(active2))]
+relic2 <- relic2[rev(order(relic2))]
+
+# High Decay
+total3 <- table(c(high.decay[[1]], high.decay[[2]]))
+active3 <- table(high.decay[[1]])
+relic3 <- table(high.decay[[2]])
 
 total3 <- total3[rev(order(total3))]
 active3 <- active3[rev(order(active3))]
@@ -584,7 +616,7 @@ plot(log10(active1), col = "gray",
      ylim = c(0, max(max(log10(active1)), max(log10(relic2)), 2.5)),
      las = 1, type = "p", xaxt = "n", yaxt = "n", pch = 16)
 points(log10(relic1), col = "gray30", type = "p", pch = 16)
-points(log10(relic2), col = "gray30", type = "p", pch = 16)
+points(log10(relic2), col = "gray30", type = "p", pch = 15)
 points(log10(relic3), col = "gray30", type = "p", pch = 16)
 legend("topright", legend = c("Active", "Relic Same Rates", 
        "Relic Low Decay", "Relic High Decay"), pch = c(16, 15, 16, 17), 
@@ -621,7 +653,7 @@ relic2.n <- names(relic2)  # Low
 relic3.n <- names(relic3)  # High
 
 
-size.comm <- 10000
+size.comm <- 9000
 n.relic <- seq(size.comm/100, size.comm, 500)
 n.active <- size.comm - n.relic
 props <- n.relic/size.comm
@@ -639,23 +671,16 @@ for(i in 1:length(props)){
   n2 <- n.relic[i]
 
   # Simuate Mixing Mdel
-  temp.null <- c(sample(active1.n, size = size.comm, 
-                        replace = T, prob = active1))
+  temp.null <- c(sample(same.rates[[1]], size = size.comm, replace = F))
   
-  temp.same <- c(sample(active1.n, size = n1, 
-                          replace = T, prob = active1/sum(active1)),
-                   sample(relic1.n, size = n2, 
-                          replace = T, prob = relic1/sum(relic1)))
+  temp.same <- c(sample(same.rates[[1]], size = n1, replace = F),
+                 sample(same.rates[[2]], size = n2, replace = F))
   
-  temp.low <- c(sample(active2.n, size = n1, 
-                        replace = T, prob = active2/sum(active2)),
-                 sample(relic2.n, size = n2, 
-                        replace = T, prob = relic2/sum(relic2)))
+  temp.low <- c(sample(low.decay[[1]], size = n1, replace =F),
+                 sample(low.decay[[2]], size = n2, replace = F))
   
-  temp.high <- c(sample(active3.n, size = n1, 
-                        replace = T, prob = active3/sum(active3)),
-                 sample(relic3.n, size = n2, 
-                        replace = T, prob = relic3/sum(relic3)))
+  temp.high <- c(sample(high.decay[[1]], size = n1, replace = F),
+                 sample(high.decay[[2]], size = n2, replace = F))
   
   tab1 <- table(temp.null)
   tab2 <- table(temp.same)
