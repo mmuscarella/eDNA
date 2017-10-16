@@ -1348,7 +1348,7 @@ axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F,
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 
-text("a", x = 0.6, y = 1.55, font = 2, cex = 1.25)
+text("a", x = 0.6, y = 1.475, font = 2, cex = 1.25)
 
 
 centroid.phy.plot <- plot(jitter(rep(1, length(soil.cent.phy$ratio)), amount = 0.1), soil.cent.phy$ratio, 
@@ -1395,7 +1395,7 @@ axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F,
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F, at = c(1, 2, 3, 4))
 
-text("b", x = 0.6, y = 1.35, font = 2, cex = 1.25)
+text("b", x = 0.6, y = 1.475, font = 2, cex = 1.25)
 
 # Close Plot Device
 dev.off()
@@ -1435,10 +1435,10 @@ cent.phy.reg <- lm(centroid.distances.phy[order(centroid.distances.phy$qPCR.matc
 png(filename="../figures/FigureS4-CentroidLM.png",
     width = 800, height = 1200, res = 96*2)
 
-layout(matrix(c(1:2), byrow = T))
-par(mar = c(1, 6.5, 0.5, 0.5), oma = c(6, 2, 0.5, 0.5))
+layout(matrix(c(1:2), byrow = T)) #, heights = c(0.45, 0.45, 0.05))
+par(mar = c(1, 6.5, 0.5, 0.5), oma = c(7, 2, 0.5, 0.5))
 
-plot(eDNA.prop.sub2$prop, centroid.distances.tax[order(centroid.distances.tax$qPCR.match), ]$ratio,
+plot(eDNA.prop.sub2$prop, centroid.distances.tax[match(centroid.distances.tax$qPCR.match, eDNA.prop.sub2$sample.number), ]$ratio,
     xlim = c(0, 1), ylim = c(0.5, 1.5),
      pch = 24, bg = "NA", col = "NA", lwd = 2, bty = "n",
      cex = 2, yaxt = "n", xaxt = "n", cex.lab = 2, cex.axis = 1.5,
@@ -1447,6 +1447,21 @@ box(lwd = 2)
 
 pred.frame <- data.frame(prop = seq(0.0, 0.875, length.out = 21))
 add.hull(cent.tax.reg, pred.frame)
+
+col.pt <- rep(NA, length(eDNA.prop.sub2$prop))
+#col.bg <- rep(NA, length(eDNA.prop.sub2$prop))
+pch.pt <- rep(NA, length(eDNA.prop.sub2$prop))
+for(i in 1:length(col.pt)){
+  if(eDNA.prop.sub2$env[i] == "soil"){col.pt[i] = "brown";  pch.pt[i] = 24}
+  if(eDNA.prop.sub2$env[i] == "sed"){col.pt[i] = "darkgreen"; pch.pt[i] = 22}
+  if(eDNA.prop.sub2$env[i] == "feces"){col.pt[i] = "red"; pch.pt[i] = 21}
+  if(eDNA.prop.sub2$env[i] == "water"){col.pt[i] = "blue"; pch.pt[i] = 23}
+}
+
+# points(eDNA.prop.sub2$prop,
+#        centroid.distances.tax[match(centroid.distances.tax$qPCR.match,
+#                                     eDNA.prop.sub2$sample.number), ]$ratio, 
+#        pch = pch.pt, col = col.pt, bg = col.pt, lwd = 2, cex = 1.7)
 
 points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "soil")], centroid.distances.tax[order(centroid.distances.tax$qPCR.match), ]$ratio[which(centroid.distances.tax[order(centroid.distances.tax$qPCR.match),]$env == "soil")], pch = 24, 
        col = "brown", bg = "brown", lwd = 2, cex = 1.7)
@@ -1460,7 +1475,7 @@ points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "feces")], centroid.dista
 points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "water")], centroid.distances.tax[order(centroid.distances.tax$qPCR.match), ]$ratio[which(centroid.distances.tax[order(centroid.distances.tax$qPCR.match),]$env == "water")], pch = 23, 
        col = "blue", bg = "blue", lwd = 2, cex = 1.7)
 
-text("a", x = 0.02, y = 1.95, font = 2, cex = 1.25)
+text("a", x = 0.02, y = 1.45, font = 2, cex = 1.25)
 
 text(x = 0.5, y = 1.45, cex = 0.7, pos = 4,
      bquote("Slope:" ~ italic("P") ~ "=" ~
@@ -1490,11 +1505,6 @@ axis(side = 2, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5, 2))
 axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5, 2))
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
-
-# Legend
-legend(0.03, 0.95, c("soil", "sediment", "gut", "water"), pch = c(24, 22, 21, 23), 
-       pt.bg = c("brown", "darkgreen", "red", "blue"), pt.cex = 2, 
-       pt.lwd = 2, bty = 'n')
 
 plot(eDNA.prop.sub2$prop, centroid.distances.phy[order(centroid.distances.phy$qPCR.match), ]$ratio,
     xlim = c(0, 1), ylim = c(0.5, 1.5),
@@ -1549,11 +1559,163 @@ axis(side = 4, lwd.ticks = 2, tck = 0.02, labels = F, at = c(0.5, 1, 1.5))
 axis(side = 1, lwd.ticks = 2, tck = 0.02, labels = F)
 axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
 
+
+# Legend
+legend(0.1, 0.1, c("soil", "sediment", "gut", "water"), 
+       pch = c(24, 22, 21, 23), xpd = NA, 
+       pt.bg = c("brown", "darkgreen", "red", "blue"), pt.cex = 2, 
+       pt.lwd = 2, bty = 'n', ncol = 2)
+
 # Close Plot Device
 dev.off()
 graphics.off()
 
 # Show Plot
 img <- readPNG("../figures/FigureS4-CentroidLM.png")
+grid.raster(img)
+```
+
+# Centroid Distance Ratio PCoA Plots
+```{r}
+# Data Check
+all.equal(row.names(eDNA.div), row.names(OTU.REL.log))
+all.equal(row.names(eDNA.div), row.names(as.matrix(phylo.dist)))
+
+centroid.dist.pcoa <- function(env = "" , sbys = "", 
+                               design = "", phylo = NULL){
+  # Organize Info
+  info <- design[which(design$env == env), ]
+  sbys2 <- sbys[which(row.names(sbys) %in% row.names(info)), ]
+  if(is.null(phylo)){
+    bc.dist <- vegdist(sbys2, method = "bray")
+    group <- info$treat
+    # Calculate Centroid
+    disp <- betadisper(bc.dist, rep(1, dim(sbys2)[1]))
+    names.vectors <- row.names(disp$vectors)
+    vectors <- disp$vectors
+    centroids <- disp$centroids[1, ]
+  } else {
+    phylo2 <- as.matrix(phylo.dist)
+    phylo3 <- as.dist(phylo2[which(rownames(phylo2) %in% row.names(info)),
+                     which(colnames(phylo2) %in% row.names(info))])
+    group <- info$treat
+    # Calculate Centroid
+    disp <- betadisper(phylo3, rep(1, dim(sbys2)[1]))
+    names.vectors <- row.names(disp$vectors)
+    vectors <- disp$vectors
+    centroids <- disp$centroids[1, ]
+  }
+  
+  line.type <- rep(NA, length(group))
+  for(i in 1:length(line.type)){
+    if(group[i] == "C"){line.type[i] = 1}
+    if(group[i] == "E"){line.type[i] = 2}
+  }
+  
+  line.col <- rep(NA, length(group))
+  for(i in 1:length(line.type)){
+    if(group[i] == "C"){line.col[i] = "red"}
+    if(group[i] == "E"){line.col[i] = "blue"}
+  }
+  
+  vec.col <- rep(NA, length(group))
+  for(i in 1:length(line.type)){
+    if(group[i] == "C"){vec.col[i] = "white"}
+    if(group[i] == "E"){vec.col[i] = "peachpuff"}
+  }
+  
+  return(list(vectors = vectors, names.vectors = names.vectors,  
+              centroids = centroids, 
+              line.type = line.type, line.col = line.col, vec.col = vec.col))
+}
+
+
+# Calculate Taxonomic Centroid Distances and Table
+soil.cent.tax.p <- centroid.dist.pcoa(env = "soil" , sbys = OTU.REL.log, 
+                                      design = eDNA.div)
+sed.cent.tax.p <- centroid.dist.pcoa(env = "sed" , sbys = OTU.REL.log, 
+                                     design = eDNA.div)
+feces.cent.tax.p <- centroid.dist.pcoa(env = "feces" , sbys = OTU.REL.log,
+                                       design = eDNA.div)
+water.cent.tax.p <- centroid.dist.pcoa(env = "water" , sbys = OTU.REL.log,
+                                       design = eDNA.div)
+
+png(filename="../figures/FigureS4-CentroidDist.png",
+    width = 900, height = 900, res = 96*2)
+
+layout(matrix(c(1:4), byrow = T, ncol = 2))
+par(mar = c(0.5, 0.5, 0.5, 0.5), oma = c(3, 3, 0.5, 0.5))
+
+# Soil
+plot(0, 0, type = 'n', xlim = c(-0.6, 0.6), ylim = c(-0.6, 0.6), las = 1,
+     xlab = "PCoA 1", ylab = "PCoA 2", axes = F)
+abline(h = 0, lty = 3);abline(v = 0, lty = 3); box(lwd = 1.5)
+text(x=-0.6, y = 0.5, "Soil", pos = 4)
+points(soil.cent.tax.p$centroids[1], soil.cent.tax.p$centroids[2], 
+       pch = 21, bg = "black")
+points(jitter(soil.cent.tax.p$vectors[, 1]),
+       jitter(soil.cent.tax.p$vectors[, 2]),
+       pch = 22, cex = 1.5, bg = soil.cent.tax.p$vec.col)
+arrows(x0 = soil.cent.tax.p$centroids[1], 
+       y0 = soil.cent.tax.p$centroids[2],
+       x1 = soil.cent.tax.p$vectors[, 1],
+       y1 = soil.cent.tax.p$vectors[, 2],
+       length = 0, lwd = 1.5, 
+       lty = soil.cent.tax.p$line.type, col = soil.cent.tax.p$line.col)
+# Sediment
+plot(0, 0, type = 'n', xlim = c(-0.6, 0.6), ylim = c(-0.6, 0.6), las = 1,
+     xlab = "PCoA 1", ylab = "PCoA 2", axes = F)
+abline(h = 0, lty = 3);abline(v = 0, lty = 3); box(lwd = 1.5)
+text(x=-0.6, y = 0.5, "Sediments", pos = 4)
+points(sed.cent.tax.p$centroids[1], sed.cent.tax.p$centroids[2], 
+       pch = 21, bg = "black")
+points(jitter(sed.cent.tax.p$vectors[, 1]),
+       jitter(sed.cent.tax.p$vectors[, 2]),
+       pch = 22, cex = 1.5, bg = sed.cent.tax.p$vec.col)
+arrows(x0 = sed.cent.tax.p$centroids[1], 
+       y0 = sed.cent.tax.p$centroids[2],
+       x1 = sed.cent.tax.p$vectors[, 1],
+       y1 = sed.cent.tax.p$vectors[, 2],
+       length = 0, lwd = 1.5, 
+       lty = sed.cent.tax.p$line.type, col = sed.cent.tax.p$line.col)
+# Feces
+plot(0, 0, type = 'n', xlim = c(-0.6, 0.6), ylim = c(-0.6, 0.6), las = 1,
+     xlab = "PCoA 1", ylab = "PCoA 2", axes = F)
+abline(h = 0, lty = 3);abline(v = 0, lty = 3); box(lwd = 1.5)
+text(x=-0.6, y = 0.5, "Feces", pos = 4)
+points(feces.cent.tax.p$centroids[1], feces.cent.tax.p$centroids[2], 
+       pch = 21, bg = "black")
+points(jitter(feces.cent.tax.p$vectors[, 1]),
+       jitter(feces.cent.tax.p$vectors[, 2]),
+       pch = 22, cex = 1.5, bg = feces.cent.tax.p$vec.col)
+arrows(x0 = feces.cent.tax.p$centroids[1], 
+       y0 = feces.cent.tax.p$centroids[2],
+       x1 = feces.cent.tax.p$vectors[, 1],
+       y1 = feces.cent.tax.p$vectors[, 2],
+       length = 0, lwd = 1.5, 
+       lty = feces.cent.tax.p$line.type, col = feces.cent.tax.p$line.col)
+# Water
+plot(0, 0, type = 'n', xlim = c(-0.6, 0.6), ylim = c(-0.6, 0.6), las = 1,
+     xlab = "PCoA 1", ylab = "PCoA 2", axes = F)
+abline(h = 0, lty = 3);abline(v = 0, lty = 3); box(lwd = 1.5)
+text(x=-0.6, y = 0.5, "Water", pos = 4)
+points(water.cent.tax.p$centroids[1], water.cent.tax.p$centroids[2], 
+       pch = 21, bg = "black")
+points(jitter(water.cent.tax.p$vectors[, 1]),
+       jitter(water.cent.tax.p$vectors[, 2]),
+       pch = 22, cex = 1.5, bg = water.cent.tax.p$vec.col)
+arrows(x0 = water.cent.tax.p$centroids[1], 
+       y0 = water.cent.tax.p$centroids[2],
+       x1 = water.cent.tax.p$vectors[, 1],
+       y1 = water.cent.tax.p$vectors[, 2],
+       length = 0, lwd = 1.5, 
+       lty = water.cent.tax.p$line.type, col = water.cent.tax.p$line.col)
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/FigureS4-CentroidDist.png")
 grid.raster(img)
 ```
