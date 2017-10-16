@@ -233,10 +233,7 @@ Anova(rich.reg)
 ttest(rich.reg, 1, 1)
 ttest(rich.reg, 2, 0)
 
-# MEM: what is the Anova() function? = prints the anova like table for the model
-#                                       Anova uses type II sums of squares
 # answer => no correlation between proportion eDNA and richness ratio.
-# maybe a little in sediment
 
 # One-sample t-tets: richness ratio by ecosystem type
 
@@ -293,9 +290,7 @@ even.table <- even.table[match(even.order, even.table$env),]
 # Regression: evennes ratio vs. proportion eDNA
 even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop + eDNA.prop.sub2$env)
 even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ eDNA.prop.sub2$prop + eDNA.prop.sub2$env + eDNA.prop.sub2$prop*eDNA.prop.sub2$env)
-
-even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ prop, 
-               data = eDNA.prop.sub2)
+even.reg <- lm(even.2[order(even.2$qPCR.match), ]$even.ratio ~ prop, data = eDNA.prop.sub2)
 
 summary(even.reg)
 
@@ -322,8 +317,6 @@ even.water.ttest <- t.test(even.water$even.ratio, mu = 1)
 ```{r}
 # Test if all OTUs are in tree
 sum(colnames(OTU) %in% OTU.tre$tip.label) == length(colnames(OTU) %in% OTU.tre$tip.label)
-
-
 
 if (run.all == TRUE){
   
