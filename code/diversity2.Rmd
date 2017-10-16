@@ -1641,7 +1641,7 @@ feces.cent.tax.p <- centroid.dist.pcoa(env = "feces" , sbys = OTU.REL.log,
 water.cent.tax.p <- centroid.dist.pcoa(env = "water" , sbys = OTU.REL.log,
                                        design = eDNA.div)
 
-png(filename="../figures/FigureS4-CentroidDist.png",
+png(filename="../figures/FigureS5-CentroidDist.png",
     width = 900, height = 900, res = 96*2)
 
 layout(matrix(c(1:4), byrow = T, ncol = 2))
@@ -1717,6 +1717,6 @@ dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/FigureS4-CentroidDist.png")
+img <- readPNG("../figures/FigureS5-CentroidDist.png")
 grid.raster(img)
 ```
