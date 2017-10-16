@@ -132,5 +132,5 @@ for(i in 1:length(D)){
   print(paste("Simulation", i, " of ", length(D), sep = ""))
   turnover[[i]] <- relic.pool(names = otus, N = 100000, immigration = 1000, 
                               birth = 0.01, mortality = 0.01, 
-                              decay = D[i], time = 10^4)
+                              decay = D[i], time = 10^3)
 }
