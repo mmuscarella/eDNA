@@ -217,14 +217,14 @@ points(jitter(rep(3, length(relic.feces$prop)), amount = 0.1), relic.feces$prop,
 points(jitter(rep(4, length(relic.water$prop)), amount = 0.1),relic.water$prop, pch = 21, 
        bg = "lightgrey", col = "lightgrey", lwd = 2, cex = 1.7) 
 
-# rect(xleft, ybottom, xright, ytop)
-rect(0.8, (mean(relic.soil$prop) + 0.025), 1.2, (mean(relic.soil$prop)- 0.025), col = "NA", border = "black", lwd = 2)
-
-rect(1.8, (mean(relic.sed$prop) + 0.025), 2.2, (mean(relic.sed$prop)- 0.025), col = "NA", border = "black", lwd = 2)
-
-rect(2.8, (mean(relic.feces$prop) + 0.025), 3.2, (mean(relic.feces$prop) - 0.025), col = "NA", border = "black", lwd = 2)
-
-rect(3.8, (mean(relic.water$prop) + 0.025), 4.2, (mean(relic.water$prop) - 0.025), col = "NA", border = "black", lwd = 2)
+points(1, mean(relic.soil$prop), pch = 21, col = "black", 
+       bg = "NA", lwd = 2, cex = 2.5) 
+points(2, mean(relic.sed$prop), pch = 21, col = "black", 
+       bg = "NA", lwd = 2, cex = 2.5)  
+points(3, mean(relic.feces$prop), pch = 21, col = "black", 
+       bg = "NA", lwd = 2, cex = 2.5) 
+points(4, mean(relic.water$prop), pch = 21, col = "black", 
+       bg = "NA", lwd = 2, cex = 2.5) 
 
 box(lwd = 2)
 
