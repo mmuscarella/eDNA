@@ -238,15 +238,19 @@ ttest(rich.reg, 2, 0)
 # One-sample t-tets: richness ratio by ecosystem type
 
 rich.feces <- rich.2[ which(rich.2$env == "feces"),]
+rich.feces.CV <- sd(rich.feces$rich.ratio)/mean(rich.feces$rich.ratio)
 rich.feces.ttest <- t.test(rich.feces$rich.ratio, mu = 1)
 
 rich.sed <- rich.2[ which(rich.2$env == "sed"),]
+rich.sed.CV <- sd(rich.sed$rich.ratio)/mean(rich.sed$rich.ratio)
 rich.sed.ttest <- t.test(rich.sed$rich.ratio, mu = 1)
 
 rich.soil <- rich.2[ which(rich.2$env == "soil"),]
+rich.soil.CV <- sd(rich.soil$rich.ratio)/mean(rich.soil$rich.ratio)
 rich.soil.ttest <- t.test(rich.soil$rich.ratio, mu = 1)
 
 rich.water <- rich.2[ which(rich.2$env == "water"),]
+rich.water.CV <- sd(rich.water$rich.ratio)/mean(rich.water$rich.ratio)
 rich.water.ttest <- t.test(rich.water$rich.ratio, mu = 1)
 ```
 
@@ -301,15 +305,19 @@ ttest(even.reg, 2, 0)
 # One-sample t-tets: evenness ratio by ecosystem type
 
 even.feces <- even.2[ which(even.2$env == "feces"),]
+even.feces.CV <- sd(even.feces$even.ratio)/mean(even.feces$even.ratio)
 even.feces.ttest <- t.test(even.feces$even.ratio, mu = 1)
 
 even.sed <- even.2[ which(even.2$env == "sed"),]
+even.sed.CV <- sd(even.sed$even.ratio)/mean(even.sed$even.ratio)
 even.sed.ttest <- t.test(even.sed$even.ratio, mu = 1)
 
 even.soil <- even.2[ which(even.2$env == "soil"),]
+even.soil.CV <- sd(even.soil$even.ratio)/mean(even.soil$even.ratio)
 even.soil.ttest <- t.test(even.soil$even.ratio, mu = 1)
 
 even.water <- even.2[ which(even.2$env == "water"),]
+even.water.CV <- sd(even.water$even.ratio)/mean(even.water$even.ratio)
 even.water.ttest <- t.test(even.water$even.ratio, mu = 1)
 ```
 
@@ -396,15 +404,19 @@ ttest(phylo.reg, 1, 1)
 # answer => no correlation between proportion eDNA and evenness ratio.
 
 phylo.feces <- phylo.2[ which(phylo.2$env == "feces"),]
+phylo.feces.CV <- sd(phylo.feces$phylo.ratio)/mean(phylo.feces$phylo.ratio)
 phylo.feces.ttest <- t.test(phylo.feces$phylo.ratio, mu = 1)
 
 phylo.sed <- phylo.2[ which(phylo.2$env == "sed"),]
+phylo.sed.CV <- sd(phylo.sed$phylo.ratio)/mean(phylo.sed$phylo.ratio)
 phylo.sed.ttest <- t.test(phylo.sed$phylo.ratio, mu = 1)
 
 phylo.soil <- phylo.2[ which(phylo.2$env == "soil"),]
+phylo.soil.CV <- sd(phylo.soil$phylo.ratio)/mean(phylo.soil$phylo.ratio)
 phylo.soil.ttest <- t.test(phylo.soil$phylo.ratio, mu = 1)
 
 phylo.water <- phylo.2[ which(phylo.2$env == "water"),]
+phylo.water.CV <- sd(phylo.water$phylo.ratio)/mean(phylo.water$phylo.ratio)
 phylo.water.ttest <- t.test(phylo.water$phylo.ratio, mu = 1)
 ```
 
@@ -1274,6 +1286,7 @@ cent.tax.dist.table.unsort <- as.data.frame(cent.tax.dist.table)
 cent.tax.dist.order <- c("Soil", "Sediment", "Gut", "Water")
 cent.tax.dist.table <- cent.tax.dist.table.unsort[match(cent.tax.dist.order, cent.tax.dist.table.unsort$env),]
 
+
 # Calculate Phylogenetic Centroid Distances
 soil.cent.phy <- centroid.dist(env = "soil" , sbys = OTU.REL.log, design = eDNA.div, phylo = phylo.dist)
 sed.cent.phy <- centroid.dist(env = "sed" , sbys = OTU.REL.log, design = eDNA.div, phylo = phylo.dist)
@@ -1292,6 +1305,17 @@ cent.phy.dist.table$UCI <- unlist(lapply(ratio.list.phy, FUN = function(x) t.tes
 cent.phy.dist.table.unsort <- as.data.frame(cent.phy.dist.table)
 cent.phy.dist.order <- c("Soil", "Sediment", "Gut", "Water")
 cent.phy.dist.table <- cent.phy.dist.table.unsort[match(cent.phy.dist.order, cent.phy.dist.table.unsort$env),]
+
+# Calculate CVs of taxonomic and phylogentic centroid ratios
+feces.cent.tax.CV <- sd(feces.cent.tax$ratio)/mean(feces.cent.tax$ratio)
+sed.cent.tax.CV <- sd(sed.cent.tax$ratio)/mean(sed.cent.tax$ratio)
+soil.cent.tax.CV <- sd(soil.cent.tax$ratio)/mean(soil.cent.tax$ratio)
+water.cent.tax.CV <- sd(water.cent.tax$ratio)/mean(water.cent.tax$ratio)
+
+feces.cent.phy.CV <- sd(feces.cent.phy$ratio)/mean(feces.cent.phy$ratio)
+sed.cent.phy.CV <- sd(sed.cent.phy$ratio)/mean(sed.cent.phy$ratio)
+soil.cent.phy.CV <- sd(soil.cent.phy$ratio)/mean(soil.cent.phy$ratio)
+water.cent.phy.CV <- sd(water.cent.phy$ratio)/mean(water.cent.phy$ratio)
 ```
 
 ## Centroid Distance Plots
