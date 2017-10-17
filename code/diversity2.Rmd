@@ -812,26 +812,29 @@ otu.scores <- otu.scores[abs(otu.scores[,1]) > 0.7|abs(otu.scores[,2]) > 0.7,]
 eDNA.bc.dis.m <- as.matrix(eDNA.bc.dis)
 all.equal(row.names(eDNA.div), rownames(eDNA.bc.dis.m))
 
-pair.div <- unique(eDNA.div$pair)
-pair.dis <- rep(NA, length(pair.div))
-for(i in 1:length(pair.div)){
+pair.div.tax <- unique(eDNA.div$pair)
+pair.dis.tax <- rep(NA, length(pair.div.tax))
+for(i in 1:length(pair.div.tax)){
   temp <- row.names(eDNA.div[eDNA.div$pair == pair.div[i], ])
-  pair.dis[i] <- eDNA.bc.dis.m[temp[1], temp[2]]
+  pair.dis.tax[i] <- eDNA.bc.dis.m[temp[1], temp[2]]
 }
 
-mean(pair.dis)
+mean(pair.dis.tax)
+sem(pair.dis.tax)
 
 # Average BC Distance Between Replicates
-reps <- names(which(table(eDNA.div$qPCR.match) == 4))
-reps.dis <- rep(NA, length(reps))
+reps.tax <- names(which(table(eDNA.div$qPCR.match) == 4))
+reps.dis.tax <- rep(NA, length(reps.tax))
 
-for(i in 1:length(reps)){
+for(i in 1:length(reps.tax)){
   temp <- eDNA.div[eDNA.div$qPCR.match == reps[i] & eDNA.div$treat == "C", ]
   temp.names <- row.names(temp)
-  reps.dis[i] <- eDNA.bc.dis.m[temp.names[1], temp.names[2]]
+  reps.dis.tax[i] <- eDNA.bc.dis.m[temp.names[1], temp.names[2]]
 }
-mean(reps.dis)
-t.test(pair.dis, reps.dis)
+
+mean(reps.dis.tax)
+sem(reps.dis.tax)
+t.test(pair.dis.tax, reps.dis.tax)
 ```
 
 ## Phylogenetic Beta Diversity
@@ -861,27 +864,30 @@ otu.scores <- otu.scores[abs(otu.scores[,1]) > 0.7|
 eDNA.phylo.m <- as.matrix(phylo.dist)
 all.equal(row.names(eDNA.div), rownames(eDNA.phylo.m))
 
-pair.div <- unique(eDNA.div$pair)
-pair.dis <- rep(NA, length(pair.div))
-for(i in 1:length(pair.div)){
-  temp <- row.names(eDNA.div[eDNA.div$pair == pair.div[i], ])
-  pair.dis[i] <- eDNA.phylo.m[temp[1], temp[2]]
+pair.div.phy <- unique(eDNA.div$pair)
+pair.dis.phy <- rep(NA, length(pair.div))
+for(i in 1:length(pair.div.phy)){
+  temp <- row.names(eDNA.div[eDNA.div$pair == pair.div.phy[i], ])
+  pair.dis.phy[i] <- eDNA.phylo.m[temp[1], temp[2]]
 }
 
-mean(pair.dis)
+mean(pair.dis.phy)
+sem(pair.dis.phy)
 
 # Average BC Distance Between Replicates
-reps <- names(which(table(eDNA.div$qPCR.match) == 4))
-reps.dis <- rep(NA, length(reps))
+reps.phy <- names(which(table(eDNA.div$qPCR.match) == 4))
+reps.dis.phy <- rep(NA, length(reps))
 
-for(i in 1:length(reps)){
-  temp <- eDNA.div[eDNA.div$qPCR.match == reps[i] & eDNA.div$treat == "C", ]
+for(i in 1:length(reps.phy)){
+  temp <- eDNA.div[eDNA.div$qPCR.match == reps.phy[i] & eDNA.div$treat == "C", ]
   temp.names <- row.names(temp)
-  reps.dis[i] <- eDNA.phylo.m[temp.names[1], temp.names[2]]
+  reps.dis.phy[i] <- eDNA.phylo.m[temp.names[1], temp.names[2]]
 }
-mean(reps.dis)
 
-t.test(pair.dis, reps.dis)
+mean(reps.dis.phy)
+sem(reps.dis.phy)
+
+t.test(pair.dis.phy, reps.dis.phy)
 ```
 
 ## PCoA Plots
