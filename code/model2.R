@@ -3,23 +3,9 @@ setwd("~/GitHub/relicDNA/code")
 library("vegan")
 library("png")
 library("grid")
-set.seed(156)
+set.seed(Sys.time())
 
 # Evenness Functions
-# Calculates Smith and Wilson's evenness index - E var
-#   Smith & Wilson (1996) A consumer's guide to evenness indices. Oikos
-e_var <- function(SAD = " "){
-  SAD <- subset(SAD, SAD > 0)
-  P <- log(SAD)
-  S <- length(SAD)
-  X <- rep(NA, S)
-  for (i in 1:S){
-    X[i] <- ((P[i] - mean(P))^2)/S
-  }
-  evar <- 1 - (2/(pi * atan(sum(X))))
-  return(evar)
-}
-
 # Calculates Simpsons Evenness
 simp_even <- function(SAD = " "){
   SAD <- subset(SAD, SAD > 0)
@@ -34,21 +20,23 @@ simp_even <- function(SAD = " "){
   return(e_d)
 }
 
+# Define OTUs and Rel Abundance in Regional Pool
+otus <- paste("OTU", sprintf("%05d", seq(1:10000)), sep = "")
+rel <- rep(NA, length(otus))
+for(i in 1:length(otus)){
+  rel[i] <- dlnorm(i, meanlog = -1, sdlog = 2.5)
+}
 
-gamma1 <- rlnorm(n=1000000, meanlog = -1, sdlog = 2.5) # Changed sdlog param
-gamma1 <- gamma1[rev(order(gamma1))]/sum(gamma1)
-gamma1[1:10]
-
-# Simple Plot
+# Plot Gamma 
 layout(1)
 par(mar = c(5, 5, 3, 2.5))
-plot(log10(gamma1), col = "forestgreen",
+plot(log10(rel), col = "forestgreen",
      main = "Regional Species Abundance Distribution",
      xlab = "Species Index", ylab = "Log Sampling Probability",
      las = 1)
 
-# Define OTUs
-otus <- paste("OTU", sprintf("%05d", seq(1:length(gamma1))), sep = "")
+#gamma1 <- rlnorm(n=1000000, meanlog = -1, sdlog = 2.5) # Changed sdlog param
+#gamma1 <- gamma1[rev(order(gamma1))]/sum(gamma1)
 
 # Examples
 N <- 100000
@@ -58,26 +46,37 @@ m <- 0.01
 d <- 0.01
 t <- 10^4
 
-
 relic.pool <- function(names = otus, N = n, 
                        birth = r, mortality = m, immigration = i, 
-                       decay = d, time = t){
+                       decay = d, time = t, random.decay = T){
   # Define Variables
   otus <- names; N = N; i <- immigration; r <- birth; m <- mortality 
   d <- decay; t <- time
   
   # Initiate Community
-  site1 <- sample(otus, size = N, replace = T, prob = gamma1)
+  comm <- sample(otus, size = N, replace = T, prob = rel)
   
   # Run Simulation
   for (j in 1:t){
     # Immigration
-    i.comm <- sample(otus, size = i, replace = T, prob = gamma1)
-    comm <- c(site1, i.comm)
+    i.comm <- sample(otus, size = i, replace = T, prob = rel)
+    comm <- sample(c(comm, i.comm))
     
     # Birth
     temp <- sample(c(1:length(comm)), size = length(comm) * r, replace = F)
-    comm <- c(comm, comm[temp])
+    comm <- sample(c(comm, comm[temp]))
+    
+    # Decay
+    if (exists("relic")){
+      if (random.decay == T){
+        temp <- sample(c(1:length(relic)), size = length(relic) * d, replace = F)
+      } else {
+        temp <- sample(c(1:(length(relic) * 0.5)), size = length(relic) * d, replace = F)
+      }
+      if (length(temp) > 0){
+        relic <- relic[-temp]
+      }
+    }
     
     # Death
     if (!exists("relic")){
@@ -85,32 +84,49 @@ relic.pool <- function(names = otus, N = n,
     }
     temp <- sample(c(1:length(comm)), size = length(comm) * m, replace = F)
     dead <- comm[temp]
-    comm <- comm[-temp]
+    comm <- sample(comm[-temp])
     relic <- c(relic, dead)
     
-    # Decay
-    temp <- sample(c(1:length(relic)), size = length(relic) * d, replace = F)
-    if (length(temp) > 0){
-      relic <- relic[-temp]
-    }
+    # Calculations
+    N_active  <- length(comm)
+    S_active  <- length(unique(comm))
+    N_relic   <- length(relic)
+    S_relic   <- length(unique(relic))
+    Prop_Relic <- round(length(relic) / (length(comm) + length(relic)), 2)
+    Rich_Ratio <- round(length(unique(c(comm, relic))) / length(unique(comm)), 2)
+    Sample_comm <- sample(comm, length(comm) / 5)
+    Sample_total <- sample(c(relic, comm), (length(relic) + length(comm)) / 5)
+    Rich_Ratio_S <- round(length(unique(Sample_total)) / 
+                            length(unique(Sample_comm)), 2)
+    #Sample_comm2 <- sample(comm, 1000, replace = T)
+    #Sample_total2 <- sample(c(relic, comm), 1000, replace = T)
+    #Rich_Ratio_S2 <- round(length(unique(Sample_total2)) / 
+    #                        length(unique(Sample_comm2)), 2)
     
     # Print Statements
-    if (j %in% seq(0, t, 100)){
-      print(paste("N_active = ", length(comm), sep = ""), quote = F)
-      print(paste("S_active = ", length(unique(comm)), sep = ""), quote = F)
-      print(paste("N_relic = ", length(relic), sep = ""), quote = F)
-      print(paste("S_relic = ", length(unique(relic)), sep = ""), quote = F)
+    if (j %in% seq(0, t, 1000)){
+      print(paste("N_active = ", N_active, sep = ""), quote = F)
+      print(paste("S_active = ", S_active, sep = ""), quote = F)
+      print(paste("N_relic = ", N_relic, sep = ""), quote = F)
+      print(paste("S_relic = ", S_relic, sep = ""), quote = F)
+      print(paste("Prop = ", Prop_Relic, sep = ""), quote = F)
+      print(paste("Rich_Ratio = ", Rich_Ratio, sep = ""), quote = F)
+      print(paste("Rich_Ratio w/ Sampling = ", Rich_Ratio_S, sep = ""), quote = F)
+      #print(paste("Rich_Ratio w/ Sampling #2 = ", Rich_Ratio_S2, sep = ""), quote = F)
     }
     
     # Output
     out <- list(Comm = comm, Relic = relic, 
-                N_active = length(comm), S_active = length(unique(comm)),
-                SimpE_active = simp_even(table(comm)),
-                N_relic = length(relic), S_relic = length(unique(relic)),
-                SimpE_active = simp_even(table(comm)))
+                N_active = N_active, S_active = S_active,
+                N_relic = N_relic, S_relic = S_relic,
+                Prop = Prop_Relic, Rich_Ratio = Rich_Ratio, 
+                Rich_Ratio_S = Rich_Ratio_S) #, Rich_Ratio_S2 = Rich_Ratio_S2)
   }
   return(out)
 }
+
+
+
 # Same Rates
 # Examples
 N <- 100000
@@ -122,7 +138,7 @@ t <- 10^4
 
 
 same.rates <- relic.pool(names = otus, N = 100000, immigration = 100, 
-                       birth = 0.01, mortality = 0.01, decay = 0.01, time = 10^4)
+                       birth = 0.01, mortality = 0.01, decay = 0.01, time = 10^3)
 
 active1 <- table(same.rates[[1]])
 relic1 <- table(same.rates[[2]])
@@ -152,7 +168,7 @@ box(lwd = 1.5)
 
 # Low Decay
 low.decay <- relic.pool(names = otus, N = 100000, immigration = 1000, 
-                         birth = 0.01, mortality = 0.01, decay = 0.001, time = 10^4)
+                         birth = 0.01, mortality = 0.01, decay = 0.001, time = 10^3)
 
 active1 <- table(low.decay[[1]])
 relic1 <- table(low.decay[[2]])
@@ -181,7 +197,7 @@ box(lwd = 1.5)
 
 # High Decay
 high.decay <- relic.pool(names = otus, N = 100000, immigration = 1000, 
-                         birth = 0.01, mortality = 0.01, decay = 0.1, time = 10^4)
+                         birth = 0.01, mortality = 0.01, decay = 0.1, time = 10^3)
 
 active1 <- table(high.decay[[1]])
 relic1 <- table(high.decay[[2]])
@@ -210,7 +226,7 @@ box(lwd = 1.5)
 
 # High Birth
 high.birth <- relic.pool(names = otus, N = 100000, immigration = 1000, 
-                        birth = 0.5, mortality = 0.01, decay = 0.01, time = 10^4)
+                        birth = 0.5, mortality = 0.01, decay = 0.01, time = 10^3)
 
 active1 <- table(high.birth[[1]])
 relic1 <- table(high.birth[[2]])

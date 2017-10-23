@@ -17,7 +17,7 @@ setwd("~/GitHub/relicDNA/code")
 library("vegan")
 library("png")
 library("grid")
-set.seed(22)
+set.seed(Sys.time())
 ```
 
 # Sampling Mixing Models
@@ -653,13 +653,13 @@ relic2.n <- names(relic2)  # Low
 relic3.n <- names(relic3)  # High
 
 
-size.comm <- 9000
-n.relic <- seq(size.comm/100, size.comm, 500)
+size.comm <- 1000
+n.relic <- seq(size.comm/10, size.comm, 50)
 n.active <- size.comm - n.relic
 props <- n.relic/size.comm
 
-ratio.tab <- matrix(NA, nrow = 5, ncol = length(props))
-rownames(ratio.tab) <- c("Null", "Same", "Low", "High", "Proportion")
+ratio.tab <- matrix(NA, nrow = 4, ncol = length(props))
+rownames(ratio.tab) <- c("Same", "Low", "High", "Proportion")
 
 bc.tab <- matrix(NA, nrow = 4, ncol = length(props))
 rownames(bc.tab) <- c("1-2", "1-3", "1-4", "Proportion")
@@ -671,27 +671,29 @@ for(i in 1:length(props)){
   n2 <- n.relic[i]
 
   # Simuate Mixing Mdel
-  temp.null <- c(sample(same.rates[[1]], size = size.comm, replace = F))
-  
+  temp.null.same <- c(sample(same.rates[[1]], size = size.comm, replace = F))
   temp.same <- c(sample(same.rates[[1]], size = n1, replace = F),
                  sample(same.rates[[2]], size = n2, replace = F))
   
+  temp.null.low <- c(sample(low.decay[[1]], size = size.comm, replace = F))
   temp.low <- c(sample(low.decay[[1]], size = n1, replace =F),
                  sample(low.decay[[2]], size = n2, replace = F))
   
+  temp.null.high <- c(sample(high.decay[[1]], size = size.comm, replace = F))
   temp.high <- c(sample(high.decay[[1]], size = n1, replace = F),
                  sample(high.decay[[2]], size = n2, replace = F))
   
-  tab1 <- table(temp.null)
-  tab2 <- table(temp.same)
-  tab3 <- table(temp.low)
-  tab4 <- table(temp.high)
+  taba <- table(sample(temp.null.same, 1000))
+  tabb <- table(sample(temp.null.low, 1000))
+  tabc <- table(sample(temp.null.high, 1000))
+  tab1 <- table(sample(temp.same, 1000))
+  tab2 <- table(sample(temp.low, 1000))
+  tab3 <- table(sample(temp.high, 1000))
 
-  ratio.tab[1, i] <- round(length(tab1)/length(tab1), 2)
-  ratio.tab[2, i] <- round(length(tab2)/length(tab1), 2)
-  ratio.tab[3, i] <- round(length(tab3)/length(tab1), 2)
-  ratio.tab[4, i] <- round(length(tab4)/length(tab1), 2)
-  ratio.tab[5, i] <- props[i]
+  ratio.tab[1, i] <- round(length(tab1)/length(taba), 2)
+  ratio.tab[2, i] <- round(length(tab2)/length(tabb), 2)
+  ratio.tab[3, i] <- round(length(tab3)/length(tabc), 2)
+  ratio.tab[4, i] <- props[i]
 
   # dis <- as.matrix(vegdist(sbys2, method = "bray"))
   # bc.tab[1, i] <- dis[2, 1]
