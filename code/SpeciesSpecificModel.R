@@ -147,15 +147,15 @@ relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000,
     S_intact  <- sum(N > 0)
     N_relic   <- sum(R)
     S_relic   <- sum(R > 0)
-    Prop_Relic <- round(sum(R) / (sum(R) + sum(N)), 2)
+    Prop_Relic <- round((sum(R) + sum(N)) / sum(R), 2)
     
     Total <- N + R
     Rich_Ratio_C <- round(sum(Total > 0) / sum(N > 0), 2)
     
     Rich_Ratio_S_raw <- rep(NA, 20)
     for(j in 1:20){
-      N_Sample <- sample(otus, size = n * 0.5, replace = T, prob = N/sum(N))
-      T_Sample <- sample(otus, size = n * 0.5, replace = T, prob = Total/sum(Total))
+      N_Sample <- sample(otus, size = n * 0.25, replace = T, prob = N/sum(N))
+      T_Sample <- sample(otus, size = n * 0.25, replace = T, prob = Total/sum(Total))
       Rich_Ratio_S_raw[j] <- round(length(unique(T_Sample)) / length(unique(N_Sample)), 2)
     }
     Rich_Ratio_S <- round(mean(Rich_Ratio_S_raw), 2)
@@ -182,7 +182,7 @@ relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000,
 }
 
 # Test Run
-test <- relic.pool(n.gamma = 5000, sd.gamma = 2.5, n = 10000, 
+test <- relic.pool(n.gamma = 1000, sd.gamma = 2.5, n = 5000, 
                    r = 0.1, m = 0.1, im = 100, im.2 = 0,
                    d = 0.001, t = 10^3, uniform.decay = FALSE,
                    a.decay = 2, b.decay = 4)
