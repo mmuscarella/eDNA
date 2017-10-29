@@ -41,7 +41,7 @@ plot(log10(gamma1), col = "forestgreen",
 relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000, 
                        r = 0.1, m = 0.1, im = 100, im.2 = 0, 
                        d = 0.1, t = 10^3, uniform.decay = FALSE,
-                       a.decay = 0.6, b.decay = 0.6){
+                       a.decay = 0.6, b.decay = 0.6, den.depend = FALSE){
   
   if (exists("R")){
     rm(R)
@@ -106,7 +106,6 @@ relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000,
       d.ind2 <- which(otus %in% d.comm2)
       R[d.ind2] <- R[d.ind2] + table(d.comm2)
       N[d.ind2] <- N[d.ind2] - table(d.comm2)
-      R[which(R < 0)] <- 0
     }
 
     # Immigration to Relic
@@ -119,8 +118,13 @@ relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000,
     
     # Decay
     if (sum(R) > 0){
-      d.prob <- (sp.decay * (R/sum(R)))
-      d.relic <- sample(otus, size = sum(R) * d + length(i.relic), replace = T, prob = d.prob)
+      if(den.depend == FALSE){
+        d.prob <- (sp.decay * (R/sum(R)))
+      } else {
+        d.prob <- ((sp.decay * (R/sum(R)))^2)
+      }
+      
+      d.relic <- sample(otus, size = sum(R) * d, replace = T, prob = d.prob)
       decay.ind <- which(otus %in% d.relic)
       R[decay.ind] <- R[decay.ind] - table(d.relic)
       while(min(R) < 0){
@@ -147,10 +151,10 @@ relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000,
     S_intact  <- sum(N > 0)
     N_relic   <- sum(R)
     S_relic   <- sum(R > 0)
-    Prop_Relic <- round((sum(R) + sum(N)) / sum(R), 2)
+    Prop_Relic <- round(sum(R) / (sum(R) + sum(N)), 2)
     
     Total <- N + R
-    Rich_Ratio_C <- round(sum(Total > 0) / sum(N > 0), 2)
+    Rich_Ratio_C <- round(sum(Total > 1) / sum(N > 1), 2)
     
     Rich_Ratio_S_raw <- rep(NA, 20)
     for(j in 1:20){
@@ -191,7 +195,7 @@ test <- relic.pool(n.gamma = 1000, sd.gamma = 2.5, n = 5000,
 ##########
 # Shape Options
 otus <- paste("OTU", sprintf("%05d", seq(1:1000)), sep = "")
-sp.decay <- rbeta(length(otus), shape1 = 0.7, shape2 = 0.7)
+sp.decay <- rbeta(length(otus), shape1 = 2, shape2 = 0.5)
 hist(sp.decay, xlim = c(0, 1))
 
 d <- c(seq(0.02, 0.08, length = 3), seq(0.1, 0.4, length = 3))
@@ -200,7 +204,7 @@ d <- c(seq(0.02, 0.08, length = 3), seq(0.1, 0.4, length = 3))
 d <- c(0.02, 0.05, 0.075, 0.10, 0.15, 0.25, 0.40)
 uniform.test <- matrix(NA, nrow = length(d), ncol = 2)
 for(i in 1:length(d)){
-  test <- relic.pool(n.gamma = 1000, sd.gamma = 2, n = 20000, 
+  test <- relic.pool(n.gamma = 4000, sd.gamma = 0.98, n = 20000, 
                      r = 0.1, m = 0.1, im = 2000, im.2 = 0,
                      d = d[i], t = 10^3, uniform.decay = TRUE,
                      a.decay = 2, b.decay = 2)
@@ -210,8 +214,8 @@ for(i in 1:length(d)){
 
 imm.test <- matrix(NA, nrow = length(d), ncol = 2)
 for(i in 1:length(d)){
-  test <- relic.pool(n.gamma = 1000, sd.gamma = 2, n = 20000, 
-                     r = 0.1, m = 0.1, im = 2000, im.2 = 200,
+  test <- relic.pool(n.gamma = 4000, sd.gamma = 0.98, n = 20000, 
+                     r = 0.1, m = 0.1, im = 2000, im.2 = 2000,
                      d = d[i], t = 10^3, uniform.decay = TRUE,
                      a.decay = 2, b.decay = 2)
   imm.test[i, 1] <- test$Prop
@@ -221,10 +225,10 @@ for(i in 1:length(d)){
 
 beta1 <- matrix(NA, nrow = length(d), ncol = 2)
 for(i in 1:length(d)){
-  test <- relic.pool(n.gamma = 1000, sd.gamma = 2, n = 20000, 
+  test <- relic.pool(n.gamma = 4000, sd.gamma = 0.98, n = 20000, 
                      r = 0.1, m = 0.1, im = 2000, im.2 = 0,
                      d = d[i], t = 10^3, uniform.decay = FALSE,
-                     a.decay = 1, b.decay = 1)
+                     a.decay = 2, b.decay = 0.5)
   beta1[i, 1] <- test$Prop
   beta1[i, 2] <- test$Rich_Ratio_S
 }
@@ -232,7 +236,7 @@ for(i in 1:length(d)){
 
 beta2 <- matrix(NA, nrow = length(d), ncol = 2)
 for(i in 1:length(d)){
-  test <- relic.pool(n.gamma = 1000, sd.gamma = 2, n = 20000, 
+  test <- relic.pool(n.gamma = 4000, sd.gamma = 0.98, n = 20000, 
                      r = 0.1, m = 0.1, im = 2000, im.2 = 0,
                      d = d[i], t = 10^3, uniform.decay = FALSE,
                      a.decay = 0.7, b.decay = 0.7)
@@ -240,17 +244,40 @@ for(i in 1:length(d)){
   beta2[i, 2] <- test$Rich_Ratio_S
 }
 
+beta3 <- matrix(NA, nrow = length(d), ncol = 2)
+for(i in 1:length(d)){
+  test <- relic.pool(n.gamma = 4000, sd.gamma = 0.98, n = 20000, 
+                     r = 0.1, m = 0.1, im = 2000, im.2 = 0,
+                     d = d[i], t = 10^3, uniform.decay = FALSE,
+                     a.decay = 0.5, b.decay = 2)
+  beta3[i, 1] <- test$Prop
+  beta3[i, 2] <- test$Rich_Ratio_S
+}
+
+den.depend <- matrix(NA, nrow = length(d), ncol = 2)
+for(i in 1:length(d)){
+  test <- relic.pool(n.gamma = 4000, sd.gamma = 0.98, n = 20000, 
+                     r = 0.1, m = 0.1, im = 2000, im.2 = 0,
+                     d = d[i], t = 10^3, uniform.decay = TRUE,
+                     a.decay = 2, b.decay = 2, den.depend = TRUE)
+  den.depend[i, 1] <- test$Prop
+  den.depend[i, 2] <- test$Rich_Ratio_S
+}
+
 
 plot(uniform.test[, 1], uniform.test[, 2], pch = 23, bg = "white",
-     ylim = c(0.5, 1.5), xlim = c(0.15, 0.95), las = 1,
+     ylim = c(0.5, 1.5), xlim = c(0.15, 1), las = 1,
      xlab = "Proportion Relic", ylab = "Richness Ratio")
 abline(h = 1)
 points(imm.test[, 1], imm.test[, 2], pch = 21, bg = "gray")
 points(beta1[, 1], beta1[, 2], pch = 24, bg = "white")
 points(beta2[, 1], beta2[, 2], pch = 22, bg = "gray20")
-legend("bottomleft", c("Neutral", "Protection", "Relic Imm.", "Protection 2"), 
+points(beta3[, 1], beta3[, 2], pch = 24, bg = "white")
+points(den.depend[, 1], den.depend[, 2], pch = 24, bg = "white")
+legend("bottomleft", c("Neutral", "Protection", "Relic Imm.", "Protection 2/3"), 
        pch = c(23, 22, 21, 24),
        pt.bg = c("white", "gray20", "gray", "white"), bty = "n")
+box(lwd = 1.5)
 
 
 
