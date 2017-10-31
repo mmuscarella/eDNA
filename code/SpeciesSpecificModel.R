@@ -23,7 +23,7 @@ simp_even <- function(SAD = " "){
 otus <- paste("OTU", sprintf("%05d", seq(1:5000)), sep = "")
 rel <- rep(NA, length(otus))
 rel <- rlnorm(length(otus), meanlog = 1, sdlog = 0.5)
-dlnorm(i, meanlog = -1, sdlog = 2.5)
+#dlnorm(i, meanlog = -1, sdlog = 2.5)
 rel <- rel[rev(order(rel))]
 
 gamma1 <- rlnorm(n=10000, meanlog = 1, sdlog = 0.98)
@@ -188,7 +188,7 @@ relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000,
 # Test Run
 test <- relic.pool(n.gamma = 1000, sd.gamma = 2.5, n = 5000, 
                    r = 0.1, m = 0.1, im = 100, im.2 = 0,
-                   d = 0.001, t = 10^3, uniform.decay = FALSE,
+                   d = 0.001, t = 10^1, uniform.decay = FALSE,
                    a.decay = 2, b.decay = 4)
 
 
@@ -282,5 +282,32 @@ box(lwd = 1.5)
 
 
 
+par(mar = c(4, 4, 1, 5) + 0.5)
+plot(uniform.test[, 1], uniform.test[, 2], type = 'n',
+     pch = 23, col = "black", bg = "white", axes = F,
+     xlab = "",
+     ylab = "",
+     xlim = c(0, 1), ylim = c(0.6, 1.4), las = 1)
+
+# abline(h=1, lty = 3, lwd = 1.5)
+
+points(uniform.test[, 1], uniform.test[, 2], pch = 22,bg = "gray40")
+points(beta2[, 1], beta2[, 2], pch = 21, bg = "gray60")
+points(den.depend[, 1], den.depend[, 2], pch = 23,bg = "white")
+
+axis(side = 1, labels = T, tck = -0.05, lwd = 1.5, las = 1)
+axis(side = 2, labels = T, tck = -0.05, lwd = 1.5, las = 1,
+     at = c(seq(0.6, 1.4, 0.2)))
+axis(side = 1, labels = F, tck = 0.02, lwd = 1.5)
+axis(side = 2, labels = F, tck = 0.02, lwd = 1.5,
+     at = c(seq(0.6, 1.4, 0.2)))
+box(lwd = 1.5)
+
+mtext(side = 1, "Proportion of Relic DNA", line = 2.5, cex = 1.25)
+mtext(side = 2, "Richness Ratio", line = 2.5, cex = 1.25)
+
+text(x = 1.02, y = 1.3, "Density\nDependence", pos = 4, cex = 1, xpd = T)
+text(x = 1.02, y = 1, "Neutral", pos = 4, cex = 1, xpd = T)
+text(x = 1.02, y = 0.6, "Protection", pos = 4, cex = 1, xpd = T)
 
 
