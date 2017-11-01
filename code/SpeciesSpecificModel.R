@@ -1,3 +1,17 @@
+################################################################################
+#
+# Mechanistic Species Specific Model of Relic DNA Dynamics
+#
+#
+#
+################################################################################
+#
+# Written by: Mario Muscarella
+#
+# Last update: 2017/10/31
+#
+################################################################################
+
 rm(list=ls())
 setwd("~/GitHub/relicDNA/code")
 library("vegan")
@@ -23,7 +37,6 @@ simp_even <- function(SAD = " "){
 otus <- paste("OTU", sprintf("%05d", seq(1:5000)), sep = "")
 rel <- rep(NA, length(otus))
 rel <- rlnorm(length(otus), meanlog = 1, sdlog = 0.5)
-#dlnorm(i, meanlog = -1, sdlog = 2.5)
 rel <- rel[rev(order(rel))]
 
 gamma1 <- rlnorm(n=10000, meanlog = 1, sdlog = 0.98)
@@ -38,6 +51,7 @@ plot(log10(gamma1), col = "forestgreen",
      las = 1)
 
 
+# Define Function
 relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000, 
                        r = 0.1, m = 0.1, im = 100, im.2 = 0, 
                        d = 0.1, t = 10^3, uniform.decay = FALSE,
@@ -91,6 +105,9 @@ relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000,
     # Death
     if (!exists("R")){
       R <- table(otus) * 0
+      R0 <- 0
+    } else {
+      R0 <- sum(R)
     }
     d.comm <- sample(otus, size = N0 * m  + length(i.comm), replace = T, prob = N/sum(N))
     d.ind <- which(otus %in% d.comm)
@@ -121,10 +138,11 @@ relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000,
       if(den.depend == FALSE){
         d.prob <- (sp.decay * (R/sum(R)))
       } else {
-        d.prob <- ((sp.decay * (R/sum(R)))^2)
+        d.prob <- ((sp.decay * (R/sum(R)))^2) + 1/200 * (sp.decay * (R/sum(R)))
       }
       
-      d.relic <- sample(otus, size = sum(R) * d, replace = T, prob = d.prob)
+      d.relic <- sample(otus, size = R0 * d + 
+                          length(i.comm) + length(i.relic), replace = T, prob = d.prob)
       decay.ind <- which(otus %in% d.relic)
       R[decay.ind] <- R[decay.ind] - table(d.relic)
       while(min(R) < 0){
@@ -137,14 +155,6 @@ relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000,
         R[relic2.ind] <- R[relic2.ind] - table(d.relic2)
       }
     }
-    
-    # Upper Cap on Relic Size
-    # if (sum(R) > (n * 10^3)){
-    #   max.relic <- sample(otus, size = (n * 10^3), replace = T, prob = R/sum(R))
-    #   max.ind <- which(otus %in% max.relic)
-    #   R <- R * 0
-    #   R[max.ind] <- R[max.ind] + table(max.relic)
-    # }
  
     # Calculations
     N_intact  <- sum(N)
@@ -158,8 +168,8 @@ relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000,
     
     Rich_Ratio_S_raw <- rep(NA, 20)
     for(j in 1:20){
-      N_Sample <- sample(otus, size = n * 0.25, replace = T, prob = N/sum(N))
-      T_Sample <- sample(otus, size = n * 0.25, replace = T, prob = Total/sum(Total))
+      N_Sample <- sample(otus, size = n * 0.1, replace = T, prob = N/sum(N))
+      T_Sample <- sample(otus, size = n * 0.1, replace = T, prob = Total/sum(Total))
       Rich_Ratio_S_raw[j] <- round(length(unique(T_Sample)) / length(unique(N_Sample)), 2)
     }
     Rich_Ratio_S <- round(mean(Rich_Ratio_S_raw), 2)
@@ -185,32 +195,68 @@ relic.pool <- function(n.gamma = 1000, sd.gamma = 2.5, n = 10000,
   return(out)
 }
 
-# Test Run
-test <- relic.pool(n.gamma = 1000, sd.gamma = 2.5, n = 5000, 
-                   r = 0.1, m = 0.1, im = 100, im.2 = 0,
-                   d = 0.001, t = 10^1, uniform.decay = FALSE,
-                   a.decay = 2, b.decay = 4)
 
-
-##########
-# Shape Options
+# Explore Beta Shape Options for Protection
 otus <- paste("OTU", sprintf("%05d", seq(1:1000)), sep = "")
-sp.decay <- rbeta(length(otus), shape1 = 2, shape2 = 0.5)
+sp.decay <- rbeta(length(otus), shape1 = 0.7, shape2 = 0.7)
 hist(sp.decay, xlim = c(0, 1))
 
-d <- c(seq(0.02, 0.08, length = 3), seq(0.1, 0.4, length = 3))
+################################################################################
+# Run Simulations
+################################################################################
 
+m <- 0.1
+p <- sample(c(seq(0.05, 0.95, by = 0.05)))
+d <- (m/p) - m
 
-d <- c(0.02, 0.05, 0.075, 0.10, 0.15, 0.25, 0.40)
 uniform.test <- matrix(NA, nrow = length(d), ncol = 2)
 for(i in 1:length(d)){
-  test <- relic.pool(n.gamma = 4000, sd.gamma = 0.98, n = 20000, 
+  test <- relic.pool(n.gamma = 4000, sd.gamma = 2.5, n = 20000, 
                      r = 0.1, m = 0.1, im = 2000, im.2 = 0,
-                     d = d[i], t = 10^3, uniform.decay = TRUE,
+                     d = d[i], t = 10^4, uniform.decay = TRUE,
                      a.decay = 2, b.decay = 2)
   uniform.test[i, 1] <- test$Prop
   uniform.test[i, 2] <- test$Rich_Ratio_S
 }
+
+den.depend <- matrix(NA, nrow = length(d), ncol = 2)
+for(i in 1:length(d)){
+  test <- relic.pool(n.gamma = 4000, sd.gamma = 2.5, n = 20000, 
+                     r = 0.1, m = 0.1, im = 2000, im.2 = 0,
+                     d = d[i], t = 10^4, uniform.decay = TRUE,
+                     a.decay = 2, b.decay = 2, den.depend = TRUE)
+  den.depend[i, 1] <- test$Prop
+  den.depend[i, 2] <- test$Rich_Ratio_S
+}
+
+protect <- matrix(NA, nrow = length(d), ncol = 2)
+for(i in 1:length(d)){
+  test <- relic.pool(n.gamma = 4000, sd.gamma = 2.5, n = 20000, 
+                     r = 0.1, m = 0.1, im = 2000, im.2 = 0,
+                     d = d[i], t = 10^4, uniform.decay = FALSE,
+                     a.decay = 0.7, b.decay = 0.7)
+  protect[i, 1] <- test$Prop
+  protect[i, 2] <- test$Rich_Ratio_S
+}
+
+plot(uniform.test[, 1], uniform.test[, 2], 
+     ylim = c(0.5, 1.5), xlim = c(0.15, 1), las = 1,
+     xlab = "Proportion Relic", ylab = "Richness Ratio",
+     pch = 22,bg = "gray40")
+points(den.depend[, 1], den.depend[, 2], 
+       pch = 21, bg = "gray60")
+points(protect[, 1], protect[, 2], 
+       pch = 23, bg = "white")
+
+
+save(uniform.test, den.depend, protect, 
+     file = "../data/MechanisticModel.RData")
+
+
+
+points(ratio.tab[5, ], ratio.tab[2, ], pch = 22,bg = "gray40")
+points(ratio.tab[5, ], ratio.tab[3, ], pch = 21, bg = "gray60")
+points(ratio.tab[5, ], ratio.tab[4, ], pch = 23,bg = "white")
 
 imm.test <- matrix(NA, nrow = length(d), ncol = 2)
 for(i in 1:length(d)){
@@ -222,7 +268,6 @@ for(i in 1:length(d)){
   imm.test[i, 2] <- test$Rich_Ratio_S
 }
 
-
 beta1 <- matrix(NA, nrow = length(d), ncol = 2)
 for(i in 1:length(d)){
   test <- relic.pool(n.gamma = 4000, sd.gamma = 0.98, n = 20000, 
@@ -232,7 +277,6 @@ for(i in 1:length(d)){
   beta1[i, 1] <- test$Prop
   beta1[i, 2] <- test$Rich_Ratio_S
 }
-
 
 beta2 <- matrix(NA, nrow = length(d), ncol = 2)
 for(i in 1:length(d)){
@@ -254,15 +298,7 @@ for(i in 1:length(d)){
   beta3[i, 2] <- test$Rich_Ratio_S
 }
 
-den.depend <- matrix(NA, nrow = length(d), ncol = 2)
-for(i in 1:length(d)){
-  test <- relic.pool(n.gamma = 4000, sd.gamma = 0.98, n = 20000, 
-                     r = 0.1, m = 0.1, im = 2000, im.2 = 0,
-                     d = d[i], t = 10^3, uniform.decay = TRUE,
-                     a.decay = 2, b.decay = 2, den.depend = TRUE)
-  den.depend[i, 1] <- test$Prop
-  den.depend[i, 2] <- test$Rich_Ratio_S
-}
+
 
 
 plot(uniform.test[, 1], uniform.test[, 2], pch = 23, bg = "white",
