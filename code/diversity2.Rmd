@@ -1514,23 +1514,23 @@ for(i in 1:length(col.pt)){
 #        pch = pch.pt, col = col.pt, bg = col.pt, lwd = 2, cex = 1.7)
 
 points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "soil")], centroid.distances.tax[order(centroid.distances.tax$qPCR.match), ]$ratio[which(centroid.distances.tax[order(centroid.distances.tax$qPCR.match),]$env == "soil")], pch = 24, 
-       col = "brown", bg = "brown", lwd = 2, cex = 1.7)
+       col = "brown", bg = "brown", lwd = 2, cex = 1.5)
 
 points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "sed")], centroid.distances.tax[order(centroid.distances.tax$qPCR.match), ]$ratio[which(centroid.distances.tax[order(centroid.distances.tax$qPCR.match),]$env == "sed")], pch = 22, 
-       col = "darkgreen", bg = "darkgreen", lwd = 2, cex = 1.7)
+       col = "darkgreen", bg = "darkgreen", lwd = 2, cex = 1.5)
 
 points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "feces")], centroid.distances.tax[order(centroid.distances.tax$qPCR.match), ]$ratio[which(centroid.distances.tax[order(centroid.distances.tax$qPCR.match),]$env == "feces")], pch = 21, 
-       col = "red", bg = "red", lwd = 2, cex = 1.7)
+       col = "red", bg = "red", lwd = 2, cex = 1.5)
 
 points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "water")], centroid.distances.tax[order(centroid.distances.tax$qPCR.match), ]$ratio[which(centroid.distances.tax[order(centroid.distances.tax$qPCR.match),]$env == "water")], pch = 23, 
-       col = "blue", bg = "blue", lwd = 2, cex = 1.7)
+       col = "blue", bg = "blue", lwd = 2, cex = 1.5)
 
 text("a", x = 0.02, y = 1.45, font = 2, cex = 1.25)
 
 text(x = 0.5, y = 1.45, cex = 0.7, pos = 4,
      bquote("Slope:" ~ italic("P") ~ "=" ~
               .(round(ttest(cent.tax.reg, 2, 0)[3], 2))))
-text(x = 0.5, y = 1.35, cex = 0.7, pos = 4,
+text(x = 0.5, y = 1.375, cex = 0.7, pos = 4,
      bquote("Intercept:" ~ italic("P") ~ "=" ~
               .(round(ttest(cent.tax.reg, 1, 1)[3], 2))))
 
@@ -1567,16 +1567,16 @@ pred.frame <- data.frame(prop = seq(0.0, 0.875, length.out = 21))
 add.hull(cent.phy.reg, pred.frame)
 
 points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "soil")], centroid.distances.phy[order(centroid.distances.phy$qPCR.match), ]$ratio[which(centroid.distances.phy[order(centroid.distances.phy$qPCR.match),]$env == "soil")], pch = 24, 
-       col = "brown", bg = "brown", lwd = 2, cex = 1.7)
+       col = "brown", bg = "brown", lwd = 2, cex = 1.5)
 
 points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "sed")], centroid.distances.tax[order(centroid.distances.phy$qPCR.match), ]$ratio[which(centroid.distances.phy[order(centroid.distances.phy$qPCR.match),]$env == "sed")], pch = 22, 
-       col = "darkgreen", bg = "darkgreen", lwd = 2, cex = 1.7)
+       col = "darkgreen", bg = "darkgreen", lwd = 2, cex = 1.5)
 
 points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "feces")], centroid.distances.phy[order(centroid.distances.phy$qPCR.match), ]$ratio[which(centroid.distances.tax[order(centroid.distances.tax$qPCR.match),]$env == "feces")], pch = 21, 
-       col = "red", bg = "red", lwd = 2, cex = 1.7)
+       col = "red", bg = "red", lwd = 2, cex = 1.5)
 
 points(eDNA.prop.sub2$prop[which(eDNA.prop.sub2$env == "water")], centroid.distances.phy[order(centroid.distances.phy$qPCR.match), ]$ratio[which(centroid.distances.phy[order(centroid.distances.phy$qPCR.match),]$env == "water")], pch = 23, 
-       col = "blue", bg = "blue", lwd = 2, cex = 1.7)
+       col = "blue", bg = "blue", lwd = 2, cex = 1.5)
 
 text("b", x = 0.02, y = 1.45, font = 2, cex = 1.25)
 
@@ -1613,7 +1613,7 @@ axis(side = 3, lwd.ticks = 2, tck = 0.02, labels = F)
 # Legend
 legend(0.1, 0.1, c("soil", "sediment", "gut", "water"), 
        pch = c(24, 22, 21, 23), xpd = NA, 
-       pt.bg = c("brown", "darkgreen", "red", "blue"), pt.cex = 2, 
+       pt.bg = c("brown", "darkgreen", "red", "blue"), pt.cex = 1.5, 
        pt.lwd = 2, bty = 'n', ncol = 2)
 
 # Close Plot Device
