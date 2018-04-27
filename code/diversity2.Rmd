@@ -1769,3 +1769,93 @@ graphics.off()
 img <- readPNG("../figures/FigureS5-CentroidDist.png")
 grid.raster(img)
 ```
+
+# SAD Comparisons
+
+## Log-normal parameters
+```{r}
+
+
+
+```
+
+## Two-Sample Kolmogorov-Smirnov Test
+```{r}
+# Rarify Communities
+min(rowSums(OTU))
+
+OTU2 <- rrarefy(OTU, 30000)
+
+OTU2.REL <- OTU2
+for (i in 1:dim(OTU2)[1]){
+  OTU2.REL[i,] <- OTU2[i,]/sum(OTU2[i,])
+  }
+
+# Check order of design
+all.equal(row.names(eDNA.div), row.names(OTU2.REL))
+
+# Subset OTU Matrix for Each Molecule
+OTU2.REL.c <- OTU2.REL[which(eDNA.div$treat == "C"), ]
+OTU2.REL.e <- OTU2.REL[which(eDNA.div$treat == "E"), ]
+
+# Subset the Design Matrix
+eDNA.div.c <- eDNA.div[which(eDNA.div$treat == "C"), ]
+eDNA.div.e <- eDNA.div[which(eDNA.div$treat == "E"), ]
+
+# Check Order of Subsets
+all.equal(sort(eDNA.div.c$samp.code), sort(eDNA.div.e$samp.code))
+
+# Make Sure Subset OTU Matrices are Aligned by Sample Code
+OTU2.REL.c2 <- OTU2.REL.c[order(eDNA.div.c$samp.code), ]
+OTU2.REL.e2 <- OTU2.REL.e[order(eDNA.div.e$samp.code), ]
+eDNA.div.c2 <- eDNA.div.c[order(eDNA.div.c$samp.code), ]
+eDNA.div.e2 <- eDNA.div.e[order(eDNA.div.e$samp.code), ]
+
+all.equal(row.names(OTU2.REL.c2), row.names(eDNA.div.c2))
+all.equal(row.names(OTU2.REL.e2), row.names(eDNA.div.e2))
+
+dim(OTU2.REL.c2); dim(OTU2.REL.e2)
+
+# Make Commulative Rel Abunadnce 
+rowSums(OTU2.REL.c2); rowSums(OTU2.REL.e2)
+
+OTU2.RELc.c2 <- t(apply(OTU2.REL.c2, 1, cumsum))
+OTU2.RELc.e2 <- t(apply(OTU2.REL.e2, 1, cumsum))
+
+ks.test(OTU2.RELc.c2[1, ], OTU2.RELc.e2[1, ], exact = T)
+
+plot(OTU2.RELc.c2[i, 1:1000], cex = 0.5, col = "red", ylim = c(0, 1))
+points(OTU2.RELc.e2[i, 1:1000], cex = 0.5, col = "blue", ylim = c(0, 1))
+
+plot(log10(OTU2.RELc.c2[i, 1:100]), cex = 0.5, col = "red", ylim = c(-1, 0))
+points(log10(OTU2.RELc.e2[i, 1:100]), cex = 0.5, col = "blue", ylim = c(-1, 0))
+
+ks.stats <- as.data.frame(matrix(NA, nrow = dim(OTU2.RELc.c2)[1], ncol = 5))
+colnames(ks.stats) <- c("Env", "Pair", "Samp_Code", "D", "p")
+
+for(i in 1:dim(OTU.RELc.c2)[1]){
+  ks.temp <- suppressWarnings(
+               ks.test((OTU2.REL.c2[i,]), 
+                       (OTU2.REL.e2[i, ]), exact = T))
+  ks.stats[i, 1] <- as.character(eDNA.div.c2$env[i])
+  ks.stats[i, 2] <- eDNA.div.c2$pair[i]
+  ks.stats[i, 3] <- as.character(eDNA.div.c2$samp.code[i])
+  ks.stats[i, 4] <- ks.temp$statistic
+  ks.stats[i, 5] <- round(ks.temp$p.value, 3)
+}
+
+aggregate(p ~ Env, data = ks.stats, mean)
+aggregate(p ~ Env, data = ks.stats, sem)
+aggregate(p ~ Env, data = ks.stats, min)
+
+```
+
+## Rank-Shift
+```{r}
+library("codyn")
+
+
+```
+
+
+

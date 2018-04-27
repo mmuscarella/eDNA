@@ -252,6 +252,18 @@ points(protect[, 1], protect[, 2],
 save(uniform.test, den.depend, protect, 
      file = "../data/MechanisticModel.RData")
 
+imm.test <- matrix(NA, nrow = length(d), ncol = 2)
+for(i in 1:length(d)){
+  test <- relic.pool(n.gamma = 4000, sd.gamma = 2.5, n = 20000, 
+                     r = 0.1, m = 0.1, im = 2000, im.2 = 500,
+                     d = d[i], t = 10^4, uniform.decay = TRUE,
+                     a.decay = 2, b.decay = 2, den.depend = TRUE)
+  imm.test[i, 1] <- test$Prop
+  imm.test[i, 2] <- test$Rich_Ratio_S
+}
+
+save(imm.test,
+     file = "../data/MechanisticModel_Supp.RData")
 
 
 points(ratio.tab[5, ], ratio.tab[2, ], pch = 22,bg = "gray40")
@@ -260,10 +272,10 @@ points(ratio.tab[5, ], ratio.tab[4, ], pch = 23,bg = "white")
 
 imm.test <- matrix(NA, nrow = length(d), ncol = 2)
 for(i in 1:length(d)){
-  test <- relic.pool(n.gamma = 4000, sd.gamma = 0.98, n = 20000, 
-                     r = 0.1, m = 0.1, im = 2000, im.2 = 2000,
+  test <- relic.pool(n.gamma = 4000, sd.gamma = 2.5, n = 20000, 
+                     r = 0.1, m = 0.1, im = 2000, im.2 = 500,
                      d = d[i], t = 10^3, uniform.decay = TRUE,
-                     a.decay = 2, b.decay = 2)
+                     a.decay = 2, b.decay = 2, den.depend = TRUE)
   imm.test[i, 1] <- test$Prop
   imm.test[i, 2] <- test$Rich_Ratio_S
 }
