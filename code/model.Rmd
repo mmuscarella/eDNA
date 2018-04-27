@@ -27,6 +27,7 @@ load("../data/SampleModel.RData")
 
 # Output from Mechanistic Model
 load("../data/MechanisticModel.RData")
+load("../data/MechanisticModel_Supp.RData")
 
 ```
 
@@ -86,7 +87,54 @@ plot(uniform.test[, 1], uniform.test[, 2], type = 'n',
      pch = 23, col = "black", bg = "white", axes = F,
      xlab = "",
      ylab = "",
-     #xlim = c(0, 1), ylim = c(0.56,1.44), las = 1)
+     xlim = c(0, 1), ylim = c(0.56,1.44), las = 1)
+
+points(uniform.test[, 1], uniform.test[, 2], pch = 23,bg = "white")
+points(den.depend[, 1], den.depend[, 2], pch = 21, bg = "gray60")
+points(protect[, 1], protect[, 2], pch = 22,bg = "gray40")
+
+axis(side = 1, labels = T, tck = -0.05, lwd = 1.5, las = 1)
+axis(side = 2, labels = T, tck = -0.05, lwd = 1.5, las = 1,
+     at = c(seq(0.6, 2.4, 0.4)))
+axis(side = 1, labels = F, tck = 0.02, lwd = 1.5)
+axis(side = 2, labels = F, tck = 0.02, lwd = 1.5,
+     at = c(seq(0.6, 1.4, 0.4)))
+box(lwd = 1.5)
+
+mtext(side = 1, "Proportion Relic DNA", line = 2.5, cex = 1.25)
+mtext(side = 2, "Richness Ratio", line = 2.5, cex = 1.25)
+
+text(x = 1.02, y = 1.35, expression(paste("Hot Spots")), pos = 4, cex = 1, xpd = T)
+text(x = 1.02, y = 1, expression(paste("Neutral")), pos = 4, cex = 1, xpd = T)
+text(x = 1.02, y = 0.65, expression(paste("Protection")), pos = 4, cex = 1, xpd = T)
+
+text(x = 0.02, y = 1.4, "c", cex = 2, font = 2)
+
+
+# Close Plot Device
+dev.off()
+graphics.off()
+
+# Show Plot
+img <- readPNG("../figures/Figure1-Model.png")
+grid.raster(img)
+
+```
+
+## Figure S7
+```{r}
+png(filename="../figures/FigureS7-Model.png",
+    width = 800, height = 600, res = 96*2)
+
+layout(matrix(c(1), 1, 1, byrow=T), heights=c(4, 3))
+
+par(mar = c(4, 4, 1, 5) + 0.5)
+
+# Mechanistic Model
+plot(uniform.test[, 1], uniform.test[, 2], type = 'n',
+     pch = 23, col = "black", bg = "white", axes = F,
+     xlab = "",
+     ylab = "",
      xlim = c(0, 1), ylim = c(0.56,2.2), las = 1)
 
 points(uniform.test[, 1], uniform.test[, 2], pch = 23,bg = "white")
@@ -102,8 +150,6 @@ axis(side = 2, labels = F, tck = 0.02, lwd = 1.5,
      at = c(seq(0.6, 1.4, 0.4)))
 box(lwd = 1.5)
 
-abline(h = 1, lty = 3, lwd = 1.5)
-
 mtext(side = 1, "Proportion Relic DNA", line = 2.5, cex = 1.25)
 mtext(side = 2, "Richness Ratio", line = 2.5, cex = 1.25)
 
@@ -113,15 +159,12 @@ text(x = 1.02, y = 0.65, expression(paste("Protection")), pos = 4, cex = 1, xpd 
 text(x = 1.02, y = 1.8, expression(paste("Immigration")), pos = 4, cex = 1, xpd = T)
 
 
-text(x = 0.02, y = 1.4, "c", cex = 2, font = 2)
-
-
 # Close Plot Device
 dev.off()
 graphics.off()
 
 # Show Plot
-img <- readPNG("../figures/Figure1-Model.png")
+img <- readPNG("../figures/FigureS7-Model.png")
 grid.raster(img)
 
 ```
