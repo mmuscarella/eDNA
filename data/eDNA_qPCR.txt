@@ -1,1 +1,131 @@
-sample	sample_ID	sample_name	env	treat	rep	copies.raw	copies.ext.factor	super.vol	sub.vol1	Gull F1 Control	Gull	water	C	1	1283333	50	1.4	0.41	Gull F2 Control	Gull	water	C	2	1021667	50	1.4	0.41	Gull F1 DNase	Gull	water	E	1	626333	50	1.4	0.41	Gull F2 DNase	Gull	water	E	2	845333	50	1.4	0.42	Pond C1 Control 1	KelloggDrain	sed	C	1	18533333	500	1.5	0.42	Pond C1 Control 2	KelloggDrain	sed	C	2	16400000	500	1.5	0.42	Pond C1 DNase 1	KelloggDrain	sed	E	1	8926667	500	1.5	0.42	Pond C1 DNase 2	KelloggDrain	sed	E	2	8436667	500	1.5	0.43	Creek F1 Control	Augusta	water	C	1	692333	50	1.4	0.43	Creek F2 Control	Augusta	water	C	2	760333	50	1.4	0.43	Creek F1 DNase	Augusta	water	E	1	298667	50	1.4	0.43	Creek F2 DNase	Augusta	water	E	2	314667	50	1.4	0.44	Pond F1 Control	KelloggDrain	water	C	1	2843333	50	1.4	0.44	Pond F2 Control	KelloggDrain	water	C	2	2623333	50	1.4	0.44	Pond F1 DNase	KelloggDrain	water	E	1	1853333	50	1.4	0.44	Pond F2 DNase	KelloggDrain	water	E	2	1630000	50	1.4	0.45	DF C1 Control 1	DF	soil	C	1	16400000	500	1.5	0.45	DF C1 Control 2	DF	soil	C	2	17633333	500	1.5	0.45	DF C1 DNase 1	DF	soil	E	1	14100000	500	1.5	0.45	DF C1 DNase 2	DF	soil	E	2	10533333	500	1.5	0.46	T7 r6 Control 1 8/14	T7	soil	C	1	2436667	500	1.5	0.46	T7 r6 Control 2 8/14	T7	soil	C	2	4016667	500	1.5	0.46	T7 r6 DNase 1 8/14	T7	soil	C	1	2950000	500	1.5	0.46	T7 r6 DNase 2 8/14	T7	soil	C	2	3146667	500	1.5	0.47	Gull C1 Control	Gull	sed	C	1	2106667	500	1.5	0.47	Gull C2 Control	Gull	sed	C	2	1060000	500	1.5	0.47	Gull C1 DNase	Gull	sed	E	1	609667	500	1.5	0.47	Gull C2 DNase	Gull	sed	E	2	504000	500	1.5	0.48	WL F1 Control	Wintergreen	water	C	1	8280000	50	1.4	0.48	WL F2 Control	Wintergreen	water	C	2	6600000	50	1.4	0.48	WL F1 DNase	Wintergreen	water	E	1	5850000	50	1.4	0.48	WL F2 DNase	Wintergreen	water	E	2	3973333	50	1.4	0.49	WL C1 Control	Wintergreen	sed	C	1	1573333	50	1.4	0.49	WL C2 Control	Wintergreen	sed	C	2	2016667	50	1.4	0.49	WL C1 DNase	Wintergreen	sed	E	1	1353333	50	1.4	0.49	WL C2 DNase	Wintergreen	sed	E	2	1213333	50	1.4	0.410	Austin F1 Control	Austin	water	C	1	1563333	50	1.4	0.410	Austin F2 Control	Austin	water	C	2	1720000	50	1.4	0.410	Austin F1 DNase	Austin	water	E	1	1040333	50	1.4	0.410	Austin F2 DNase	Austin	water	E	2	1175667	50	1.4	0.411	Austin Core 1 Control	Austin	sed	C	1	661333	50	1.5	0.411	Austin Core 2 Control	Austin	sed	C	2	2230000	50	1.5	0.411	Austin Core 1 DNase	Austin	sed	E	1	563667	50	1.5	0.411	Austin Core 2 DNase	Austin	sed	E	2	1173333	50	1.5	0.412	Woods F1 Control	Woods	water	C	1	4553333	50	1.4	0.412	Woods F2 Control	Woods	water	C	2	4976667	50	1.4	0.412	Woods F1 DNase	Woods	water	E	1	3563333	50	1.4	0.412	Woods F2 DNase	Woods	water	E	2	4106667	50	1.4	0.413	Woods C1 Control	Woods	sed	C	1	574667	50	1.4	0.413	Woods C2 Control	Woods	sed	C	2	586667	50	1.4	0.413	Woods C1 DNase	Woods	sed	E	1	237333	50	1.4	0.413	Woods C2 DNase	Woods	sed	E	2	288667	50	1.4	0.414	Crooked F1 Control	Crooked	water	C	1	4195000	50	1.4	0.414	Crooked F2 Control	Crooked	water	C	2	4536667	50	1.4	0.414	Crooked F1 DNase	Crooked	water	E	1	2050000	50	1.4	0.414	Crooked F2 DNase	Crooked	water	E	2	2720000	50	1.4	0.415	Crooked Control 1	Crooked	sed	C	1	1203333	50	1.4	0.415	Crooked Control 2	Crooked	sed	C	2	1000333	50	1.4	0.415	Crooked DNase 1	Crooked	sed	E	1	1057667	50	1.4	0.415	Crooked DNase 2	Crooked	sed	E	2	1009667	50	1.4	0.416	Sherman C1 Control	Sherman	sed	C	1	1790000	50	1.4	0.416	Sherman C2 Control	Sherman	sed	C	2	911000	50	1.4	0.416	Sherman C1 DNase	Sherman	sed	E	1	1550000	50	1.4	0.416	Sherman C2 DNase	Sherman	sed	E	2	1066667	50	1.4	0.417	Duck F1 Control	Duck	water	C	1	3123333	50	1.4	0.417	Duck F2 Control	Duck	water	C	2	2430000	50	1.4	0.417	Duck F1 DNase	Duck	water	E	1	2025000	50	1.4	0.417	Duck F2 DNase	Duck	water	E	2	1920000	50	1.4	0.418	Duck C1 Control	Duck	sed	C	1	114855	50	1.4	0.418	Duck C2 Control	Duck	sed	C	2	390000	50	1.4	0.418	Duck C1 DNase	Duck	sed	E	1	231000	50	1.4	0.418	Duck C2 DNase	Duck	sed	E	2	295000	50	1.4	0.419	Sherman Lake 10/2 F1 Control	Sherman	water	C	1	329667	50	1.4	0.419	Sherman Lake 10/2 F2 Control	Sherman	water	C	2	254000	50	1.4	0.419	Sherman Lake 10/2 F1 DNase	Sherman	water	E	1	169667	50	1.4	0.419	Sherman Lake 10/2 F2 DNase	Sherman	water	E	2	69895	50	1.4	0.420	Sherman Lake 11/20 F1 Control	Sherman	water	C	1	666000	50	1.4	0.420	Sherman Lake 11/20 F2 Control	Sherman	water	C	2	664667	50	1.4	0.420	Sherman Lake 11/20 F1 DNase	Sherman	water	E	1	98309	50	1.4	0.420	Sherman Lake 11/20 F2 DNase	Sherman	water	E	2	127333	50	1.4	0.421	Kzoo Urban Core 2 Control	Kzoo	soil	C	1	600667	50	1.35	0.421	Kzoo Urban Core 3 Control	Kzoo	soil	C	2	667667	50	1.35	0.421	Kzoo Urban Core 2 DNase	Kzoo	soil	E	1	372168	50	1.35	0.421	Kzoo Urban Core 3 DNase	Kzoo	soil	E	2	684000	50	1.35	0.422	Holland Urban Core 3 Control	Holland	soil	C	1	1030333	50	1.2	0.422	Holland Urban Core 3 DNase	Holland	soil	E	1	863000	50	1.2	0.423	Feces Sample 1 Control 2	Feces1	feces	C	1	293666667	50	1.4	0.423	Feces Sample 1 DNase 2	Feces1	feces	E	1	197000000	50	1.4	0.424	Feces Sample 2 Control 1	Feces2	feces	C	2	194350000	50	1.4	0.424	Feces Sample 2 DNase 1	Feces2	feces	E	2	103605000	50	1.4	0.425	T7 r6 Core 1 Control	T7	soil	C	1	1354333	50	1.35	0.425	T7 r6 Core 2 Control	T7	soil	C	2	4256667	50	1.35	0.425	T7 r6 Core 1 DNase	T7	soil	E	1	2970000	50	1.35	0.425	T7 r6 Core 2 DNase	T7	soil	E	2	4636667	50	1.35	0.426	Entisol Core 1 Control	Entisol	soil	C	1	2356667	50	1.4	0.426	Entisol Core 2 Control	Entisol	soil	C	2	2106667	50	1.4	0.426	Entisol Core 1 DNase	Entisol	soil	E	1	1736667	50	1.4	0.426	Entisol Core 2 DNase	Entisol	soil	E	2	1853333	50	1.4	0.427	Spodo C1 Control	Spodosol1	soil	C	1	16366667	50	1.4	0.427	Spodo C1 DNase	Spodosol1	soil	E	1	12710000	50	1.4	0.427	Spodosol Core 2 Control	Spodosol2	soil	C	2	7566667	50	1.4	0.427	Spodosol Core 2 DNase	Spodosol2	soil	E	2	8006667	50	1.4	0.429	Histosol C1 Control	Histosol	soil	C	1	19600000	50	1.4	0.429	Histosol C2 Control	Histosol	soil	C	2	17700000	50	1.4	0.429	Histosol C1 DNase	Histosol	soil	E	1	13500000	50	1.4	0.429	Histosol C2 DNase	Histosol	soil	E	2	9670000	50	1.4	0.430	Dog Control 1	FecesDog	feces	C	1	199333333	500	1.5	0.430	Dog Control 2	FecesDog	feces	C	2	195333333	500	1.5	0.430	Dog DNase 1	FecesDog	feces	E	1	120333333	500	1.5	0.430	Dog DNase 2	FecesDog	feces	E	2	116000000	500	1.5	0.431	Cow Control 1 8/8	FecesCow1	feces	C	1	207333333	50	1.45	0.431	Cow Control 2 8/8	FecesCow1	feces	C	2	292000000	50	1.45	0.431	Cow DNase 1 8/8	FecesCow1	feces	E	1	69866667	50	1.45	0.431	Cow DNase 2 8/8	FecesCow1	feces	E	2	121333333	50	1.45	0.432	Cat Control 1	FecesCat	feces	C	1	147000000	50	1.5	0.432	Cat Control 2	FecesCat	feces	C	2	152333333	50	1.5	0.432	Cat DNase 1	FecesCat	feces	E	1	171666667	50	1.5	0.432	Cat DNase 2	FecesCat	feces	E	2	164000000	50	1.5	0.433	Cow Control 1 12/18	FecesCow2	feces	C	1	250000000	50	1.45	0.433	Cow Control 2 12/18	FecesCow2	feces	C	2	302000000	50	1.45	0.433	Cow DNase 1 12/18	FecesCow2	feces	E	1	276000000	50	1.45	0.433	Cow DNase 2 12/18	FecesCow2	feces	E	2	166000000	50	1.45	0.434	Horse Control 1	FecesHorse	feces	C	1	71300000	50	1.25	0.434	Horse Control 2	FecesHorse	feces	C	2	79733333	50	1.25	0.434	Horse DNase 1	FecesHorse	feces	E	1	18000000	50	1.25	0.434	Horse DNase 2	FecesHorse	feces	E	2	29700000	50	1.25	0.435	Rabbit Control 1	FecesRabbit	feces	C	1	488000000	50	1.2	0.435	Rabbit Control 2	FecesRabbit	feces	C	2	404333333	50	1.2	0.435	Rabbit DNase 1	FecesRabbit	feces	E	1	465666667	50	1.2	0.435	Rabbit DNase 2	FecesRabbit	feces	E	2	274666667	50	1.2	0.4
+sample	sample_ID	sample_name	env	treat	rep	copies.raw	copies.ext.factor	super.vol	sub.vol
+1	Gull F1 Control	Gull	water	C	1	1283333	50	1.4	0.4
+1	Gull F2 Control	Gull	water	C	2	1021667	50	1.4	0.4
+1	Gull F1 DNase	Gull	water	E	1	626333	50	1.4	0.4
+1	Gull F2 DNase	Gull	water	E	2	845333	50	1.4	0.4
+2	Pond C1 Control 1	KelloggDrain	sed	C	1	18533333	500	1.5	0.4
+2	Pond C1 Control 2	KelloggDrain	sed	C	2	16400000	500	1.5	0.4
+2	Pond C1 DNase 1	KelloggDrain	sed	E	1	8926667	500	1.5	0.4
+2	Pond C1 DNase 2	KelloggDrain	sed	E	2	8436667	500	1.5	0.4
+3	Creek F1 Control	Augusta	water	C	1	692333	50	1.4	0.4
+3	Creek F2 Control	Augusta	water	C	2	760333	50	1.4	0.4
+3	Creek F1 DNase	Augusta	water	E	1	298667	50	1.4	0.4
+3	Creek F2 DNase	Augusta	water	E	2	314667	50	1.4	0.4
+4	Pond F1 Control	KelloggDrain	water	C	1	2843333	50	1.4	0.4
+4	Pond F2 Control	KelloggDrain	water	C	2	2623333	50	1.4	0.4
+4	Pond F1 DNase	KelloggDrain	water	E	1	1853333	50	1.4	0.4
+4	Pond F2 DNase	KelloggDrain	water	E	2	1630000	50	1.4	0.4
+5	DF C1 Control 1	DF	soil	C	1	16400000	500	1.5	0.4
+5	DF C1 Control 2	DF	soil	C	2	17633333	500	1.5	0.4
+5	DF C1 DNase 1	DF	soil	E	1	14100000	500	1.5	0.4
+5	DF C1 DNase 2	DF	soil	E	2	10533333	500	1.5	0.4
+6	T7 r6 Control 1 8/14	T7	soil	C	1	2436667	500	1.5	0.4
+6	T7 r6 Control 2 8/14	T7	soil	C	2	4016667	500	1.5	0.4
+6	T7 r6 DNase 1 8/14	T7	soil	C	1	2950000	500	1.5	0.4
+6	T7 r6 DNase 2 8/14	T7	soil	C	2	3146667	500	1.5	0.4
+7	Gull C1 Control	Gull	sed	C	1	2106667	500	1.5	0.4
+7	Gull C2 Control	Gull	sed	C	2	1060000	500	1.5	0.4
+7	Gull C1 DNase	Gull	sed	E	1	609667	500	1.5	0.4
+7	Gull C2 DNase	Gull	sed	E	2	504000	500	1.5	0.4
+8	WL F1 Control	Wintergreen	water	C	1	8280000	50	1.4	0.4
+8	WL F2 Control	Wintergreen	water	C	2	6600000	50	1.4	0.4
+8	WL F1 DNase	Wintergreen	water	E	1	5850000	50	1.4	0.4
+8	WL F2 DNase	Wintergreen	water	E	2	3973333	50	1.4	0.4
+9	WL C1 Control	Wintergreen	sed	C	1	1573333	50	1.4	0.4
+9	WL C2 Control	Wintergreen	sed	C	2	2016667	50	1.4	0.4
+9	WL C1 DNase	Wintergreen	sed	E	1	1353333	50	1.4	0.4
+9	WL C2 DNase	Wintergreen	sed	E	2	1213333	50	1.4	0.4
+10	Austin F1 Control	Austin	water	C	1	1563333	50	1.4	0.4
+10	Austin F2 Control	Austin	water	C	2	1720000	50	1.4	0.4
+10	Austin F1 DNase	Austin	water	E	1	1040333	50	1.4	0.4
+10	Austin F2 DNase	Austin	water	E	2	1175667	50	1.4	0.4
+11	Austin Core 1 Control	Austin	sed	C	1	661333	50	1.5	0.4
+11	Austin Core 2 Control	Austin	sed	C	2	2230000	50	1.5	0.4
+11	Austin Core 1 DNase	Austin	sed	E	1	563667	50	1.5	0.4
+11	Austin Core 2 DNase	Austin	sed	E	2	1173333	50	1.5	0.4
+12	Woods F1 Control	Woods	water	C	1	4553333	50	1.4	0.4
+12	Woods F2 Control	Woods	water	C	2	4976667	50	1.4	0.4
+12	Woods F1 DNase	Woods	water	E	1	3563333	50	1.4	0.4
+12	Woods F2 DNase	Woods	water	E	2	4106667	50	1.4	0.4
+13	Woods C1 Control	Woods	sed	C	1	574667	50	1.4	0.4
+13	Woods C2 Control	Woods	sed	C	2	586667	50	1.4	0.4
+13	Woods C1 DNase	Woods	sed	E	1	237333	50	1.4	0.4
+13	Woods C2 DNase	Woods	sed	E	2	288667	50	1.4	0.4
+14	Crooked F1 Control	Crooked	water	C	1	4195000	50	1.4	0.4
+14	Crooked F2 Control	Crooked	water	C	2	4536667	50	1.4	0.4
+14	Crooked F1 DNase	Crooked	water	E	1	2050000	50	1.4	0.4
+14	Crooked F2 DNase	Crooked	water	E	2	2720000	50	1.4	0.4
+15	Crooked Control 1	Crooked	sed	C	1	1203333	50	1.4	0.4
+15	Crooked Control 2	Crooked	sed	C	2	1000333	50	1.4	0.4
+15	Crooked DNase 1	Crooked	sed	E	1	1057667	50	1.4	0.4
+15	Crooked DNase 2	Crooked	sed	E	2	1009667	50	1.4	0.4
+16	Sherman C1 Control	Sherman	sed	C	1	1790000	50	1.4	0.4
+16	Sherman C2 Control	Sherman	sed	C	2	911000	50	1.4	0.4
+16	Sherman C1 DNase	Sherman	sed	E	1	1550000	50	1.4	0.4
+16	Sherman C2 DNase	Sherman	sed	E	2	1066667	50	1.4	0.4
+17	Duck F1 Control	Duck	water	C	1	3123333	50	1.4	0.4
+17	Duck F2 Control	Duck	water	C	2	2430000	50	1.4	0.4
+17	Duck F1 DNase	Duck	water	E	1	2025000	50	1.4	0.4
+17	Duck F2 DNase	Duck	water	E	2	1920000	50	1.4	0.4
+18	Duck C1 Control	Duck	sed	C	1	114855	50	1.4	0.4
+18	Duck C2 Control	Duck	sed	C	2	390000	50	1.4	0.4
+18	Duck C1 DNase	Duck	sed	E	1	231000	50	1.4	0.4
+18	Duck C2 DNase	Duck	sed	E	2	295000	50	1.4	0.4
+19	Sherman Lake 10/2 F1 Control	Sherman	water	C	1	329667	50	1.4	0.4
+19	Sherman Lake 10/2 F2 Control	Sherman	water	C	2	254000	50	1.4	0.4
+19	Sherman Lake 10/2 F1 DNase	Sherman	water	E	1	169667	50	1.4	0.4
+19	Sherman Lake 10/2 F2 DNase	Sherman	water	E	2	69895	50	1.4	0.4
+20	Sherman Lake 11/20 F1 Control	Sherman	water	C	1	666000	50	1.4	0.4
+20	Sherman Lake 11/20 F2 Control	Sherman	water	C	2	664667	50	1.4	0.4
+20	Sherman Lake 11/20 F1 DNase	Sherman	water	E	1	98309	50	1.4	0.4
+20	Sherman Lake 11/20 F2 DNase	Sherman	water	E	2	127333	50	1.4	0.4
+21	Kzoo Urban Core 2 Control	Kzoo	soil	C	1	600667	50	1.35	0.4
+21	Kzoo Urban Core 3 Control	Kzoo	soil	C	2	667667	50	1.35	0.4
+21	Kzoo Urban Core 2 DNase	Kzoo	soil	E	1	372168	50	1.35	0.4
+21	Kzoo Urban Core 3 DNase	Kzoo	soil	E	2	684000	50	1.35	0.4
+22	Holland Urban Core 3 Control	Holland	soil	C	1	1030333	50	1.2	0.4
+22	Holland Urban Core 3 DNase	Holland	soil	E	1	863000	50	1.2	0.4
+23	Feces Sample 1 Control 2	Feces1	feces	C	1	293666667	50	1.4	0.4
+23	Feces Sample 1 DNase 2	Feces1	feces	E	1	197000000	50	1.4	0.4
+24	Feces Sample 2 Control 1	Feces2	feces	C	2	194350000	50	1.4	0.4
+24	Feces Sample 2 DNase 1	Feces2	feces	E	2	103605000	50	1.4	0.4
+25	T7 r6 Core 1 Control	T7	soil	C	1	1354333	50	1.35	0.4
+25	T7 r6 Core 2 Control	T7	soil	C	2	4256667	50	1.35	0.4
+25	T7 r6 Core 1 DNase	T7	soil	E	1	2970000	50	1.35	0.4
+25	T7 r6 Core 2 DNase	T7	soil	E	2	4636667	50	1.35	0.4
+26	Entisol Core 1 Control	Entisol	soil	C	1	2356667	50	1.4	0.4
+26	Entisol Core 2 Control	Entisol	soil	C	2	2106667	50	1.4	0.4
+26	Entisol Core 1 DNase	Entisol	soil	E	1	1736667	50	1.4	0.4
+26	Entisol Core 2 DNase	Entisol	soil	E	2	1853333	50	1.4	0.4
+27	Spodo C1 Control	Spodosol1	soil	C	1	16366667	50	1.4	0.4
+27	Spodo C1 DNase	Spodosol1	soil	E	1	12710000	50	1.4	0.4
+27	Spodosol Core 2 Control	Spodosol2	soil	C	2	7566667	50	1.4	0.4
+27	Spodosol Core 2 DNase	Spodosol2	soil	E	2	8006667	50	1.4	0.4
+29	Histosol C1 Control	Histosol	soil	C	1	19600000	50	1.4	0.4
+29	Histosol C2 Control	Histosol	soil	C	2	17700000	50	1.4	0.4
+29	Histosol C1 DNase	Histosol	soil	E	1	13500000	50	1.4	0.4
+29	Histosol C2 DNase	Histosol	soil	E	2	9670000	50	1.4	0.4
+30	Dog Control 1	FecesDog	feces	C	1	199333333	500	1.5	0.4
+30	Dog Control 2	FecesDog	feces	C	2	195333333	500	1.5	0.4
+30	Dog DNase 1	FecesDog	feces	E	1	120333333	500	1.5	0.4
+30	Dog DNase 2	FecesDog	feces	E	2	116000000	500	1.5	0.4
+31	Cow Control 1 8/8	FecesCow1	feces	C	1	207333333	50	1.45	0.4
+31	Cow Control 2 8/8	FecesCow1	feces	C	2	292000000	50	1.45	0.4
+31	Cow DNase 1 8/8	FecesCow1	feces	E	1	69866667	50	1.45	0.4
+31	Cow DNase 2 8/8	FecesCow1	feces	E	2	121333333	50	1.45	0.4
+32	Cat Control 1	FecesCat	feces	C	1	147000000	50	1.5	0.4
+32	Cat Control 2	FecesCat	feces	C	2	152333333	50	1.5	0.4
+32	Cat DNase 1	FecesCat	feces	E	1	171666667	50	1.5	0.4
+32	Cat DNase 2	FecesCat	feces	E	2	164000000	50	1.5	0.4
+33	Cow Control 1 12/18	FecesCow2	feces	C	1	250000000	50	1.45	0.4
+33	Cow Control 2 12/18	FecesCow2	feces	C	2	302000000	50	1.45	0.4
+33	Cow DNase 1 12/18	FecesCow2	feces	E	1	276000000	50	1.45	0.4
+33	Cow DNase 2 12/18	FecesCow2	feces	E	2	166000000	50	1.45	0.4
+34	Horse Control 1	FecesHorse	feces	C	1	71300000	50	1.25	0.4
+34	Horse Control 2	FecesHorse	feces	C	2	79733333	50	1.25	0.4
+34	Horse DNase 1	FecesHorse	feces	E	1	18000000	50	1.25	0.4
+34	Horse DNase 2	FecesHorse	feces	E	2	29700000	50	1.25	0.4
+35	Rabbit Control 1	FecesRabbit	feces	C	1	488000000	50	1.2	0.4
+35	Rabbit Control 2	FecesRabbit	feces	C	2	404333333	50	1.2	0.4
+35	Rabbit DNase 1	FecesRabbit	feces	E	1	465666667	50	1.2	0.4
+35	Rabbit DNase 2	FecesRabbit	feces	E	2	274666667	50	1.2	0.4

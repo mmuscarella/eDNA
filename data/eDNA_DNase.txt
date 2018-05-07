@@ -1,1 +1,13 @@
-sample	sample.ID	sample.name	env	Dnase	treat	copies.raw	copies.ext.factor	super.vol	sub.vol1	1	DF1	soil	60	C	52900000	50	1.4	0.42	2	DF1	soil	60	E	23600000	50	1.4	0.43	3	DF2	soil	40	C	89000000	50	1.4	0.44	4	DF2	soil	40	E	46100000	50	1.4	0.45	5	DF3	soil	20	C	81700000	50	1.4	0.46	6	DF3	soil	20	E	34600000	50	1.4	0.47	7	DF4	soil	10	C	97600000	50	1.4	0.48	8	DF4	soil	10	E	51900000	50	1.4	0.49	9	DF5	soil	5	C	58300000	50	1.4	0.410	10	DF5	soil	5	E	39500000	50	1.4	0.411	11	DF6	soil	2	C	74600000	50	1.4	0.412	12	DF6	soil	2	E	57400000	50	1.4	0.4
+sample	sample.ID	sample.name	env	Dnase	treat	copies.raw	copies.ext.factor	super.vol	sub.vol
+1	1	DF1	soil	60	C	52900000	50	1.4	0.4
+2	2	DF1	soil	60	E	23600000	50	1.4	0.4
+3	3	DF2	soil	40	C	89000000	50	1.4	0.4
+4	4	DF2	soil	40	E	46100000	50	1.4	0.4
+5	5	DF3	soil	20	C	81700000	50	1.4	0.4
+6	6	DF3	soil	20	E	34600000	50	1.4	0.4
+7	7	DF4	soil	10	C	97600000	50	1.4	0.4
+8	8	DF4	soil	10	E	51900000	50	1.4	0.4
+9	9	DF5	soil	5	C	58300000	50	1.4	0.4
+10	10	DF5	soil	5	E	39500000	50	1.4	0.4
+11	11	DF6	soil	2	C	74600000	50	1.4	0.4
+12	12	DF6	soil	2	E	57400000	50	1.4	0.4
